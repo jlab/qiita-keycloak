@@ -19,7 +19,7 @@ services:
 
   keycloak:
       image: quay.io/keycloak/keycloak:24.0.2
-      command: ['start', '--proxy-headers=forwarded']
+      command: ['start']
       ports:
         - "8282:8282"  # as the HAproxy of BCF if configured to forward requests here
       restart: unless-stopped
@@ -39,12 +39,13 @@ services:
         - KC_HTTP_ENABLED=false
         - KC_HTTP_PORT=8282
         - KC_PROXY=edge
+        - KC_PROXY_HEADERS=forwarded
         - KC_PROXY_ADDRESS_FORWARDING=true
-        - KC_HOSTNAME_URL=https://keycloak.jlab.bio/
+        - KC_HOSTNAME_URL=https://keycloak.jlab.bio
         - KC_HOSTNAME_ADMIN_URL=https://keycloak.jlab.bio
         - KC_LOG_LEVEL=WARN
-        - KC_HOSTNAME_DEBUG=true
-        - JAVA_OPTS_APPEND="-Djava.net.preferIPv4Stack=true"
+        #- KC_HOSTNAME_DEBUG=true
+        #- JAVA_OPTS_APPEND="-Djava.net.preferIPv4Stack=true"
 
 volumes:
   postgres-data:
