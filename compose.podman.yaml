@@ -1,0 +1,17 @@
+version: '1'
+
+services:
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-db
+    hostname: keycloak-db
+    restart: unless-stopped
+    env_file:
+      - ./environments/db.env
+    volumes:
+      - './environments/db-init.sh:/docker-entrypoint-initdb.d/db-init.sh'
+      - 'postgres-data:/var/lib/postgresql/data'
+
+volumes:
+  postgres-data:
+    name: keycloak-postgres-data
