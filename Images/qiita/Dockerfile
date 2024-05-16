@@ -9,7 +9,7 @@ RUN apt-get -y update
 RUN apt-get -y install \
 	git \
 	wget
-
+RUN apt-get -y install build-essential
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
 RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh -O /tmp/miniforge3.sh && \
@@ -33,8 +33,34 @@ RUN pip install \
 	Click \
 	coverage
 
-#RUN mkdir Git
-#RUN git clone -b dev https://github.com/qiita-spots/qiita.git
+#Clone the Qiita Repo
+RUN git clone -b master https://github.com/qiita-spots/qiita.git
 
 
-#https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+#We need to install necessary dependencies
+#as well as some extra dependencies for psycopg2 to work
+RUN git clone https://github.com/psycopg/psycopg2.git
+RUN apt-get -y update
+RUN apt-get -y install libpq-dev python3-dev gcc
+RUN pg_config --version
+RUN export PATH=/usr/lib/postgresql/14.11/bin/:$PATH
+RUN pip install psycopg2-binary
+RUN pip install -e psycopg2/.
+
+#Install pip packaages for Qiita
+RUN pip install -e qiita/. --no-binary redbiom
+RUN pip install "Jinja2<3.1"
+
+
+#Configuring the Qiita Config to run inside the container
+RUN sed -i 's/BASE_URL = https:\/\/localhost:8383/BASE_URL = https:\/\/localhost:21174\//' qiita/qiita_core/support_files/config_test.cfg
+RUN sed -i 's/\/home\/runner\/work\/qiita\/qiita\//\/qiita\//' qiita/qiita_core/support_files/config_test.cfg
+
+#Copy Bash Script to run Qiita to the container
+COPY start_qiita.sh .
+RUN chmod 777 start_qiita.sh
+
+#I will leave this ENTRYPOINT here as a comment in case debugging
+#is necessary
+#ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["conda", "run", "-n", "qiita", "./start_qiita.sh"]
