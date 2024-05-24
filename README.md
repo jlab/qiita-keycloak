@@ -16,7 +16,7 @@
 2. Run `docker compose up keycloak_web keycloakdb`
 3. Open `http://localhost:8080`, login admin pw admin
 4. Configure Qiita as a service, create a user
-5. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration.
+5. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, comment out necessary oidc configuration part.
 6. Open a new terminal, move into Image Folder `cd Images/qiita`
 7. Build docker image `docker build . -f qiita/Dockerfile -t qiita`
 8. Move to folder containing compose file `cd ../..`
