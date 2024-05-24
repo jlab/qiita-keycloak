@@ -34,8 +34,8 @@ RUN pip install \
 	coverage
 
 #Clone the Qiita Repo
-RUN git clone -b master https://github.com/qiita-spots/qiita.git
-
+#RUN git clone -b master https://github.com/qiita-spots/qiita.git
+RUN git clone -b auth_oidc https://github.com/jlab/qiita.git
 
 #We need to install necessary dependencies
 #as well as some extra dependencies for psycopg2 to work
@@ -53,8 +53,11 @@ RUN pip install "Jinja2<3.1"
 
 
 #Configuring the Qiita Config to run inside the container
-RUN sed -i 's/BASE_URL = https:\/\/localhost:8383/BASE_URL = https:\/\/localhost:21174\//' qiita/qiita_core/support_files/config_test.cfg
-RUN sed -i 's/\/home\/runner\/work\/qiita\/qiita\//\/qiita\//' qiita/qiita_core/support_files/config_test.cfg
+#RUN sed -i 's/BASE_URL = https:\/\/localhost:8383/BASE_URL = https:\/\/localhost:21174\//' qiita/qiita_core/support_files/config_test.cfg
+#RUN sed -i 's/\/home\/runner\/work\/qiita\/qiita\//\/qiita\//' qiita/qiita_core/support_files/config_test.cfg
+
+COPY config_qiita_oidc.cfg .
+RUN chmod 777 config_qiita_oidc.cfg
 
 #Copy Bash Script to run Qiita to the container
 COPY start_qiita.sh .
