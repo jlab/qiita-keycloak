@@ -33,7 +33,7 @@ services:
         - './environments/qiita.env'
       environment:
         - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
-        - QIITA_CONFIG_FP=/qiita/qiita_core/support_files/config_test.cfg
+        - QIITA_CONFIG_FP=./config_qiita_oidc.cfg
 
   keycloak_web: #from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
     image: quay.io/keycloak/keycloak:24.0.2

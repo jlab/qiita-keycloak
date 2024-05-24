@@ -52,10 +52,7 @@ RUN pip install -e qiita/. --no-binary redbiom
 RUN pip install "Jinja2<3.1"
 
 
-#Configuring the Qiita Config to run inside the container
-#RUN sed -i 's/BASE_URL = https:\/\/localhost:8383/BASE_URL = https:\/\/localhost:21174\//' qiita/qiita_core/support_files/config_test.cfg
-#RUN sed -i 's/\/home\/runner\/work\/qiita\/qiita\//\/qiita\//' qiita/qiita_core/support_files/config_test.cfg
-
+#Copy modified config file to the container
 COPY config_qiita_oidc.cfg .
 RUN chmod 777 config_qiita_oidc.cfg
 
