@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ARG MINIFORGE_VERSION=24.1.2-0
 
@@ -6,9 +6,12 @@ ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
 RUN apt-get -y update
-RUN apt-get -y install \
+RUN apt-get -y --fix-missing install \
 	git \
-	wget
+	wget \
+	libpq-dev \
+	python3-dev \
+	gcc
 RUN apt-get -y install build-essential
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
@@ -31,36 +34,32 @@ RUN pip install \
 	sphinx-bootstrap-theme \
 	nose-timer \
 	Click \
-	coverage
+	coverage \
+	psycopg2-binary
 
-#Clone the Qiita Repo
-#RUN git clone -b master https://github.com/qiita-spots/qiita.git
+#cClone the Qiita Repo
+# RUN git clone -b master https://github.com/qiita-spots/qiita.git
 RUN git clone -b auth_oidc https://github.com/jlab/qiita.git
 
-#We need to install necessary dependencies
-#as well as some extra dependencies for psycopg2 to work
+# We need to install necessary dependencies
+# as well as some extra dependencies for psycopg2 to work
 RUN git clone https://github.com/psycopg/psycopg2.git
-RUN apt-get -y update
-RUN apt-get -y install libpq-dev python3-dev gcc
-RUN pg_config --version
 RUN export PATH=/usr/lib/postgresql/14.11/bin/:$PATH
-RUN pip install psycopg2-binary
 RUN pip install -e psycopg2/.
 
-#Install pip packaages for Qiita
-RUN pip install -e qiita/. --no-binary redbiom
-RUN pip install "Jinja2<3.1"
+# Install pip packaages for Qiita
+RUN pip install -e qiita --no-binary redbiom
 
 
-#Copy modified config file to the container
+# Copy modified config file to the container
 COPY config_qiita_oidc.cfg .
-RUN chmod 777 config_qiita_oidc.cfg
+RUN chmod 755 config_qiita_oidc.cfg
 
-#Copy Bash Script to run Qiita to the container
+# Copy Bash Script to run Qiita to the container
 COPY start_qiita.sh .
-RUN chmod 777 start_qiita.sh
+RUN chmod 755 start_qiita.sh
 
-#I will leave this ENTRYPOINT here as a comment in case debugging
-#is necessary
-#ENTRYPOINT ["/bin/bash"]
+# I will leave this ENTRYPOINT here as a comment in case debugging
+# is necessary
+# SHELL ["/bin/bash"]
 ENTRYPOINT ["conda", "run", "-n", "qiita", "./start_qiita.sh"]

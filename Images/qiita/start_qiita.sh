@@ -1,13 +1,17 @@
 #!/bin/bash
 
-#first we start the redis server
+# first we start the redis server
 redis-server --daemonize yes --port 7777
 redis-server --daemonize yes --port 6379
 
-export QIITA_CONFIG_FP="./config_qiita_oidc.cfg"
+export QIITA_CONFIG_FP="/config_qiita_oidc.cfg"
 
-#building the database without ontologies
-qiita-env make --no-load-ontologies
+conda list
 
-#starting the webserver without building the docs
+# building the database without ontologies
+qiita-env make --no-load-ontologies #|| true
+
+# starting the webserver without building the docs
 qiita pet webserver --no-build-docs start
+
+# supervisord -c ./qiita/qiita_pet/supervisor_example.conf
