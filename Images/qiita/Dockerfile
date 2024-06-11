@@ -59,6 +59,9 @@ RUN chmod 755 config_qiita_oidc.cfg
 COPY start_qiita.sh .
 RUN chmod 755 start_qiita.sh
 
+COPY supervisor_foreground.conf .
+RUN chmod 755 supervisor_foreground.conf
+
 # I will leave this ENTRYPOINT here as a comment in case debugging
 # is necessary
 # SHELL ["/bin/bash"]

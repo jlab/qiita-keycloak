@@ -9,9 +9,9 @@ export QIITA_CONFIG_FP="/config_qiita_oidc.cfg"
 conda list
 
 # building the database without ontologies
-qiita-env make --no-load-ontologies #|| true
+qiita-env make --no-load-ontologies # || true
 
 # starting the webserver without building the docs
-qiita pet webserver --no-build-docs start
+# qiita pet webserver --no-build-docs start
 
-# supervisord -c ./qiita/qiita_pet/supervisor_example.conf
+supervisord -c /supervisor_foreground.conf
