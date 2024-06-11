@@ -7,9 +7,10 @@
 2. Move into Image Folder `cd Images/qiita`
 3. Build docker image `docker build . -f qiita/Dockerfile -t qiita`
 4. Move to folder containing compose file `cd ../..`
-5. Run docker compose `docker compose up`
-6. Open `http://localhost:21174`
-7. To stop: Run `docker compose down qiita qiita-db`
+5. Copy the `qiita_db.env.example` and the `qiita.env.example` files, configure them to your needs, and delete the `.example` from the file names.
+6. Run docker compose `docker compose up`
+7. Open `http://localhost:21174`
+8. To stop: Run `docker compose down qiita qiita-db`
     - Use `docker compose down --volumes`if you wish to remove the database volume as well.
 
 ### IF YOU WANT TO USE LOCAL KEYCLOAK:
@@ -22,5 +23,6 @@
 6. Open a new terminal, move into Image Folder `cd Images/qiita`
 7. Build docker image `docker build . -f qiita/Dockerfile -t qiita`
 8. Move to folder containing compose file `cd ../..`
-9. Run docker compose `docker compose up qiita qiita-db`
-10. Open `http://localhost:21174`
+9. Copy the `qiita_db.env.example` and the `qiita.env.example` files, configure them to your needs, and delete the `.example` from the file names.
+10. Run docker compose `docker compose up qiita qiita-db`
+11. Open `http://localhost:21174`
