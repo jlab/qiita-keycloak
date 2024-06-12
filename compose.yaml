@@ -24,10 +24,12 @@ services:
       tty: true
       network_mode: host
       ports:
-        - "21174:21174"  # wihtout nginx
+        # - "21174:21174"  # wihtout nginx
+        - 8383:8383
       restart: no
       depends_on:
         - qiita-db
+        - nginx
       env_file:
         - './environments/qiita.env'
       environment:
@@ -71,18 +73,17 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
   
-  # nginx:
-  #   image: nginx_qiita:latest
-  #   ports:
-  #     - "8080:8080"
-  #   command: ['./start_nginx.sh']
-    # command: /bin/bash
-    # entrypoint: /bin/bash
-  #   stdin_open: true
-  #   tty: true
-  #   restart: no
-    # volumes:
-    #   - qiita:/qiita/
+  nginx:
+    image: nginx_qiita:latest
+    ports:
+      - "8383:8383"
+    command: ['./start_nginx.sh']
+    network_mode: host
+    stdin_open: true
+    tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita
 
 volumes:
   postgres-data:
