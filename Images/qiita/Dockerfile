@@ -1,6 +1,8 @@
 FROM ubuntu:24.04
 
 ARG MINIFORGE_VERSION=24.1.2-0
+ARG MODZIP_VERSION=1.3.0
+ARG NGINX_VERSION=1.26.0
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -11,7 +13,10 @@ RUN apt-get -y --fix-missing install \
 	wget \
 	libpq-dev \
 	python3-dev \
-	gcc
+	gcc \
+	libpcre2-dev \
+	libxslt-dev \
+	libgd-dev
 RUN apt-get -y install build-essential
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
@@ -22,7 +27,7 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 	conda init
 
 # create conda env for qiita with all necessary dependencies (conda and pip)
-RUN conda create --quiet --yes -n qiita python=3.9 pip libgfortran numpy nginx cython anaconda::redis
+RUN conda create --quiet --yes -n qiita python=3.9 pip libgfortran numpy cython anaconda::redis
 
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
@@ -52,8 +57,8 @@ RUN pip install -e qiita --no-binary redbiom
 
 
 # Copy modified config file to the container
-COPY config_qiita_oidc.cfg .
-RUN chmod 755 config_qiita_oidc.cfg
+COPY config_qiita_oidc.cfg /qiita/
+RUN chmod 755 /qiita/config_qiita_oidc.cfg
 
 # Copy Bash Script to run Qiita to the container
 COPY start_qiita.sh .

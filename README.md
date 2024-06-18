@@ -3,15 +3,21 @@
 **FOR TESTING ON LOCAL MACHINES**
 
 ### Hopefully "foolproof" instructions:
+0. Log files will be mounted at /tmp/qiita_logs on your local machine. Make sure the directory exists and is accessible for you. Otherwise, change the file path to your desired path in the compose file as well as in the qiita, nginx and supervisord conf.
 1. Clone repository
 2. Move into Image Folder `cd Images/qiita`
 3. Build docker image `docker build . -f qiita/Dockerfile -t qiita`
-4. Move to folder containing compose file `cd ../..`
-5. Copy the `qiita_db.env.example` and the `qiita.env.example` files, configure them to your needs, and delete the `.example` from the file names.
-6. Run docker compose `docker compose up`
-7. Open `http://localhost:21174`
-8. To stop: Run `docker compose down qiita qiita-db`
-    - Use `docker compose down --volumes`if you wish to remove the database volume as well.
+4. Build the nginx Image the same way as the qiita image, only in the nginx folder.
+5. Move to folder containing compose file `cd ../..`
+6. Copy the `qiita_db.env.example` and the `qiita.env.example` 7iles, configure them to your needs, and delete the `.example` from the file names.
+7. Run docker compose `docker compose up qiita-db nginx qiita`
+8. Open `http://localhost:21174`
+9. To stop: Run `docker compose down qiita nginx qiita-db`
+    - Use `docker compose down qiita nginx qiita-db --volumes`if you wish to remove all associated volumes as well.
+
+Extras:
+- If you want to remove a specific volume `docker volume rm <volume name>`
+- If you want to access a container `docker ps`to fetch the ID and `docker exec -it <ID> bash`
 
 ### IF YOU WANT TO USE LOCAL KEYCLOAK:
 

@@ -4,7 +4,7 @@
 redis-server --daemonize yes --port 7777
 redis-server --daemonize yes --port 6379
 
-export QIITA_CONFIG_FP="/config_qiita_oidc.cfg"
+export QIITA_CONFIG_FP="/qiita/config_qiita_oidc.cfg"
 
 conda list
 
