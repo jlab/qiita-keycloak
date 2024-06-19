@@ -87,8 +87,20 @@ services:
     volumes:
       - qiita-data:/qiita
       - logs:/qiita_logs
-      
 
+  qtp-biom:
+    image: qtp-biom:latest
+    command: ['./start_qtp-biom.sh']
+    network_mode: host
+    stdin_open: true
+    tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita
+    depends_on:
+    - qiita
+    - qiita-db
+ 
 volumes:
   postgres-data:
     name: qiita-postgres-data
