@@ -87,7 +87,7 @@ services:
     volumes:
       - qiita-data:/qiita
       - logs:/qiita_logs
-  
+      
 
 volumes:
   postgres-data:
@@ -102,5 +102,5 @@ volumes:
     driver_opts:
       o: bind
       type: none
-      device: /tmp/qiita_logs
+      device: ./qiita_logs
   
