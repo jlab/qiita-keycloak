@@ -1,52 +1,106 @@
-version: '3'
-
 services:
-  keycloak-db:
+  qiita-db:
     image: postgres:15
-    container_name: keycloak-db
-    hostname: keycloak-db
-    restart: unless-stopped
+    container_name: qiita-db
+    hostname: qiita-db
+    network_mode: host
+    restart: no
     env_file:
-      - ./environments/db.env
+      - ./environments/qiita_db.env
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
-      - KEYCLOAK_DB_NAME=keycloak
-      - KEYCLOAK_DB_USER=keycloak
     volumes:
-      - './environments/db-init.sh:/docker-entrypoint-initdb.d/db-init.sh'
+      - './environments/qiita-db-init.sh:/docker-entrypoint-initdb.d/qiita-db-init.sh'
       - 'postgres-data:/var/lib/postgresql/data'
+    ports:
+      - "5433:5433"
+    command: -p 5433
 
-  keycloak:
-      image: quay.io/keycloak/keycloak:24.0.2
-      command: ['start']
+  qiita:
+      image: qiita:latest 
+      command: ['./start_qiita.sh'] # executes bash script inside the container
+      # entrypoint: /bin/bash
+      stdin_open: true
+      tty: true
+      network_mode: host
       ports:
-        - "8282:8282"  # as the HAproxy of BCF if configured to forward requests here
-      restart: unless-stopped
+        # - "21174:21174"  # wihtout nginx
+        - 8383:8383
+      restart: no
       depends_on:
-        - keycloak-db
+        - qiita-db
+        - nginx
       env_file:
-        - './environments/keycloak.env'
+        - './environments/qiita.env'
       environment:
-        - KEYCLOAK_ADMIN=admin
-        - KC_DB=postgres
-        - KC_DB_URL_HOST=keycloak-db
-        - KC_DB_URL_PORT=5432
-        - KC_DB_URL_DATABASE=keycloak
-        - KC_DB_USERNAME=keycloak
-        - KC_DB_SCHEMA=public
-        - KC_HTTP_HOST=0.0.0.0
-        - KC_HTTP_ENABLED=false
-        - KC_HTTP_PORT=8282
-        - KC_PROXY=edge
-        - KC_PROXY_HEADERS=forwarded
-        - KC_PROXY_ADDRESS_FORWARDING=true
-        - KC_HOSTNAME_URL=https://keycloak.jlab.bio
-        - KC_HOSTNAME_ADMIN_URL=https://keycloak.jlab.bio
-        - KC_LOG_LEVEL=WARN
-        #- KC_HOSTNAME_DEBUG=true
-        #- JAVA_OPTS_APPEND="-Djava.net.preferIPv4Stack=true"
+        - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
+        - QIITA_CONFIG_FP=/config_qiita_oidc.cfg
+      volumes:
+          - qiita-data:/qiita
+          - logs:/qiita_logs
+
+
+  keycloak_web: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: keycloak_web
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloakdb:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 9999
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev
+    depends_on:
+      - keycloakdb
+    ports:
+      - 9999:8080
+
+  keycloakdb:
+    image: postgres:15
+    volumes:
+      - keycloak-postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+  
+  nginx:
+    image: nginx_qiita:latest
+    ports:
+      - "8383:8383"
+    command: ['./start_nginx.sh']
+    network_mode: host
+    stdin_open: true
+    tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita
+      - logs:/qiita_logs
+      
 
 volumes:
   postgres-data:
+    name: qiita-postgres-data
+  keycloak-postgres-data:
     name: keycloak-postgres-data
+  qiita-data:
+    name: qiita-data
+  logs:
+    name: logs
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./qiita_logs
+  
