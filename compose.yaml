@@ -3,7 +3,6 @@ services:
     image: postgres:15
     container_name: qiita-db
     hostname: qiita-db
-    network_mode: host
     restart: no
     env_file:
       - ./environments/qiita_db.env
@@ -13,58 +12,64 @@ services:
     volumes:
       - './environments/qiita-db-init.sh:/docker-entrypoint-initdb.d/qiita-db-init.sh'
       - 'postgres-data:/var/lib/postgresql/data'
-    ports:
-      - "5433:5433"
-    command: -p 5433
+    networks:
+      - qiita-net
 
   qiita:
-      image: qiita:latest 
+      image: local-qiita:latest 
+      build: # image wird hier direkt gebaut
+        context: ./Images/qiita
+        dockerfile: Dockerfile
       command: ['./start_qiita.sh'] # executes bash script inside the container
       # entrypoint: /bin/bash
-      stdin_open: true
-      tty: true
-      network_mode: host
-      ports:
+      # stdin_open: true
+      # tty: true
+      # ports:
         # - "21174:21174"  # wihtout nginx
-        - 8383:8383
+        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
         - qiita-db
-        - nginx
       env_file:
         - './environments/qiita.env'
       environment:
         - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
         - QIITA_CONFIG_FP=/config_qiita_oidc.cfg
       volumes:
-          - qiita-data:/qiita
-          - logs:/qiita_logs
+        - qiita-data:/qiita
+        - ./qiita_logs:/qiita_logs
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita/config_qiita_oidc.cfg
+      networks:
+        - qiita-net
+      # deploy:
+      #   replicas: 3
 
-
-  keycloak_web: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
+  keycloak: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
     image: quay.io/keycloak/keycloak:24.0.2
-    container_name: keycloak_web
+    container_name: keycloak
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloakdb:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: password
 
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME: keycloak
       KC_HOSTNAME_PORT: 9999
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
 
       KC_LOG_LEVEL: info
-      KC_METRICS_ENABLED: true
+      KC_METRICS_ENABLED: false
       KC_HEALTH_ENABLED: true
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-    command: start-dev
+    command: ["start-dev", "--http-port=9999"]
     depends_on:
       - keycloakdb
     ports:
-      - 9999:8080
+      - 127.0.0.1:9999:9999
+    networks:
+      - qiita-net
 
   keycloakdb:
     image: postgres:15
@@ -74,21 +79,33 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+    networks:
+      - qiita-net
   
   nginx:
-    image: nginx_qiita:latest
+    image: local-nginx_qiita:latest
+    build:
+      context: ./Images/nginx
+      dockerfile: Dockerfile
     ports:
       - "8383:8383"
     command: ['./start_nginx.sh']
-    network_mode: host
-    stdin_open: true
-    tty: true
+    # stdin_open: true
+    # tty: true
     restart: no
+    depends_on:
+      - qiita
     volumes:
       - qiita-data:/qiita
-      - logs:/qiita_logs
-      
+      - ./nginx_logs:/qiita_logs
+      - ./Images/nginx/nginx_qiita.conf:/nginx_qiita.conf
+    networks:
+      - qiita-net
 
+networks:
+  qiita-net:
+    name: qiita-net
+ 
 volumes:
   postgres-data:
     name: qiita-postgres-data
@@ -96,11 +113,4 @@ volumes:
     name: keycloak-postgres-data
   qiita-data:
     name: qiita-data
-  logs:
-    name: logs
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./qiita_logs
   
