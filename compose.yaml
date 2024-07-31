@@ -30,6 +30,7 @@ services:
       restart: no
       depends_on:
         - qiita-db
+        - redis
       env_file:
         - './environments/qiita.env'
       environment:
@@ -39,11 +40,22 @@ services:
         - qiita-data:/qiita
         - ./qiita_logs:/qiita_logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita/config_qiita_oidc.cfg
+        - ./Images/qiita/start_qiita.sh:/qiita/start_qiita.sh
       networks:
         - qiita-net
       # deploy:
       #   replicas: 3
-
+  redis:
+    image: redis:latest
+    restart: no
+    command: >
+      sh -c "redis-server --port 7777 &&
+             redis-server --port 6379"
+    volumes: 
+      - qiita-data:/qiita
+      - ./qiita_logs:/qiita_logs
+    networks:
+      - qiita-net
   keycloak: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
     image: quay.io/keycloak/keycloak:24.0.2
     container_name: keycloak

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # first we start the redis server
-redis-server --daemonize yes --port 7777
-redis-server --daemonize yes --port 6379
+# redis-server --daemonize yes --port 7777
+# redis-server --daemonize yes --port 6379
 
 export QIITA_CONFIG_FP="/qiita/config_qiita_oidc.cfg"
-
+# TODO: kick out the supervisor -> one "master" image and one "worker" image and then they do shenanigans together via replicas
 # conda list
 if [ "$( psql -XtAc "SELECT 1 FROM postgres WHERE datname='qiita_test'" )" = '1' ]
 then

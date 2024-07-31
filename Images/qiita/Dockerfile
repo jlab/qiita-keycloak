@@ -29,7 +29,7 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 
 # create conda env for qiita with all necessary dependencies (conda and pip)
 RUN conda create --quiet --yes -n qiita python=3.9 pip libgfortran numpy cython anaconda::redis
-
+# TODO: Redis container
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-n", "qiita", "/bin/bash", "-c"]
@@ -103,12 +103,12 @@ RUN pip install -e qiita --no-binary redbiom
 
 
 # Copy modified config file to the container
-COPY config_qiita_oidc.cfg /qiita/
-RUN chmod 755 /qiita/config_qiita_oidc.cfg
+# COPY config_qiita_oidc.cfg /qiita/
+# RUN chmod 755 /qiita/config_qiita_oidc.cfg
 
 # Copy Bash Script to run Qiita to the container
-COPY start_qiita.sh .
-RUN chmod 755 start_qiita.sh
+# COPY start_qiita.sh .
+# RUN chmod 755 start_qiita.sh
 
 COPY supervisor_foreground.conf .
 RUN chmod 755 supervisor_foreground.conf
