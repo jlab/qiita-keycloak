@@ -9,10 +9,12 @@ export QIITA_CONFIG_FP="/qiita/config_qiita_oidc.cfg"
 # conda list
 if [ "$( psql -XtAc "SELECT 1 FROM postgres WHERE datname='qiita_test'" )" = '1' ]
 then
-    supervisord -c /supervisor_foreground.conf
+    # supervisord -c /supervisor_foreground.conf
+    qiita pet webserver --no-build-docs start --port 21174 --master
 else
     qiita-env make --no-load-ontologies
-    supervisord -c /supervisor_foreground.conf
+    qiita pet webserver --no-build-docs start --port 21174 --master
+    # supervisord -c /supervisor_foreground.conf
 fi
 
 # building the database without ontologies
