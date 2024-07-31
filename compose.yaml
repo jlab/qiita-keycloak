@@ -45,6 +45,36 @@ services:
         - qiita-net
       # deploy:
       #   replicas: 3
+  qiita_worker:
+      image: local-qiita:latest 
+      build: # image wird hier direkt gebaut
+        context: ./Images/qiita
+        dockerfile: Dockerfile
+      command: ['./start_qiita_worker.sh'] # executes bash script inside the container
+      # entrypoint: /bin/bash
+      # stdin_open: true
+      # tty: true
+      # ports:
+        # - "21174:21174"  # wihtout nginx
+        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
+      restart: no
+      depends_on:
+        - qiita-db
+        - redis
+        - qiita
+      env_file:
+        - './environments/qiita.env'
+      environment:
+        - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
+        - QIITA_CONFIG_FP=/config_qiita_oidc.cfg
+      volumes:
+        - qiita-data:/qiita
+        - ./qiita_logs:/qiita_logs
+        - ./Images/qiita/start_qiita_worker.sh:/qiita/start_qiita_worker.sh
+      networks:
+        - qiita-net
+      deploy:
+        replicas: 3
   redis:
     image: redis:latest
     restart: no
