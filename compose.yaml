@@ -40,7 +40,7 @@ services:
         - qiita-data:/qiita
         - ./qiita_logs:/qiita_logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita/config_qiita_oidc.cfg
-        - ./Images/qiita/start_qiita.sh:/qiita/start_qiita.sh
+        # - ./Images/qiita/start_qiita.sh:/qiita/start_qiita.sh
       networks:
         - qiita-net
       # deploy:
@@ -70,7 +70,8 @@ services:
       volumes:
         - qiita-data:/qiita
         - ./qiita_logs:/qiita_logs
-        - ./Images/qiita/start_qiita_worker.sh:/qiita/start_qiita_worker.sh
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita/config_qiita_oidc.cfg
+        # - ./Images/qiita/start_qiita_worker.sh:/qiita/start_qiita_worker.sh
       networks:
         - qiita-net
       deploy:
