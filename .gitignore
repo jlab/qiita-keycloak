@@ -1,2 +1,3 @@
-environments/db.env
-environments/keycloak.env
+environments/*.env
+qiita_logs/*log
+qiita_logs/*.pid
