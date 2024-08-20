@@ -22,7 +22,7 @@ Extras:
 ### IF YOU WANT TO USE LOCAL KEYCLOAK:
 
 1. Clone repository
-2. Run `docker compose up keycloak_web keycloakdb`
+2. Run `docker compose up keycloak keycloakdb`
 3. Open `http://localhost:8080`, login admin pw admin
 4. Configure Qiita as a service, create a user
 5. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, remove # from necessary oidc block.
