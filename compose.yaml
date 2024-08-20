@@ -144,11 +144,7 @@ services:
       - ./Images/nginx/nginx_qiita.conf:/nginx_qiita.conf
     networks:
       - qiita-net
-
-networks:
-  qiita-net:
-    name: qiita-net
-
+  
   qtp-biom:
     image: qtp-biom:latest
     command: ['./start_qtp-biom.sh']
@@ -161,6 +157,10 @@ networks:
     depends_on:
     - qiita
     - qiita-db
+
+networks:
+  qiita-net:
+    name: qiita-net
 
  
 volumes:
