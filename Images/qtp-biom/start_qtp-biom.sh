@@ -4,8 +4,11 @@ export QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_server.crt
 export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 export QIITA_PLUGINS_DIR=/qiita/plugins/
 
-configure_biom --env-script "source /opt/conda/bin/activate ; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
+# Commented out because I wanted to jump onto the container to crawl into the code (it crashes during the start_biom step)
 
-start_biom https://localhost:8383 register ignored
+#configure_biom --env-script "source /opt/conda/bin/activate ; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 
-#sleep 30000000000000000000000000000
+#start_biom https://localhost:8383 register ignored
+#start_biom http://qiita:8383 register ignored
+
+sleep 30000000000000000

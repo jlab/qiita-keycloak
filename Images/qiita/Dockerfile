@@ -70,10 +70,4 @@ RUN pip install -e qiita --no-binary redbiom
  COPY start_qiita_worker.sh .
  RUN chmod 755 start_qiita_worker.sh
 
-COPY supervisor_foreground.conf .
-RUN chmod 755 supervisor_foreground.conf
-
-# I will leave this ENTRYPOINT here as a comment in case debugging
-# is necessary
-# SHELL ["/bin/bash"]
 ENTRYPOINT ["conda", "run", "-n", "qiita"]

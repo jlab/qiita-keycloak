@@ -1,3 +1,4 @@
 environments/*.env
 qiita_logs/*log
 qiita_logs/*.pid
+nginx_logs/*_log

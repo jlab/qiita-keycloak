@@ -38,9 +38,13 @@ SHELL ["conda", "run", "-n", "qtp-biom", "/bin/bash", "-c"]
 RUN pip install -U pip
 RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 RUN pip install https://github.com/qiita-spots/qtp-biom/archive/master.zip
+RUN git clone https://github.com/qiita-spots/qtp-biom.git
 
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
+
+RUN sed -i 's/2.1.4 - Qiime2/2.1.5 - Qiime2 Annas Version/g' /qtp-biom/qtp_biom/__init__.py
+
 COPY start_qtp-biom.sh .
 RUN chmod 755 start_qtp-biom.sh
 

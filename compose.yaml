@@ -146,21 +146,25 @@ services:
       - qiita-net
   
   qtp-biom:
-    image: qtp-biom:latest
+    image: local-qtp-biom:latest
     command: ['./start_qtp-biom.sh']
-    network_mode: host
-    stdin_open: true
-    tty: true
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita
     depends_on:
     - qiita
     - qiita-db
+    - qiita_worker
+    networks:
+      - qiita-net
 
 networks:
   qiita-net:
     name: qiita-net
+    external: true
 
  
 volumes:
