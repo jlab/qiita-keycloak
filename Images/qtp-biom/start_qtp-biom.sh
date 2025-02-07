@@ -1,8 +1,9 @@
 #!/bin/bash
 
 export QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_server.crt
-export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
-export QIITA_PLUGINS_DIR=/qiita/plugins/
+export QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+CONDA_DIR=/opt/conda
+ENV_NAME=qtp-biom
 
 # Commented out because I wanted to jump onto the container to crawl into the code (it crashes during the start_biom step)
 
@@ -10,5 +11,7 @@ export QIITA_PLUGINS_DIR=/qiita/plugins/
 
 #start_biom https://localhost:8383 register ignored
 #start_biom http://qiita:8383 register ignored
+#source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd / && python trigger.py
+source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qtp-biom; cd / && python trigger.py
 
-sleep 30000000000000000
+tail -f /dev/null
