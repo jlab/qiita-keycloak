@@ -32,19 +32,21 @@ services:
         # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
-        - qiita_worker
+        - qiita-worker
       env_file:
         - './environments/qiita.env'
       environment:
-        - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
+        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
         - PORT=21174
         - MASTER=--master
       volumes:
-        - qiita-data:/qiita
+        #- qiita-data:/qiita
+        - ./src/qiita:/qiita:U
         - ./logs:/logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
         - server-plugin-configs:/qiita_plugins
+        - server-certificates:/qiita_certificates
         # - ./Images/qiita/start_qiita.sh:/qiita/start_qiita.sh
       networks:
         - qiita-net
@@ -52,7 +54,7 @@ services:
       - "21174:21174"
     # deploy:
       #   replicas: 3
-  qiita_worker:
+  qiita-worker:
       image: local-qiita:latest 
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
@@ -67,11 +69,11 @@ services:
       restart: no
       depends_on:
         - redis
-        - plugin_collector
+        - plugin-collector
       env_file:
         - './environments/qiita.env'
       environment:
-        - QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_rootca.crt
+        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
         - PORT=21175
         - MASTER=
@@ -80,6 +82,7 @@ services:
         - ./logs:/logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
         - server-plugin-configs:/qiita_plugins
+        - server-certificates:/qiita_certificates
         # - ./Images/qiita/start_qiita_worker.sh:/qiita/start_qiita_worker.sh
       networks:
         - qiita-net
@@ -153,6 +156,7 @@ services:
       #- ./logs/nginx_error.log:/logs/nginx_error.log
       - ./logs:/logs
       - ./Images/nginx/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
+      - server-certificates:/qiita_certificates
     networks:
       - qiita-net
   
@@ -165,13 +169,15 @@ services:
     restart: no
     volumes:
       - qiita-data:/qiita
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
     #depends_on:
     #- qiita
     networks:
       - qiita-net
       
-  plugin_collector:
+  plugin-collector:
+    # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
+    # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
     image: local-plugin_collector
     restart: no
     networks:
@@ -180,8 +186,9 @@ services:
       - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita
-      #- /Daten/Git/jlab/qiita_container_anna/Images/plugin_collector/collect_configs.py:/collect.py
-      #- /Daten/Git/jlab/qiita_container_anna/Images/plugin_collector/fix_test_db.py:/fix_test_db.py
+      - server-certificates:/qiita_certificates
+      #- /Daten/Git/jlab/qiita-container-anna/Images/plugin_collector/collect_configs.py:/collect.py
+      #- /Daten/Git/jlab/qiita-container-anna/Images/plugin_collector/fix_test_db.py:/fix_test_db.py
     depends_on:
       - qtp-biom  # one of the plugins
       - qiita-db  # as values in qiita DB might be updated
@@ -202,5 +209,5 @@ volumes:
     #~ name: keycloak-postgres-data
   qiita-data:
     name: qiita-data
-  server-plugin-configs:
-  #server-configurations:
+  server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
+  server-certificates: # server one copy of qiita server (master and workers) certificate files. If not in volume, "plugin_collector" should copy them there
