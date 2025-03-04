@@ -6,6 +6,9 @@ ENV_NAME=qiita
 
 #sleep 300000
 #export QIITA_CONFIG_FP="/qiita/config_qiita_oidc.cfg"
+if [ -n "${MASTER}" ] && [ ! -d /qiita/qiita_db/__pycache__ ]; then
+	source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd /qiita; pip install -e . --no-binary redbiom;
+fi
 
 # We execute qiita-env make every time. We expect that it will fail always but the very first time, as the qiita DB should exist from then on
 source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd /qiita; qiita-env make --no-load-ontologies 2> .env-make.err || true
@@ -23,6 +26,7 @@ grep 'already present on the system. You can drop it by running' .env-make.err >
 #fi
 #qiita-env make --no-load-ontologies; true
 #mkdir -p /qiita/plugins
-source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd /qiita && qiita pet webserver --no-build-docs start --port $PORT $MASTER
+#sleep 3
+source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd /qiita && qiita pet webserver --no-build-docs start --port $PORT $MASTER 2> /logs/qiita_pet$MASTER.log 1>&2
 
 tail -f /dev/null
