@@ -43,8 +43,6 @@ RUN pip install pip-system-certs
 RUN conda install tornado
 COPY trigger.py /trigger.py
 
-##  Export cert and config filepaths
-RUN export QIITA_ROOTCA_CERT=/qiita/qiita_core/support_files/ci_server.crt
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 WORKDIR /
@@ -55,7 +53,10 @@ RUN chmod 755 start_qtp-biom.sh
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-RUN /qtp-biom/scripts/configure_biom --env-script "source /home/joe/.bashrc; conda activate env_deblur" --server-cert /qiita/qiita_core/support_files/ci_rootca.crt
-
+##  Export cert and config filepaths
+COPY Certificates /unshared_certificates
+#RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
+RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert /unshared_certificates/ci_rootca.crt
+RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
 CMD ["conda", "run", "-n", "qtp-biom", "./start_qtp-biom.sh"]
