@@ -71,4 +71,10 @@ RUN chmod 755 start_qiita.sh
 #RUN chmod 755 start_qiita_worker.sh
 
 RUN apt-get install -y curl
+COPY start_plugin.py /start_plugin.py
+RUN chmod a+x /start_plugin.py
+
+# hide certificate and server configuration copy from source code
+RUN rm -rf /qiita/qiita_core/support_files
+
 # CMD ["conda", "run", "-n", "qiita"]
