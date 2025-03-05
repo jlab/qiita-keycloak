@@ -20,6 +20,11 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	cd $@/ && $(OPENSSL) x509 -req -in $(CERTNAME)_server.csr -CA $(CERTNAME)_rootca.crt -CAkey $(CERTNAME)_rootca.key -CAcreateserial -out $(CERTNAME)_server.crt -days 365 -sha256 -extfile $(CERTNAME)_cert.conf
 	# === end: create own certificates ===
 
+TMPDIR=$(shell mktemp -d)
+plugin: Images/qtp-biom/trigger.py Certificates/
+	cp -r $^ $(TMPDIR)/
+	cd $(TMPDIR)
+
 .built_image_biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh Images/qtp-biom/trigger.py Certificates/
 	rm -rf Images/qtp-biom/Certificates && cp -r Certificates Images/qtp-biom/
 	cd Images/qtp-biom && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qtp-biom
@@ -30,6 +35,12 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	cp Images/qtp-biom/trigger.py Images/qtp-sequencing/
 	cd Images/qtp-sequencing && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qtp-sequencing
 	touch .built_image_sequencing
+
+.built_image_target-gene: Images/qp-target-gene/qp-target-gene.dockerfile Images/qp-target-gene/start_qp-target-gene.sh Images/qtp-biom/trigger.py Certificates/
+	rm -rf Images/qp-target-gene/Certificates && cp -r Certificates Images/qp-target-gene/
+	cp Images/qtp-biom/trigger.py Images/qp-target-gene/
+	cd Images/qp-target-gene && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qp-target-gene
+	touch .built_image_target-gene
 
 .built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Images/nginx/nginx_qiita.conf
 	cd Images/nginx && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx_qiita
@@ -50,7 +61,7 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	cd Images/plugin_collector && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_sequencing
+images: .built_image_biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_sequencing .built_image_target-gene
 
 environments/qiita_db.env: environments/qiita_db.env.example
 	cp environments/qiita_db.env.example environments/qiita_db.env
