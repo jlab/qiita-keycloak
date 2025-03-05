@@ -15,5 +15,11 @@ req = requests.post('http://qiita-container-anna-%s-1:%s/run' % (pluginname, POR
 print(req.status_code)
 
 retvalues = json.loads(req.text)
-print("=== request STDERR ===\n%s" % retvalues['stderr'])
-print("=== request STDOUT ===\n%s" % retvalues['stdout'])
+if 'stderr' in retvalues.keys():
+    print("=== request STDERR ===\n%s" % retvalues['stderr'])
+else:
+    print("=== request STDERR: empty ===\n")
+if 'stdout' in retvalues.keys():
+    print("=== request STDOUT ===\n%s" % retvalues['stdout'])
+else:
+    print("=== request STDOUT: empty ===\n")
