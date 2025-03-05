@@ -3,6 +3,11 @@ import tornado.web
 import json
 import subprocess
 from glob import glob
+import sys
+
+conda_env_name = None
+plugin_start_script = None
+plugin_src_dir = None
 
 class RunCommandHandler(tornado.web.RequestHandler):
     def post(self):
@@ -12,7 +17,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
             qiita_worker_url = data.get('url')
             job_id = data.get('job_id')
             output_dir = data.get('output_dir')
-            
+
             #command = data.get("command")
 
             if not qiita_worker_url or not job_id or not output_dir:
@@ -21,7 +26,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 return
 
             # Systembefehl ausfuehren
-            cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qtp-biom; /qtp-biom/scripts/start_biom %s %s %s' % (qiita_worker_url, job_id, output_dir)
+            cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True, executable='/bin/bash')
 
             # Antwort zurueckgeben
@@ -53,8 +58,11 @@ def make_app():
     ])
 
 if __name__ == "__main__":
+    conda_env_name = sys.argv[1]
+    plugin_start_script = sys.argv[2]
+    plugin_src_dir = sys.argv[3]
+
     app = make_app()
     app.listen(5000)  # Server auf Port 5000 starten
     print("Server laeuft auf http://localhost:5000")
     tornado.ioloop.IOLoop.current().start()
-
