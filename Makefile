@@ -1,4 +1,4 @@
-PODMAN_FLAGS =  
+PODMAN_FLAGS =
 PODMAN_BIN = docker buildx
 CERTNAME=stefan
 OPENSSL=/bin/openssl
@@ -25,6 +25,12 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	cd Images/qtp-biom && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qtp-biom
 	touch .built_image_biom
 
+.built_image_sequencing: Images/qtp-sequencing/qtp-sequencing.dockerfile Images/qtp-sequencing/start_qtp-sequencing.sh Images/qtp-biom/trigger.py Certificates/
+	rm -rf Images/qtp-sequencing/Certificates && cp -r Certificates Images/qtp-sequencing/
+	cp Images/qtp-biom/trigger.py Images/qtp-sequencing/
+	cd Images/qtp-sequencing && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qtp-sequencing
+	touch .built_image_sequencing
+
 .built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Images/nginx/nginx_qiita.conf
 	cd Images/nginx && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx_qiita
 	mkdir -p ./logs
@@ -44,15 +50,15 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	cd Images/plugin_collector && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_biom .built_image_nginx .built_image_qiita .built_image_plugin_collector
+images: .built_image_biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_sequencing
 
 environments/qiita_db.env: environments/qiita_db.env.example
 	cp environments/qiita_db.env.example environments/qiita_db.env
 	sed -E -i "s/^POSTGRES_PASSWORD=.+$$/POSTGRES_PASSWORD=postgres/" environments/qiita_db.env
-	
+
 environments/qiita.env: environments/qiita.env.example
 	cp environments/qiita.env.example environments/qiita.env
-	
+
 config: environments/qiita_db.env environments/qiita.env
 
 all: config images
