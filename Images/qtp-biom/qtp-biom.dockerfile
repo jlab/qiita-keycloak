@@ -43,6 +43,7 @@ RUN pip install pip-system-certs
 RUN conda install tornado
 COPY trigger.py /trigger.py
 
+# TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 WORKDIR /
@@ -55,8 +56,12 @@ ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
 COPY Certificates /unshared_certificates
+RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
+RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert /unshared_certificates/ci_rootca.crt
+RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
 CMD ["conda", "run", "-n", "qtp-biom", "./start_qtp-biom.sh"]
