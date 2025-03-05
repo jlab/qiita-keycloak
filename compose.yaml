@@ -242,6 +242,46 @@ services:
     networks:
       - qiita-net
 
+  qtp-diversity:
+    image: local-qtp-diversity:latest
+    command: ['./start_qtp-diversity.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
+    environment:
+      # TODO: is there a more elegant way to obtain this path?
+      - REQUESTS_CA_BUNDLE=/opt/conda/envs/qiime2/lib/python3.8/site-packages/certifi/cacert.pem
+      - SSL_CERT_FILE=/opt/conda/envs/qiime2/lib/python3.8/site-packages/certifi/cacert.pem
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    #depends_on:
+    #- qiita
+    networks:
+      - qiita-net
+
+  qp-deblur:
+    image: local-qp-deblur:latest
+    command: ['./start_qp-deblur.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
+    environment:
+      # TODO: is there a more elegant way to obtain this path?
+      - REQUESTS_CA_BUNDLE=/opt/conda/envs/deblur/lib/python3.5/site-packages/certifi/cacert.pem
+      - SSL_CERT_FILE=/opt/conda/envs/deblur/lib/python3.5/site-packages/certifi/cacert.pem
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    #depends_on:
+    #- qiita
+    networks:
+      - qiita-net
+
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
@@ -261,9 +301,11 @@ services:
       - qtp-sequencing
       - qp-target-gene
       - qtp-visualization
+      - qtp-diversity
+      - qp-deblur
       - qiita-db  # as values in qiita DB might be updated
     environment:
-      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:"
+      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:"
     command: ['/startup_plugin_collector.sh']
 
 networks:

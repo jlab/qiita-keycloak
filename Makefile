@@ -53,6 +53,18 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
+.built_image_qtp-diversity: Images/qtp-diversity/qtp-diversity.dockerfile Images/qtp-diversity/start_qtp-diversity.sh
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+	touch .built_image_`basename $< | cut -d "." -f 1`
+
+.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+	touch .built_image_`basename $< | cut -d "." -f 1`
+
 .built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Images/nginx/nginx_qiita.conf
 	cd Images/nginx && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx_qiita
 	mkdir -p ./logs
@@ -73,7 +85,7 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	cd Images/plugin_collector && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization
+images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur
 
 environments/qiita_db.env: environments/qiita_db.env.example
 	cp environments/qiita_db.env.example environments/qiita_db.env
