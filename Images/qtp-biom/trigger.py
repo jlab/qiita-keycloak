@@ -39,6 +39,12 @@ class RunCommandHandler(tornado.web.RequestHandler):
 
         except Exception as e:
             self.set_status(500)
+            # a hack to learn which docker service I am in
+            plugin_name = "unknown"
+            for f in glob('/start_*.sh'):
+                plugin_name = f.split('_')[-1].replace('.sh', '')
+                break
+            print("Error in service '%s': %s" % (plugin_name, str(e)), file=sys.stderr)
             self.write({"error": str(e)})
 
 class RunConfigHandler(tornado.web.RequestHandler):
@@ -64,5 +70,5 @@ if __name__ == "__main__":
 
     app = make_app()
     app.listen(5000)  # Server auf Port 5000 starten
-    print("Server laeuft auf http://localhost:5000")
+    print("Server laeuft auf http://localhost:5000", file=sys.stderr)
     tornado.ioloop.IOLoop.current().start()
