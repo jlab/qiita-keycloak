@@ -13,6 +13,8 @@ req = requests.post('http://qiita-container-anna-%s-1:%s/run' % (pluginname, POR
                           'job_id': job_id,
                           'output_dir': output_dir})
 print(req.status_code)
+if req.status_code != 200:
+    print(req.content)
 
 retvalues = json.loads(req.text)
 if 'stderr' in retvalues.keys():
