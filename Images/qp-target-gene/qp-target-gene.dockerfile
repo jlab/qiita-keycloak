@@ -23,6 +23,11 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 	conda init && \
 	rm -f /tmp/miniforge3.sh
 
+# install tornado based trigger layer in base environment
+RUN pip install -U pip
+RUN conda install tornado
+COPY trigger.py /trigger.py
+
 # Create conda env
 RUN conda create --name qp-target-gene -y -c conda-forge -c bioconda -c biocore python=2.7 SortMeRNA==2.0 numpy==1.13.1 pigz biom-format
 # Make RUN commands use the new environment:
@@ -42,8 +47,6 @@ RUN pip install biom-format
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
-RUN conda install tornado
-COPY trigger.py /trigger.py
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
@@ -67,4 +70,4 @@ RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Ente
 RUN /qp-target-gene/scripts/configure_target_gene --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-target-gene/" /unshared_plugins/*.conf
 
-CMD ["conda", "run", "-n", "qp-target-gene", "./start_qp-target-gene.sh"]
+CMD ["./start_qp-target-gene.sh"]

@@ -12,6 +12,6 @@ ENV_NAME=qtp-biom
 #start_biom https://localhost:8383 register ignored
 #start_biom http://qiita:8383 register ignored
 #source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd / && python trigger.py
-source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qtp-biom; cd / && python trigger.py qtp-biom start_biom /qtp-biom
+cd / && python trigger.py qtp-biom start_biom /qtp-biom
 
 tail -f /dev/null

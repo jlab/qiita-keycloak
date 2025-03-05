@@ -23,6 +23,11 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 	conda init && \
 	rm -f /tmp/miniforge3.sh
 
+# install tornado based trigger layer in base environment
+RUN pip install -U pip
+RUN conda install tornado
+COPY trigger.py /trigger.py
+
 # Create conda env
 RUN conda create --name qtp-sequencing -y -c conda-forge -c bioconda pip pigz quast fqtools python=3.9
 # Make RUN commands use the new environment:
@@ -37,8 +42,6 @@ WORKDIR qtp-sequencing
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
-RUN conda install tornado
-COPY trigger.py /trigger.py
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
@@ -61,4 +64,5 @@ RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 RUN /qtp-sequencing/scripts/configure_qtp_sequencing --env-script "true" --ca-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-sequencing/" /unshared_plugins/*.conf
 
-CMD ["conda", "run", "-n", "qtp-sequencing", "./start_qtp-sequencing.sh"]
+#CMD ["conda", "run", "-n", "qtp-sequencing", "./start_qtp-sequencing.sh"]
+CMD ["./start_qtp-sequencing.sh"]

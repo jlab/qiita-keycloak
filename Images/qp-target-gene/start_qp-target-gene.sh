@@ -12,6 +12,6 @@ ENV_NAME=qp-target-gene
 #start_biom https://localhost:8383 register ignored
 #start_biom http://qiita:8383 register ignored
 #source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd / && python trigger.py
-source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qp-target-gene; cd / && python trigger.py qp-target-gene start_target_gene /qp-target-gene
+cd / && python trigger.py qp-target-gene start_target_gene /qp-target-gene
 
 tail -f /dev/null

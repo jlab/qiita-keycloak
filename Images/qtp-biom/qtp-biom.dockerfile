@@ -23,6 +23,11 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 	conda init && \
 	rm -f /tmp/miniforge3.sh
 
+# install tornado based trigger layer in base environment
+RUN pip install -U pip
+RUN conda install tornado
+COPY trigger.py /trigger.py
+
 # Download qtp-biom yaml
 RUN wget https://data.qiime2.org/distro/core/qiime2-2022.11-py38-linux-conda.yml
 
@@ -64,4 +69,4 @@ RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
-CMD ["conda", "run", "-n", "qtp-biom", "./start_qtp-biom.sh"]
+CMD ["./start_qtp-biom.sh"]
