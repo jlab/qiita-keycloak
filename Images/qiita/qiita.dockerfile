@@ -43,7 +43,7 @@ RUN pip install \
 	Click \
 	coverage \
 	psycopg2-binary
-	
+
 
 # Clone the Qiita Repo
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
@@ -58,17 +58,11 @@ RUN pip install -e psycopg2/.
 # Install pip packaages for Qiita
 RUN pip install -e qiita --no-binary redbiom
 
+# A qiita configuration file is directly mounted into the qiita container via the compose file
 
-# Copy modified config file to the container
-#COPY config_qiita_oidc.cfg /qiita/
-#RUN chmod 755 /qiita/config_qiita_oidc.cfg
-
-# Copy Bash Script to run Qiita to the container
+# Copy Bash Script to run Qiita to the container. start_qiita differentiates between one "master" and multiple workers
 COPY start_qiita.sh .
 RUN chmod 755 start_qiita.sh
-
-#COPY start_qiita_worker.sh .
-#RUN chmod 755 start_qiita_worker.sh
 
 RUN apt-get install -y curl
 COPY start_plugin.py /start_plugin.py
