@@ -29,26 +29,30 @@ if is_test:
             config['main']['name'], config['main']['version']
         )
         cursor.execute(SQL_get_softwareID_clientID)
-        old_software_id, old_client_id = cursor.fetchone()
-
-        if config['oauth2']['client_id'] != old_client_id:
-            SQL_update = "BEGIN; "
-            # add in the new client secret
-            SQL_update += "INSERT INTO qiita.oauth_identifiers VALUES ('%s', '%s');" % (config['oauth2']['client_id'], config['oauth2']['client_secret'])
-            # add in a new software_id to client_id row
-            SQL_update += "INSERT INTO qiita.oauth_software VALUES (%s, '%s');" % (old_software_id, config['oauth2']['client_id'])
-            # remove old client_id
-            SQL_update += "DELETE FROM qiita.oauth_software WHERE software_id=%s AND client_id='%s';" % (old_software_id, old_client_id)
-            # delete old client_id client_secret relation
-            SQL_update += "DELETE FROM qiita.oauth_identifiers WHERE client_id='%s';" % old_client_id
-            # replace ENVIRONMENT_SCRIPT with the one given in config file
-            SQL_update += "UPDATE qiita.software SET environment_script='%s' WHERE software_id='%s';" % (config['main']['ENVIRONMENT_SCRIPT'], old_software_id)
-            # replace START_SCRIPT with the one given in config file
-            SQL_update += "UPDATE qiita.software SET start_script='%s' WHERE software_id='%s';" % (config['main']['START_SCRIPT'], old_software_id)
-            SQL_update += " COMMIT;"
-            cursor.execute(SQL_update)
-            print(" credentials replaced.")
+        sql_result = cursor.fetchone()
+        if sql_result is None:
+            print(" plugin not (yet) in database.")
         else:
-            print(" credentials already up to date.")
+            old_software_id, old_client_id = sql_result
+
+            if config['oauth2']['client_id'] != old_client_id:
+                SQL_update = "BEGIN; "
+                # add in the new client secret
+                SQL_update += "INSERT INTO qiita.oauth_identifiers VALUES ('%s', '%s');" % (config['oauth2']['client_id'], config['oauth2']['client_secret'])
+                # add in a new software_id to client_id row
+                SQL_update += "INSERT INTO qiita.oauth_software VALUES (%s, '%s');" % (old_software_id, config['oauth2']['client_id'])
+                # remove old client_id
+                SQL_update += "DELETE FROM qiita.oauth_software WHERE software_id=%s AND client_id='%s';" % (old_software_id, old_client_id)
+                # delete old client_id client_secret relation
+                SQL_update += "DELETE FROM qiita.oauth_identifiers WHERE client_id='%s';" % old_client_id
+                # replace ENVIRONMENT_SCRIPT with the one given in config file
+                SQL_update += "UPDATE qiita.software SET environment_script='%s' WHERE software_id='%s';" % (config['main']['ENVIRONMENT_SCRIPT'], old_software_id)
+                # replace START_SCRIPT with the one given in config file
+                SQL_update += "UPDATE qiita.software SET start_script='%s' WHERE software_id='%s';" % (config['main']['START_SCRIPT'], old_software_id)
+                SQL_update += " COMMIT;"
+                cursor.execute(SQL_update)
+                print(" credentials replaced.")
+            else:
+                print(" credentials already up to date.")
 
     conn.close()
