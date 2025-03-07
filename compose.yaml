@@ -85,6 +85,7 @@ services:
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
         - server-plugin-configs:/qiita_plugins
         - server-certificates:/qiita_certificates
+        - ./src/qiita:/qiita:U
         # - ./Images/qiita/start_qiita_worker.sh:/qiita/start_qiita_worker.sh
       networks:
         - qiita-net
