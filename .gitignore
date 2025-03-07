@@ -2,4 +2,3 @@ environments/*.env
 logs/*
 .built_image_*
 Certificates/*
-src/*

@@ -14,6 +14,10 @@ RUN apt-get -y --fix-missing install \
 	gcc \
 	build-essential
 
+# biom artifact validation throws an error since provenance tracking of Qiime2 cannot get proper time zone information, if not configured here
+# https://stackoverflow.com/questions/21717411/timezone-information-missing-in-pytz
+RUN dpkg-reconfigure -f noninteractive tzdata
+
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
 RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh -O /tmp/miniforge3.sh && \
