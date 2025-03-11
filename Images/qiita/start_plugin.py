@@ -8,7 +8,8 @@ API_ENDPOINT = "run"
 
 pluginname, qiita_server_url, job_id, output_dir = sys.argv[1:]
 
-req = requests.post('http://qiita-container-anna-%s-1:%s/run' % (pluginname, PORT),
+docker_prefix = os.environ['DOCKER_PREFIX']
+req = requests.post('http://%s%s-1:%s/run' % (docker_prefix, pluginname, PORT),
                     json={'url': qiita_server_url,
                           'job_id': job_id,
                           'output_dir': output_dir})

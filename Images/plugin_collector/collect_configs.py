@@ -10,6 +10,7 @@ if ENV_PLUGINS not in os.environ or os.environ['QIITA_PLUGINS'] is None or os.en
     raise ValueError("No qiita plugins given for which configuration files should be retrieved! Environment variable '%s' not set!" % ENV_PLUGINS)
 
 var_plugins = os.environ['QIITA_PLUGINS']
+docker_prefix = os.environ['DOCKER_PREFIX']
 # strip potential quotes
 if var_plugins.startswith('"') or var_plugins.startswith("'"):
     var_plugins = var_plugins[1:]
@@ -23,7 +24,7 @@ for i, container in enumerate(containers):
     if container == "":
         continue
     print('  (%i/%i) %s' % (i+1, len(containers), container), end="", file=sys.stderr)
-    url = 'http://qiita-container-anna-%s-1:%s/%s' % (container, PORT, API_ENDPOINT)
+    url = 'http://%s%s-1:%s/%s' % (docker_prefix, container, PORT, API_ENDPOINT)
     print(" '%s'" % url, end="", file=sys.stderr)
 
     req = requests.get(url)
