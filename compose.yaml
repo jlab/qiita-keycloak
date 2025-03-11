@@ -1,3 +1,5 @@
+name: tinqiita
+
 services:
   qiita-db:
     image: postgres:15
@@ -61,7 +63,6 @@ services:
         - PORT=21174
         - MASTER=--master
         - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-        - DOCKER_PREFIX=qiita-container-anna-
       volumes:
         - qiita-data:/qiita_data
         - ./src/qiita:/qiita:U
@@ -103,7 +104,6 @@ services:
         - PORT=21175
         - MASTER=
         - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-        - DOCKER_PREFIX=qiita-container-anna-
       volumes:
         - qiita-data:/qiita_data
         - ./logs:/logs
@@ -375,7 +375,6 @@ services:
       qtp-job-output-folder:
         condition: service_started
     environment:
-      - DOCKER_PREFIX=qiita-container-anna-
       - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
     command: ['/startup_plugin_collector.sh']
 

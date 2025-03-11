@@ -3,7 +3,6 @@ PODMAN_BIN = docker buildx
 CERTNAME=stefan
 OPENSSL=/bin/openssl
 # docker compose prepends name of directory to containers
-DOCKER_PREFIX=$(shell basename `pwd`)-
 
 TMPDIR := $(shell mktemp -d)
 ifeq ($(origin tmpdir), undefined)
@@ -14,13 +13,13 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	# === create own certificates ===
 	mkdir -p Certificates/
 	# Generate a new root CA private key and certificate
-	cd $@/ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=$(DOCKER_PREFIX)-1/C=DE/L=Giessen" -keyout $(CERTNAME)_rootca.key -out $(CERTNAME)_rootca.crt
+	cd $@/ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=tinqiita-nginx-1/C=DE/L=Giessen" -keyout $(CERTNAME)_rootca.key -out $(CERTNAME)_rootca.crt
 	# Generate a new server private key
 	cd $@/ && $(OPENSSL) genrsa -out $(CERTNAME)_server.key 2048
 	# Copy the following to a new file named csr.conf and modify to suit your needs
 	# Copy the following to a new file named cert.conf and modify to suit your needs
 	# Nils: alt_names is the important aspect. Make entries for all valid hostnames with which services shall be addressed
-	for f in `echo "$^"`; do cat $$f | sed "s/PREFIX/$(DOCKER_PREFIX)/g" > $@/`basename $$f`; done
+	for f in `echo "$^"`; do cat $$f > $@/`basename $$f`; done
 	#cp $^ $@/
 	# Generate a certificate signing request
 	cd $@/ && $(OPENSSL) req -new -key $(CERTNAME)_server.key -out $(CERTNAME)_server.csr -config $(CERTNAME)_csr.conf
@@ -91,7 +90,7 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
-	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita
+	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita  --no-cache
 	touch .built_image_qiita
 
 .built_image_plugin_collector: Images/plugin_collector/plugin_collector.dockerfile Images/plugin_collector/fix_test_db.py Images/plugin_collector/collect_configs.py Images/plugin_collector/startup_plugin_collector.sh
@@ -115,5 +114,7 @@ config: environments/qiita_db.env environments/qiita.env
 make clean:
 	rm .built_image_*
 	rm -rf Certificates
+	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
+	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
 
 all: config images
