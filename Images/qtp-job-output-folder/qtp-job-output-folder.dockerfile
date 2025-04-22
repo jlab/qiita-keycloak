@@ -60,7 +60,7 @@ RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /qtp-job-output-folder/scripts/configure_qtp_job_output_folder /qtp-job-output-folder/scripts/start_qtp_job_output_folder
-RUN /qtp-job-output-folder/scripts/configure_qtp_job_output_folder --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
+RUN /qtp-job-output-folder/scripts/configure_qtp_job_output_folder --env-script "true" --ca-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-job-output-folder/" /unshared_plugins/*.conf
 
 CMD ["./start_qtp-job-output-folder.sh"]
