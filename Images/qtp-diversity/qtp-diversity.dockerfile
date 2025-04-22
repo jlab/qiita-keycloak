@@ -66,7 +66,7 @@ RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /qtp-diversity/scripts/configure_diversity_types /qtp-diversity/scripts/start_diversity_types
-RUN /qtp-diversity/scripts/configure_diversity_types --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
+RUN /qtp-diversity/scripts/configure_diversity_types --env-script "true" --ca-cert /unshared_certificates/stefan_server.crt
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-diversity/" /unshared_plugins/*.conf
 
 CMD ["./start_qtp-diversity.sh"]
