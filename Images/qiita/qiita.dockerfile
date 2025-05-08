@@ -77,4 +77,7 @@ RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_exampl
 
 COPY drop_workflows.py /drop_workflows.py
 
+# install aspera client for ENA submission
+RUN conda install hcc::aspera-cli
+
 # CMD ["conda", "run", "-n", "qiita"]
