@@ -31,6 +31,12 @@ Note: this does currently **not** work with podman :-( So strictly stick to dock
 
 That's it. Enjoy!
 
+## For plugin developers
+To integrate your shiny new plugin into this docker compose version of Qiita, I suggest you use one of the existing plugins as template, e.g. "qp-deblur". 
+Remember to:
+  1. **makefile**: create a make target for the docker image of your plugin, like https://github.com/jlab/qiita-keycloak/blob/c94955dc0909e5ad866d046e5eafc6459bc8efc1/Makefile#L65-L69 and add the target name to line https://github.com/jlab/qiita-keycloak/blob/c94955dc0909e5ad866d046e5eafc6459bc8efc1/Makefile#L104
+  2. **compose file**: copy and paste a "service" like here https://github.com/jlab/qiita-keycloak/blob/c94955dc0909e5ad866d046e5eafc6459bc8efc1/compose.yaml#L288-L306 and make your new "service" a dependency of the "plugin-collector" service here: https://github.com/jlab/qiita-keycloak/blob/c94955dc0909e5ad866d046e5eafc6459bc8efc1/compose.yaml#L371-L372 to also start-up this container with all others + let the plugin collector python script know about the existance of the new plugin by appending it's name to the string here: https://github.com/jlab/qiita-keycloak/blob/c94955dc0909e5ad866d046e5eafc6459bc8efc1/compose.yaml#L378
+
 ### pro infos
 - log files will be written to `tinqiita/logs`
 - You can access the relevant containers by checking for their names with `sudo docker container ls` and then running `sudo docker exec -it <container name>  bash`
