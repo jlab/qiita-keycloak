@@ -24,27 +24,20 @@ Note: this does currently **not** work with podman :-( So strictly stick to dock
 4. clone a local copy of this repository, branch "tinqiita": `git clone -b tinqiita https://github.com/jlab/qiita-keycloak.git tinqiita`
 5. change into this new directory: `cd tinqiita`
 6. create necessary images and other files (as this will create multiple docker images, it can take quite some time, approx. 30min?!): `sudo make all`
+7. start the docker ensemble: `sudo docker compose up`
+8. take your favorite browser and surf to `https://localhost:8383`. You probably get a warning due to incorrect SSL certificates like:
+   ![image](https://github.com/user-attachments/assets/58e978ab-c633-4197-b6f9-b0a62b8b671c) for Firefox. Press "Advanced..." and then "Accept the Risk and Continue"
+9. You should now be able to see your living qiita. Log in as user `admin@foo.bar` (or `test@foo.bar`) and password `password`.
+
+That's it. Enjoy!
+
+### pro infos
+- log files will be written to `tinqiita/logs`
+- You can access the relevant containers by checking for their names with `sudo docker container ls` and then running `sudo docker exec -it <container name>  bash`
+- keycloak service is **not** activated at the moment of writing, but should you want to work on that:
+   1. Run `sudo docker compose up keycloak keycloakdb`
+   2. Open `http://localhost:8080`, login admin pw admin
+   3. Configure Qiita as a service, create a user.
+   4. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, remove # from necessary oidc block, change SUPERSECRETSTRING.
 
 
-
-**IMPORTANT: Have docker installed!**
-**THIS VERSION CURRENTLY ONLY WORKS WITH DOCKER, NOT WITH PODMAN**
-**FOR TESTING ON LOCAL MACHINES**
-
-### Hopefully "foolproof" instructions:
-0. Log files will be mounted at qiita_logs on your local machine in this repo directory. Otherwise, change the file path to your desired path in the compose file as well as in the qiita, nginx and supervisord conf.
-1. Clone repository
-2. Move into Image Folder `cd Images/qiita`
-3. Build docker image `sudo docker build . -f qiita/Dockerfile -t local-qiita`
-4. Build the nginx Image the same way as the qiita image, only in the nginx folder, using the image tag `local-nginx_qiita`.
-5. Repeat with qtp-biom Image as `local-qtp-biom`.
-6. Move to folder containing compose file `cd ../..`
-7. Copy the `qiita_db.env.example` and the `qiita.env.example` files, configure them to your needs, and delete the `.example` from the file names.
-8. Run `sudo docker compose up keycloak keycloakdb`
-9. Open `http://localhost:8080`, login admin pw admin
-10. Configure Qiita as a service, create a user.
-11. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, remove # from necessary oidc block, change SUPERSECRETSTRING.
-12. Run docker compose `sudo docker compose up qiita qiita-db redis qiita_worker nginx`
--  Due to some unforseen problem I did not want to deal with, yet, the original "database existence" check does not work anymore. You might have to adjust the command in start_qiita.sh the first time you run it to create your database :/
-13. You can access the relevant containers by checking for their names with `sudo docker container ls` and then running `sudo docker exec -it <container name>  bash`
-14. Open `http://localhost:8383`
