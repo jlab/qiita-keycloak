@@ -23,7 +23,7 @@ for i, container in enumerate(containers):
     if container == "":
         continue
     print('  (%i/%i) %s' % (i+1, len(containers), container), end="", file=sys.stderr)
-    url = 'http://qiita-container-anna-%s-1:%s/%s' % (container, PORT, API_ENDPOINT)
+    url = 'http://%s%s-1:%s/%s' % ('tinqiita-', container, PORT, API_ENDPOINT)
     print(" '%s'" % url, end="", file=sys.stderr)
 
     req = requests.get(url)
