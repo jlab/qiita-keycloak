@@ -9,14 +9,19 @@ qiita_config.read('/qiita_configurations/qiita_server.cfg')
 is_test = qiita_config['main']['TEST_ENVIRONMENT'].upper() == 'TRUE'
 print("qiita is in %s mode." % ('TEST' if is_test else 'PRODUCTIVE'))
 
-if is_test:
-    conn = psycopg2.connect(database=qiita_config['postgres']['DATABASE'],
-                            host=qiita_config['postgres']['HOST'],
-                            user=qiita_config['postgres']['ADMIN_USER'],
-                            password=qiita_config['postgres']['ADMIN_PASSWORD'],
-                            port=qiita_config['postgres']['PORT'])
-    cursor = conn.cursor()
+conn = psycopg2.connect(database=qiita_config['postgres']['DATABASE'],
+                        host=qiita_config['postgres']['HOST'],
+                        user=qiita_config['postgres']['ADMIN_USER'],
+                        password=qiita_config['postgres']['ADMIN_PASSWORD'],
+                        port=qiita_config['postgres']['PORT'])
+cursor = conn.cursor()
 
+# update conda env for qiita private plugins
+sql = "UPDATE qiita.software SET environment_script = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita' WHERE description = 'Internal Qiita jobs';"
+cursor.execute(sql)
+conn.commit()
+
+if is_test:
     fps_plugin_configs = glob('/qiita_plugins/*.conf')
     print("Updating plugin credentials in dummy test DB with actual values from %i plugins." % len(fps_plugin_configs))
     for i, fp_plugin_config in enumerate(fps_plugin_configs):

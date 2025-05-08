@@ -62,7 +62,8 @@ RUN pip install -e qiita --no-binary redbiom
 
 # Copy Bash Script to run Qiita to the container. start_qiita differentiates between one "master" and multiple workers
 COPY start_qiita.sh .
-RUN chmod 755 start_qiita.sh
+COPY start_qiita-initDB.sh .
+RUN chmod 755 start_qiita.sh start_qiita-initDB.sh
 
 RUN apt-get install -y curl
 COPY start_plugin.py /start_plugin.py
@@ -70,5 +71,8 @@ RUN chmod a+x /start_plugin.py
 
 # hide certificate and server configuration copy from source code
 RUN rm -rf /qiita/qiita_core/support_files
+
+# hide default configurations from github sources
+RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_example.conf /qiita/qiita_pet/support_files/config_portal.cfg
 
 # CMD ["conda", "run", "-n", "qiita"]
