@@ -84,7 +84,7 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	chmod a+rw ./logs/nginx_access.log ./logs/nginx_error.log
 	touch .built_image_nginx
 
-.built_image_qiita: Images/qiita/qiita.dockerfile Images/qiita/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Images/qiita/config_portal.cfg
+.built_image_qiita: Images/qiita/qiita.dockerfile Images/qiita/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Images/qiita/config_portal.cfg Images/qiita/drop_workflows.py
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
