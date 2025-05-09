@@ -386,10 +386,8 @@ networks:
 
 volumes:
   postgres-data:
-    name: qiita-postgres-data
   #~ keycloak-postgres-data:
     #~ name: keycloak-postgres-data
   qiita-data:
-    name: qiita-data
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   server-certificates: # server one copy of qiita server (master and workers) certificate files. If not in volume, "plugin_collector" should copy them there
