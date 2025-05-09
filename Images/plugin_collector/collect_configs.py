@@ -32,8 +32,8 @@ for i, container in enumerate(containers):
     else:
         fp_config = '/qiita_plugins/%s.conf' % container
         if os.path.exists(fp_config):
-            print(" already present.", file=sys.stderr)
-        else:
+            print(" already present. Will overwrite", file=sys.stderr)  # currently, we always want to overwrite configuration to match oauth token
+        if True:
             with open(fp_config, 'w') as f:
                 f.write(req.content.decode('utf-8'))
             print(" ok.", file=sys.stderr)
