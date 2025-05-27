@@ -94,6 +94,20 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita
 	touch .built_image_qiita
 
+.built_image_qp-multiqc: Images/qp-multiqc/qp-multiqc.dockerfile Images/qp-multiqc/start_qp-multiqc.sh
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+	touch .built_image_`basename $< | cut -d "." -f 1`
+
+# .built_image_qp-multiqc: Images/qp-multiqc/qp-multiqc.dockerfile Images/qp-multiqc/start_qp-multiqc.sh
+# 	tmpdir=$(TMPDIR) $(MAKE) plugin
+# 	cp -r Images/qp-multiqc $(TMPDIR)/
+# 	mkdir -p $(TMPDIR)/Images/qtp-biom/
+# 	cp Images/qtp-biom/trigger.py $(TMPDIR)/Images/qtp-biom/
+# 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+# 	touch .built_image_`basename $< | cut -d "." -f 1`
+	
 .built_image_plugin_collector: Images/plugin_collector/plugin_collector.dockerfile Images/plugin_collector/fix_test_db.py Images/plugin_collector/collect_configs.py Images/plugin_collector/startup_plugin_collector.sh
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
@@ -101,7 +115,7 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder
+images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder .built_image_qp-multiqc
 
 environments/qiita_db.env: environments/qiita_db.env.example
 	cp environments/qiita_db.env.example environments/qiita_db.env
