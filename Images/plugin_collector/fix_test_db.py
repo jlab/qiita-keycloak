@@ -33,9 +33,6 @@ if is_test:
         SQL_get_softwareID_clientID = "SELECT software.software_id, oauth_software.client_id FROM qiita.software JOIN qiita.oauth_software ON qiita.software.software_id=qiita.oauth_software.software_id WHERE name='%s' AND version='%s';" % (
             config['main']['name'], config['main']['version']
         )
-
-        print(f"  Plugin-Konfig: name='{config['main']['name']}', version='{config['main']['version']}'")
-        
         cursor.execute(SQL_get_softwareID_clientID)
         sql_result = cursor.fetchone()
         if sql_result is None:

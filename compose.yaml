@@ -343,26 +343,6 @@ services:
     networks:
       - qiita-net
 
-  qp-multiqc:
-    image: local-qp-multiqc:latest
-    command: ['./start_qp-multiqc.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
-    volumes:
-      - qiita-data:/qiita
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
-    environment:
-      # TODO: is there a more elegant way to obtain this path?
-      - REQUESTS_CA_BUNDLE=/opt/conda/envs/multiqc/lib/python3.9/site-packages/certifi/cacert.pem
-      - SSL_CERT_FILE=/opt/conda/envs/multiqc/lib/python3.9/site-packages/certifi/cacert.pem
-      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-    #depends_on:
-    #- qiita
-    networks:
-      - qiita-net
-
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
@@ -395,7 +375,7 @@ services:
       qtp-job-output-folder:
         condition: service_started
     environment:
-      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qp-multiqc:"
+      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
     command: ['/startup_plugin_collector.sh']
 
 networks:
