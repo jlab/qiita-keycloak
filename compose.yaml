@@ -259,8 +259,8 @@ services:
       - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
     environment:
       # TODO: is there a more elegant way to obtain this path?
-      - REQUESTS_CA_BUNDLE=/opt/conda/envs/qtp-visualization/lib/python3.6/site-packages/certifi/cacert.pem
-      - SSL_CERT_FILE=/opt/conda/envs/qtp-visualization/lib/python3.6/site-packages/certifi/cacert.pem
+      - REQUESTS_CA_BUNDLE=/opt/conda/envs/qtp-visualization/lib/python3.8/site-packages/certifi/cacert.pem
+      - SSL_CERT_FILE=/opt/conda/envs/qtp-visualization/lib/python3.8/site-packages/certifi/cacert.pem
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
     networks:
