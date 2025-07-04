@@ -321,6 +321,7 @@ services:
       - SSL_CERT_FILE=/opt/conda/envs/qiime2/lib/python3.8/site-packages/certifi/cacert.pem
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+      - TZ=Europe/Berlin  # this is important to avoid a local timezone error! See https://forum.qiime2.org/t/qiime2-timezone-error/17410
     networks:
       - qiita-net
 
