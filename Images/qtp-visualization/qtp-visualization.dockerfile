@@ -28,11 +28,11 @@ RUN pip install -U pip
 RUN conda install tornado
 COPY trigger.py /trigger.py
 
-# Download qiime2 yaml
-RUN wget -q https://data.qiime2.org/distro/core/qiime2-2019.10-py36-linux-conda.yml
+# Download qiime2 yaml (make sure to use a qiime2 version that is able to visualize qiime artifacts of the correct version)
+RUN wget --quiet https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml
 
 # Create conda env
-RUN conda env create --name qtp-visualization -y --file qiime2-2019.10-py36-linux-conda.yml
+RUN conda env create --name qtp-visualization -y --file qiime2-2023.5-py38-linux-conda.yml
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-visualization", "/bin/bash", "-c"]
