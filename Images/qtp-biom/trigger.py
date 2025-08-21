@@ -4,6 +4,7 @@ import json
 import subprocess
 from glob import glob
 import sys
+import traceback
 
 conda_env_name = None
 plugin_start_script = None
@@ -13,7 +14,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
     def post(self):
         try:
             # JSON-Request-Daten lesen
-            data = json.loads(self.request.body)
+            data = json.loads(self.request.body.decode("utf-8"))
             qiita_worker_url = data.get('url')
             job_id = data.get('job_id')
             output_dir = data.get('output_dir')
@@ -27,7 +28,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
 
             # Systembefehl ausfuehren
             cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, executable='/bin/bash')
+            result = subprocess.run(cmd, shell=True, universal_newlines=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Antwort zurueckgeben
             self.write({
@@ -45,6 +46,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 plugin_name = f.split('_')[-1].replace('.sh', '')
                 break
             print("Error in service '%s': %s" % (plugin_name, str(e)), file=sys.stderr)
+            traceback.print_exc()
             self.write({"error": str(e)})
 
 class RunConfigHandler(tornado.web.RequestHandler):
