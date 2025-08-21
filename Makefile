@@ -2,6 +2,7 @@ PODMAN_FLAGS =
 PODMAN_BIN = docker buildx
 CERTNAME=stefan
 OPENSSL=/bin/openssl
+DIR_REFERENCES=references
 # docker compose prepends name of directory to containers
 
 TMPDIR := $(shell mktemp -d)
@@ -28,7 +29,7 @@ Certificates/: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/s
 	# === end: create own certificates ===
 
 # a general target, executed for each plugin
-plugin: Images/qtp-biom/trigger.py Certificates/
+plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py Certificates/
 	cp -r $^ $(tmpdir)/
 
 .built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh
@@ -62,7 +63,15 @@ plugin: Images/qtp-biom/trigger.py Certificates/
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh
+# download Silva and GG13.8 reference sets from bioconda fragment-insertion package, instead of storing these large files within the qp-deblur image ~1.3 GB
+references/qp-deblur/reference-gg-raxml-bl.tre:
+	mkdir -p $(DIR_REFERENCES)/tmp_sepp $(DIR_REFERENCES)/qp-deblur
+	wget "https://anaconda.org/biocore/fragment-insertion/4.3.5/download/linux-64/fragment-insertion-4.3.5-py35_0.tar.bz2" -O $(DIR_REFERENCES)/tmp_sepp/fragment-insertion-4.3.5-py35_0.tar.bz2
+	cd $(DIR_REFERENCES)/tmp_sepp && tar xjf fragment-insertion-4.3.5-py35_0.tar.bz2
+	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
+	rm -rf $(DIR_REFERENCES)/tmp_sepp/
+
+.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh references/qp-deblur/reference-gg-raxml-bl.tre
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
