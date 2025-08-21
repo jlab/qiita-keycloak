@@ -64,7 +64,7 @@ plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py Certifica
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
 # download Silva and GG13.8 reference sets from bioconda fragment-insertion package, instead of storing these large files within the qp-deblur image ~1.3 GB
-references/qp-deblur/reference-gg-raxml-bl.tre:
+$(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	mkdir -p $(DIR_REFERENCES)/tmp_sepp $(DIR_REFERENCES)/qp-deblur
 	wget "https://anaconda.org/biocore/fragment-insertion/4.3.5/download/linux-64/fragment-insertion-4.3.5-py35_0.tar.bz2" -O $(DIR_REFERENCES)/tmp_sepp/fragment-insertion-4.3.5-py35_0.tar.bz2
 	cd $(DIR_REFERENCES)/tmp_sepp && tar xjf fragment-insertion-4.3.5-py35_0.tar.bz2
