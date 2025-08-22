@@ -26,6 +26,9 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/qp-deblur/qp-deblur.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+          cp Images/qp-deblur/start_qp-deblur.sh Images/qp-deblur/trigger_noconda.py .
+          mkdir -p qiita_server_certificates/
+          echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
