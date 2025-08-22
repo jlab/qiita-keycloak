@@ -131,9 +131,9 @@ WORKDIR /q2summarize
 COPY _visualizer.py.patch /q2summarize/
 RUN patch -p1 _visualizer.py < _visualizer.py.patch
 # # COPY --from=builder /q2_src/ /q2_all
-COPY summary.py.patch /usr/local/lib/python3.8/site-packages/qtp_biom/
-WORKDIR /usr/local/lib/python3.8/site-packages/qtp_biom/
-RUN patch -p1 summary.py < summary.py.patch
+COPY summary.py.patch /summary.py.patch
+WORKDIR /
+RUN patch -p0 < /summary.py.patch
 
 COPY --from=builder /opt/conda/envs/qtp-biom/lib/libgomp.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
