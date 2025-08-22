@@ -24,7 +24,6 @@ jobs:
       - name: Read version from file
         id: vars
         run: |
-          make -j .built_image_qp-deblur
           VERSION=$(head -n 1 Images/qp-deblur/qp-deblur.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
       - name: Build and push Docker image
