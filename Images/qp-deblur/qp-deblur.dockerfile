@@ -125,6 +125,7 @@ RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_deblur
 COPY --from=builder /qiita_client /qiita_client
 RUN cd qiita_client && pip install .
 
+RUN mkdir -p /qiita_server_certificates/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` --plugin-coupling filesystem
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" /unshared_plugins/*.conf
