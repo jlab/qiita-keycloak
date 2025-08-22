@@ -93,7 +93,7 @@ COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certi
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
-RUN sed -i "s|self._verify = ca_cert|self._verify = False|" /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/qiita_client/qiita_client.py
+#RUN sed -i "s|self._verify = ca_cert|self._verify = False|" /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/qiita_client/qiita_client.py
 
 ARG Q2_RELEASE=2022.11
 WORKDIR /q2_src/
@@ -163,6 +163,9 @@ RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_biom
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /usr/local/bin/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
+
+# remove conda command from tigger.py
+RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
 
 CMD ["./start_qtp-biom.sh"]
 
