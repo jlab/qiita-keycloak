@@ -50,9 +50,6 @@ WORKDIR qp-deblur
 RUN pip install -e .
 RUN pip install pip-system-certs
 
-# TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
-
 WORKDIR /
 
 COPY start_qp-deblur.sh .
@@ -62,14 +59,15 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY Certificates /unshared_certificates
-RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+#RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
+ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  $CONDA_PREFIX/lib/python3.5/site-packages/qiita_client/plugin.py
-RUN /qp-deblur/scripts/configure_deblur --env-script "true" --server-cert /unshared_certificates/stefan_server.crt
+COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /qp-deblur/scripts/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" /unshared_plugins/*.conf
 
 CMD ["./start_qp-deblur.sh"]
