@@ -54,9 +54,6 @@ WORKDIR qp-platemapper
 RUN rm -f pyproject.toml
 RUN pip install -e .
 
-# TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
-
 WORKDIR /
 
 COPY start_qp-platemapper.sh .
@@ -66,14 +63,15 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY Certificates /unshared_certificates
-RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+#RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
+ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /qp-platemapper/scripts/configure_platemapper /qp-platemapper/scripts/start_platemapper
-RUN /qp-platemapper/scripts/configure_platemapper  --env-script 'true' --server-cert /unshared_certificates/stefan_server.crt
+COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /qp-platemapper/scripts/configure_platemapper  --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-platemapper/" /unshared_plugins/*.conf
 
 CMD ["./start_qp-platemapper.sh"]
