@@ -1,16 +1,33 @@
---- summary.py	2025-08-22 12:49:53.018094323 +0000
-+++ summary2.py	2025-08-22 12:39:34.242874354 +0000
+--- /usr/local/lib/python3.8/site-packages/qtp_biom/summary.py	2025-08-22 13:16:35.397740791 +0000
++++ /exchange/summary.py	2025-08-22 18:22:40.548488772 +0000
 @@ -12,8 +12,11 @@
  import pandas as pd
  from tempfile import mkstemp
  
 -import qiime2.metadata
 -from qiime2.plugins.feature_table.visualizers import summarize
-+#import qiime2
-+#from qiime2.plugins.feature_table.visualizers import summarize
++# import qiime2.metadata
++# from qiime2.plugins.feature_table.visualizers import summarize
 +import sys
 +sys.path.append("/")
-+from q2summarize import *
++from q2summarize import *  # this is a stripped, patched version from the above but comes with way less q2 dependencies!
  from skbio.tree import TreeNode
  from biom import load_table
  
+@@ -57,12 +60,12 @@
+         df = pd.DataFrame.from_dict(metadata, orient='index')
+         df.to_csv(path, index_label='#SampleID', na_rep='', sep='\t',
+                   encoding='utf-8')
+-        metadata = qiime2.Metadata.load(path)
++        metadata = df  # orig: qiime2.Metadata.load(path)
+         remove(path)
+-    else:
+-        metadata = qiime2.Metadata.load(metadata)
++    # else:
++    #     metadata = qiime2.Metadata.load(metadata)
+ 
+-    table = qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
++    table = load_table(biom_fp)  # orig: qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
+ 
+     summary, = summarize(table=table, sample_metadata=metadata)
+     index_paths = summary.get_index_paths()
