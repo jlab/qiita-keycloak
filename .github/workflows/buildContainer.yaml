@@ -31,5 +31,5 @@ jobs:
         with:
           context: .
           push: true
-          file: Dockerfile
+          file: Images/qp-deblur/qp-deblur.dockerfile
           tags: ${{ vars.DOCKERHUB_USERNAME }}/tinqiita-qp-deblur:${{ env.IMAGE_TAG }}
