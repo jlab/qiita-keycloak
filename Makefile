@@ -34,7 +34,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Images/plugin_collector/stefan_csr.
 plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REFERENCES)/qiita_server_certificates
 	cp -r $^ $(tmpdir)/
 
-.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh
+.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh Images/qtp-biom/_visualizer.py.patch Images/qtp-biom/summary.py.patch
 	test -d src/qtp-biom || git clone https://github.com/qiita-spots/qtp-biom.git src/qtp-biom
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
@@ -73,7 +73,7 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
 	rm -rf $(DIR_REFERENCES)/tmp_sepp/
 
-.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh references/qp-deblur/reference-gg-raxml-bl.tre
+.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
