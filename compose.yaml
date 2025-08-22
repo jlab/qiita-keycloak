@@ -323,7 +323,6 @@ services:
       - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
-      # - server-certificates:/qiita_certificates
     depends_on:
       qiita-initialize-db:
         condition: service_completed_successfully
@@ -359,4 +358,3 @@ volumes:
     #~ name: keycloak-postgres-data
   qiita-data:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
-  server-certificates: # server one copy of qiita server (master and workers) certificate files. If not in volume, "plugin_collector" should copy them there
