@@ -98,11 +98,12 @@ RUN sed -i "s|/opt/conda/envs/deblur/share/fragment-insertion/sepp/.sepp/bundled
 # following step increases image size from by 1.3 GB!! Better mount as volume and "make" these files during Makefile execution
 # COPY --from=builder /opt/conda/envs/deblur/share/fragment-insertion/ref/ /opt/conda/envs/deblur/share/fragment-insertion/ref/
 
-
 # install tornado based trigger layer in base environment
 RUN pip install -U --no-cache-dir tornado pip-system-certs
 COPY trigger_noconda.py /trigger.py
 # ^^ 848 MB
+
+WORKDIR /
 
 COPY start_qp-deblur.sh .
 RUN chmod 755 start_qp-deblur.sh
@@ -111,12 +112,10 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY Certificates /unshared_certificates
-RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
-#RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_deblur
 RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_deblur
 
@@ -124,7 +123,8 @@ RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_deblur
 COPY --from=builder /qiita_client /qiita_client
 RUN cd qiita_client && pip install .
 
-RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert /unshared_certificates/stefan_server.crt --plugin-coupling filesystem
+COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` --plugin-coupling filesystem
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" /unshared_plugins/*.conf
 
 # remove conda command from tigger.py
