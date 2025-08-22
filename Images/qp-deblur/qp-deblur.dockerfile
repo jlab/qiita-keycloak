@@ -37,12 +37,9 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/deblur", "/bin/bash", "-c"]
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-WORKDIR /
 RUN git clone -b uncouplePlugins https://github.com/jlab/qiita_client.git
 RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
-WORKDIR /qiita_client
-RUN pip install --no-cache-dir .
-WORKDIR /
+RUN cd qiita_client && pip install --no-cache-dir .
 
 RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.310 SortMeRNA=2.0 fragment-insertion gcc
 RUN pip install -U pip
@@ -54,10 +51,7 @@ RUN pip install -U pip pip-system-certs
 RUN git clone -b uncouplePlugins https://github.com/jlab/qp-deblur.git
 RUN cd qp-deblur && pip install .
 
-RUN echo "scikit-bio==0.5.5" > req.txt && \
-    echo "-e /qp-deblur" >> req.txt && \
-	echo "-e /qiita_client" >> req.txt
-
+RUN echo "scikit-bio==0.5.5" > req.txt && echo "-e /qp-deblur" >> req.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r req.txt
 
 
