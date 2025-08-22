@@ -53,14 +53,14 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY Certificates /unshared_certificates
-RUN cat /unshared_certificates/stefan_rootca.crt >> `python -c "import certifi; print(certifi.where())"`  # append own rootCA onto chain of trust
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /qtp-job-output-folder/scripts/configure_qtp_job_output_folder /qtp-job-output-folder/scripts/start_qtp_job_output_folder
-RUN /qtp-job-output-folder/scripts/configure_qtp_job_output_folder --env-script "true" --ca-cert /unshared_certificates/stefan_server.crt
+COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /qtp-job-output-folder/scripts/configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-job-output-folder/" /unshared_plugins/*.conf
 
 CMD ["./start_qtp-job-output-folder.sh"]
