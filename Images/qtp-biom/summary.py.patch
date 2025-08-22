@@ -1,0 +1,16 @@
+--- summary.py	2025-08-22 12:49:53.018094323 +0000
++++ summary2.py	2025-08-22 12:39:34.242874354 +0000
+@@ -12,8 +12,11 @@
+ import pandas as pd
+ from tempfile import mkstemp
+ 
+-import qiime2.metadata
+-from qiime2.plugins.feature_table.visualizers import summarize
++#import qiime2
++#from qiime2.plugins.feature_table.visualizers import summarize
++import sys
++sys.path.append("/")
++from q2summarize import *
+ from skbio.tree import TreeNode
+ from biom import load_table
+ 
