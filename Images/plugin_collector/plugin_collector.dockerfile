@@ -12,6 +12,4 @@ COPY fix_test_db.py /fix_test_db.py
 COPY startup_plugin_collector.sh /startup_plugin_collector.sh
 RUN chmod u+x /startup_plugin_collector.sh
 
-COPY Certificates /unshared_certificates
-
 CMD /startup_plugin_collector.sh
