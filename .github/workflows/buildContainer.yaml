@@ -29,6 +29,7 @@ jobs:
           cp Images/qp-deblur/start_qp-deblur.sh Images/qp-deblur/trigger_noconda.py .
           mkdir -p qiita_server_certificates/
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
+          echo "fake" > qiita_server_certificates/fake_server.crt
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
