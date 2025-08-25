@@ -59,7 +59,7 @@ RUN sed -i "s|'qiita-files @ https://github.com/qiita-spots/'||" setup.py
 RUN sed -i "s|'qiita-files/archive/master.zip',||" setup.py
 RUN sed -i "s|'qiita_client @ https://github.com/qiita-spots/'||" setup.py
 RUN sed -i "s|'qiita_client/archive/master.zip'||" setup.py
-RUN sed -i "s|^import qiime2$|import qiime2.metadata|" qtp_biom/summary.py
+# RUN sed -i "s|^import qiime2$|import qiime2.metadata|" qtp_biom/summary.py
 
 RUN pip install -e .
 RUN pip install --upgrade certifi
@@ -69,7 +69,7 @@ RUN echo "-e /qiita_client" > req.txt
 RUN echo "-e /qiita-files" >> req.txt
 RUN echo "-e /qtp-biom" >> req.txt
 RUN echo "scikit-bio" >> req.txt
-RUN echo "bp" >> req.txt
+# RUN echo "bp==1.0.5" >> req.txt
 # RUN echo "flufl.lock" >> req.txt
 # RUN echo "decorator" >> req.txt
 # RUN echo "bibtexparser" >> req.txt
@@ -135,6 +135,7 @@ COPY summary.py.patch /summary.py.patch
 WORKDIR /
 RUN patch -p0 < /summary.py.patch
 
+COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
 COPY --from=builder /opt/conda/envs/qtp-biom/lib/libgomp.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
 # install tornado based trigger layer in base environment
