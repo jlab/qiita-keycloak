@@ -1,6 +1,7 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
+ARG QIITARELEASE=2025.7
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -33,9 +34,9 @@ RUN conda install tornado
 COPY trigger.py /trigger.py
 
 # Download qtp-biom yaml
-RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2025.7/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
+RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/${QIITARELEASE}/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
 RUN echo "- q2-feature-table" >> qiime2-tiny-ubuntu-latest-conda.yml
-RUN sed -i "s|- conda-forge|- https://packages.qiime2.org/qiime2/2025.7/amplicon/released/\n- conda-forge|" qiime2-tiny-ubuntu-latest-conda.yml
+RUN sed -i "s|- conda-forge|- https://packages.qiime2.org/qiime2/${QIITARELEASE}/amplicon/released/\n- conda-forge|" qiime2-tiny-ubuntu-latest-conda.yml
 # Create conda env
 RUN conda env create --quiet -n qtp-biom --file qiime2-tiny-ubuntu-latest-conda.yml
 # Make RUN commands use the new environment:
@@ -43,7 +44,11 @@ RUN conda env create --quiet -n qtp-biom --file qiime2-tiny-ubuntu-latest-conda.
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
 
 RUN pip install -U pip
-RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+# RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+RUN git clone -b uncouplePlugins https://github.com/jlab/qiita_client.git
+RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
+RUN cd qiita_client && pip install --no-cache-dir .
+
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 COPY ./qiita-files /qiita-files
 RUN cd /qiita-files && pip install -e . -v
@@ -77,4 +82,70 @@ COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
+# prepare for runtime stage
+WORKDIR /
+RUN pip uninstall pip-system-certs -y
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-feature-table.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-metadata.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-mystery-stew.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-types.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2cli.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2templates.git
+RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/qiime2.git
+
+COPY requirements.txt ./requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
 CMD ["./start_qtp-biom.sh"]
+
+# ==========================
+# Stage 2: Runtime
+# ==========================
+FROM python:3.10-slim
+
+# python package compile in build stage
+COPY --from=builder /wheels /wheels
+
+RUN pip install --no-cache-dir /wheels/* \
+	&& rm -rf rm -rf `find /usr/local/lib/python3.10/site-packages -type d -name "tests" | grep -v numpy`
+# ^^ 788MB
+
+COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.10/site-packages/bp /usr/local/lib/python3.10/site-packages/bp
+
+# install tornado based trigger layer in base environment
+RUN pip install -U --no-cache-dir tornado
+COPY trigger_noconda.py /trigger.py
+
+WORKDIR /
+
+COPY start_qtp-biom.sh .
+RUN chmod 755 start_qtp-biom.sh
+
+RUN mkdir -p /unshared_plugins
+ENV QIITA_PLUGINS_DIR=/unshared_plugins/
+
+RUN pip install pip-system-certs
+
+RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_biom
+RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_biom
+
+# use git branch instead of pypi version (stored via wheel)
+#COPY --from=builder /qiita_client /qiita_client
+#RUN cd qiita_client && pip install .
+
+##  Export cert and config filepaths
+COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+
+RUN mkdir -p /qiita_server_certificates/
+COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /usr/local/bin/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
+
+# remove conda command from tigger.py
+# RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
+
+CMD ["./start_qtp-biom.sh"]
+
+# python -c "import qiime2.plugins.feature_table"
