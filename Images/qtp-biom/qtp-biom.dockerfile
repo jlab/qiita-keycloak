@@ -73,24 +73,24 @@ RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 WORKDIR /
 
-COPY start_qtp-biom.sh .
-RUN chmod 755 start_qtp-biom.sh
+#COPY start_qtp-biom.sh .
+#RUN chmod 755 start_qtp-biom.sh
 
-RUN mkdir -p /unshared_plugins
-ENV QIITA_PLUGINS_DIR=/unshared_plugins/
+#RUN mkdir -p /unshared_plugins
+#ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+#COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+#ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+#ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
-RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
+#COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+#RUN /qtp-biom/scripts/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+#RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
 # prepare for runtime stage
-WORKDIR /
+# WORKDIR /
 RUN pip uninstall pip-system-certs -y
 RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-feature-table.git
 RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-metadata.git
