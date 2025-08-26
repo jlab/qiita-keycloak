@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py qtp-biom start_biom /qtp-biom
+cd / && python trigger.py start_biom
 
 tail -f /dev/null
