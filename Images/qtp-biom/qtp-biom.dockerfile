@@ -54,9 +54,13 @@ RUN cd qiita_client && pip install --no-cache-dir .
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 COPY ./qiita-files /qiita-files
 RUN cd /qiita-files && pip install -e . -v
-# RUN git clone https://github.com/qiita-spots/qtp-biom.git
-COPY ./qtp-biom /qtp-biom
+RUN git clone https://github.com/qiita-spots/qtp-biom.git
+# COPY ./qtp-biom /qtp-biom
 WORKDIR qtp-biom
+RUN sed -i "s|'qiita-files @ https://github.com/qiita-spots/'||" setup.py
+RUN sed -i "s|'qiita-files/archive/master.zip',||" setup.py
+RUN sed -i "s|'qiita_client @ https://github.com/qiita-spots/'||" setup.py
+RUN sed -i "s|'qiita_client/archive/master.zip'||" setup.py
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
