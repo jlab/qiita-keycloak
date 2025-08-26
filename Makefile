@@ -34,10 +34,10 @@ $(DIR_REFERENCES)/qiita_server_certificates: Images/plugin_collector/stefan_csr.
 plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REFERENCES)/qiita_server_certificates
 	cp -r $^ $(tmpdir)/
 
-.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh Images/qtp-biom/_visualizer.py.patch Images/qtp-biom/summary.py.patch
+.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh src/qiita-files/ src/qtp-biom/
 	test -d src/qtp-biom || git clone https://github.com/qiita-spots/qtp-biom.git src/qtp-biom
 	tmpdir=$(TMPDIR) $(MAKE) plugin
-	cp $^ $(TMPDIR)
+	cp -r $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
