@@ -7,6 +7,9 @@ on:
 
 jobs:
   docker:
+    strategy:
+      matrix:
+        plugin: ["qp-deblur", "qtp-biom"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,9 +27,9 @@ jobs:
       - name: Read version from file
         id: vars
         run: |
-          VERSION=$(head -n 1 Images/qp-deblur/qp-deblur.dockerfile | cut -d ":" -f 2- | tr -d " ")
+          VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/qp-deblur/start_qp-deblur.sh Images/qp-deblur/trigger_noconda.py .
+          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py  Images/qtp-biom/requirements.txt .
           mkdir -p qiita_server_certificates/
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
           echo "fake" > qiita_server_certificates/fake_server.crt
@@ -35,5 +38,5 @@ jobs:
         with:
           context: .
           push: true
-          file: Images/qp-deblur/qp-deblur.dockerfile
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/qp-deblur:${{ env.IMAGE_TAG }}
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
