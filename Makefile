@@ -34,7 +34,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Images/plugin_collector/stefan_csr.
 plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REFERENCES)/qiita_server_certificates
 	cp -r $^ $(tmpdir)/
 
-.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh src/qiita-files/ src/qtp-biom/
+.built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile Images/qtp-biom/start_qtp-biom.sh src/qiita-files/ src/qtp-biom/ Images/qtp-biom/requirements.txt
 	test -d src/qtp-biom || git clone https://github.com/qiita-spots/qtp-biom.git src/qtp-biom
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp -r $^ $(TMPDIR)
