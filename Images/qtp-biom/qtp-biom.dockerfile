@@ -52,11 +52,12 @@ RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Ente
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
-COPY ./qiita-files /qiita-files
+RUN git clone -b migrate_py310 https://github.com/jlab/qiita-files.git
+# COPY ./qiita-files /qiita-files
 RUN cd /qiita-files && pip install -e . -v
 RUN git clone https://github.com/qiita-spots/qtp-biom.git
 # COPY ./qtp-biom /qtp-biom
-WORKDIR qtp-biom
+WORKDIR /qtp-biom
 RUN sed -i "s|'qiita-files @ https://github.com/qiita-spots/'||" setup.py
 RUN sed -i "s|'qiita-files/archive/master.zip',||" setup.py
 RUN sed -i "s|'qiita_client @ https://github.com/qiita-spots/'||" setup.py
