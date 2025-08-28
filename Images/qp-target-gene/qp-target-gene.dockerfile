@@ -70,7 +70,7 @@ FROM ubuntu:22.04
 # py2 and py3
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python2 python3 curl && \
+    apt-get install -y --no-install-recommends python2 python3 curl python-tk && \
     rm -rf /var/lib/apt/lists/*
 
 # # RUN apk add --no-cache python2 python3  curl
@@ -92,6 +92,7 @@ COPY --from=builder /opt/conda/envs/qp-target-gene/bin/indexdb_rna /opt/conda/en
 
 RUN pip2 install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
+COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
 
 COPY start_qp-target-gene.sh .
 RUN chmod 755 start_qp-target-gene.sh
