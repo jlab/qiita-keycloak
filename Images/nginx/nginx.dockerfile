@@ -1,3 +1,5 @@
+# VERSION: 2025.08.28
+
 FROM yspreen/nginx
 
 COPY nginx_qiita.conf /
