@@ -1,4 +1,9 @@
-FROM ubuntu:24.04
+# VERSION: 2025.08.28
+
+# ==========================
+# Stage 1: Build wheels (~5.8 GB)
+# ==========================
+FROM ubuntu:24.04 as builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
 
@@ -23,11 +28,6 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 	conda init && \
 	rm -f /tmp/miniforge3.sh
 
-# install tornado based trigger layer in base environment
-RUN pip install -U pip
-RUN conda install tornado
-COPY trigger.py /trigger.py
-
 # Create conda env
 RUN conda create --name qtp-sequencing -y -c conda-forge -c bioconda pip pigz quast fqtools python=3.9
 # Make RUN commands use the new environment:
@@ -35,18 +35,44 @@ RUN conda create --name qtp-sequencing -y -c conda-forge -c bioconda pip pigz qu
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-sequencing", "/bin/bash", "-c"]
 
 RUN pip install -U pip
-RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
+#RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+RUN git clone -b uncouplePlugins https://github.com/jlab/qiita_client.git
+RUN cd qiita_client && pip install --no-cache-dir .
+
+# RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
+RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
+RUN cd /qiita-files && pip install -e . -v
+
 RUN git clone https://github.com/qiita-spots/qtp-sequencing.git
-WORKDIR qtp-sequencing
+WORKDIR /qtp-sequencing
+RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
+RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
+RUN sed -i "s|'qiita_client @ https://github.com/'||" setup.py
+RUN sed -i "s|'qiita-spots/qiita_client/archive/master.zip'||" setup.py
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
 
-# TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
+COPY requirements.txt ./requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
-WORKDIR /
+# ==========================
+# Stage 2: Runtime
+# ==========================
+FROM python:3.9-slim
+
+# python package compile in build stage
+COPY --from=builder /wheels /wheels
+
+RUN pip install --no-cache-dir /wheels/* \
+	&& rm -rf rm -rf `find /usr/local/lib/python3.9/site-packages -type d -name "tests" | grep -v numpy`
+
+# # install tornado based trigger layer in base environment
+# RUN pip install -U pip
+# RUN pip install tornado
+COPY trigger_noconda.py /trigger.py
+
+# WORKDIR /
 
 COPY start_qtp-sequencing.sh .
 RUN chmod 755 start_qtp-sequencing.sh
@@ -59,10 +85,8 @@ COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certi
 ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
-#RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qtp-sequencing/scripts/configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-sequencing/" /unshared_plugins/*.conf
 
-#CMD ["conda", "run", "-n", "qtp-sequencing", "./start_qtp-sequencing.sh"]
 CMD ["./start_qtp-sequencing.sh"]

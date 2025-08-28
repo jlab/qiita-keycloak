@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py qtp-sequencing start_qtp_sequencing /qtp-sequencing
+cd / && python trigger.py start_qtp_sequencing
 
 tail -f /dev/null
