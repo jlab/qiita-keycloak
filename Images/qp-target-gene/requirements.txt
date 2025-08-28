@@ -1,0 +1,5 @@
+pip-system-certs
+
+https://github.com/qiita-spots/qiita-files/archive/master.zip
+-e /qiita_client
+-e /qp-target-gene

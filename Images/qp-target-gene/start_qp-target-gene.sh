@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py qp-target-gene start_target_gene /qp-target-gene
+cd / && python3 trigger.py start_target_gene
 
 tail -f /dev/null

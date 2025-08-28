@@ -9,7 +9,7 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qp-deblur", "qtp-biom"]
+        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

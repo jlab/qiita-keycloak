@@ -47,7 +47,7 @@ plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REF
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qp-target-gene: Images/qp-target-gene/qp-target-gene.dockerfile Images/qp-target-gene/start_qp-target-gene.sh
+.built_image_qp-target-gene: Images/qp-target-gene/qp-target-gene.dockerfile Images/qp-target-gene/start_qp-target-gene.sh Images/qp-target-gene/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
