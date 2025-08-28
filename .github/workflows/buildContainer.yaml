@@ -29,7 +29,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py Images/qtp-biom/trigger.py Images/qtp-biom/requirements.txt .
+          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py Images/qtp-biom/trigger.py Images/${{ matrix.plugin }}/requirements.txt .
           mkdir -p qiita_server_certificates/
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
           echo "fake" > qiita_server_certificates/fake_server.crt

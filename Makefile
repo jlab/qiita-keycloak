@@ -73,7 +73,7 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
 	rm -rf $(DIR_REFERENCES)/tmp_sepp/
 
-.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre
+.built_image_qp-deblur: Images/qp-deblur/qp-deblur.dockerfile Images/qp-deblur/start_qp-deblur.sh $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre Images/qp-deblur/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`

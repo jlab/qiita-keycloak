@@ -51,9 +51,8 @@ RUN pip install -U pip pip-system-certs
 RUN git clone -b uncouplePlugins https://github.com/jlab/qp-deblur.git
 RUN cd qp-deblur && pip install .
 
-RUN echo "scikit-bio==0.5.5" > req.txt && \
-    echo "-e /qp-deblur" >> req.txt
-RUN pip wheel --no-cache-dir --wheel-dir /wheels -r req.txt
+COPY requirements.txt ./requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 
 # ==========================
