@@ -1,4 +1,5 @@
-#!/bin/bash
-mkdir -p /opt/conda/envs/nginx/var/run/nginx/ /usr/local/var/tmp/nginx/
+#!/bin/sh
+mkdir -p /var/run/nginx/ /usr/local/var/tmp/nginx/
 
-nginx -c /qiita_configuration/nginx_qiita.conf 
+nginx -t -c /qiita_configuration/nginx_qiita.conf
+nginx -c /qiita_configuration/nginx_qiita.conf
