@@ -67,9 +67,14 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.9/site-packages -type d -name "tests" | grep -v numpy`
 
-# # install tornado based trigger layer in base environment
-# RUN pip install -U pip
-# RUN pip install tornado
+# "install" https://github.com/alastair-droop/fqtools
+COPY --from=builder /opt/conda/envs/qtp-sequencing/bin/fqtools /usr/local/bin/fqtools
+COPY --from=builder /opt/conda/envs/qtp-sequencing/lib/libhts.so.1.22.1 /lib/x86_64-linux-gnu/libhts.so.3
+COPY --from=builder /opt/conda/envs/qtp-sequencing/lib/libdeflate.so.0 /lib/x86_64-linux-gnu/
+
+# "install" pigz
+COPY --from=builder /opt/conda/envs/qtp-sequencing/bin/pigz /usr/local/bin/
+
 COPY trigger_noconda.py /trigger.py
 
 # WORKDIR /

@@ -94,6 +94,9 @@ RUN pip2 install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
 COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
 
+# "install" pigz
+COPY --from=builder /opt/conda/envs/qp-target-gene/bin/pigz /usr/local/bin/
+
 COPY start_qp-target-gene.sh .
 RUN chmod 755 start_qp-target-gene.sh
 
