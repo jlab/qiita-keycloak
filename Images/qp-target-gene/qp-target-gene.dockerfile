@@ -3,7 +3,7 @@
 # ==========================
 # Stage 1: Build wheels
 # ==========================
-FROM ubuntu:24.04 as builder
+FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
 
