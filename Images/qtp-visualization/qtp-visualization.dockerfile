@@ -1,3 +1,5 @@
+# VERSION: 2025.08.29
+
 FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
@@ -69,27 +71,49 @@ RUN pip install pip-system-certs
 
 WORKDIR /
 
+RUN repo=q2-metadata; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2-mystery-stew; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2-types; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2cli; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.1.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2templates; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=qiime2; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.1.tar.gz | tar -xz --strip-components=1 -C /$repo
+
+COPY requirements.txt ./requirements.txt
+RUN conda install cython
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+RUN pip install iow
+
+
+
+# ==========================
+# Stage 2: Runtime
+# ==========================
+FROM python:3.8-slim
+
+# python package compile in build stage
+COPY --from=builder /wheels /wheels
+
+RUN pip install --no-cache-dir /wheels/* \
+	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
+
 COPY start_qtp-visualization.sh .
 RUN chmod 755 start_qtp-visualization.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
+COPY trigger_noconda.py /trigger.py
+
 ##  Export cert and config filepaths
 COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
 ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
-#RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-RUN chmod u+x /qtp-visualization/scripts/configure_visualization_types /qtp-visualization/scripts/start_visualization_types
+RUN chmod u+x /usr/local/bin/configure_visualization_types /usr/local/bin/start_visualization_types
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qtp-visualization/scripts/configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+# qiime2 expects to have a CONDA_PREFIX set, see https://github.com/qiime2/qiime2/blob/812fd09cf80b4ed76c1f39827ae2dba729448436/qiime2/sdk/parallel_config.py#L30
+ENV CONDA_PREFIX=/usr/local
+RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
 CMD ["./start_qtp-visualization.sh"]
-
-# # ==========================
-# # Stage 2: Runtime
-# # ==========================
-# FROM python:3.8-slim
-
