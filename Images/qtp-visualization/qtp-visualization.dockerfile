@@ -1,6 +1,7 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
+ARG QIIME2RELEASE=2023.5
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -29,10 +30,19 @@ RUN conda install tornado
 COPY trigger.py /trigger.py
 
 # Download qiime2 yaml (make sure to use a qiime2 version that is able to visualize qiime artifacts of the correct version)
-RUN wget --quiet https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml
+RUN wget --quiet https://data.qiime2.org/distro/core/qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
+
+RUN sed -n '/channels/,/dependencies/p' qiime2-${QIIME2RELEASE}-py38-linux-conda.yml > tinyq2.yml && \
+	echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2-mystery-stew=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - typeguard=2.13.3" >> tinyq2.yml && \
+	echo "  - qiime2" >> tinyq2.yml
 
 # Create conda env
-RUN conda env create --name qtp-visualization -y --file qiime2-2023.5-py38-linux-conda.yml
+RUN conda config --set channel_priority strict && conda env create --name qtp-visualization -y --file tinyq2.yml
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-visualization", "/bin/bash", "-c"]
@@ -41,16 +51,21 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 RUN pip install -U pip
-RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
+#RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+RUN git clone -b uncouplePlugins https://github.com/jlab/qiita_client.git
+RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
+RUN cd qiita_client && pip install --no-cache-dir .
+
+#RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
+RUN git clone -b master https://github.com/jlab/qiita-files.git
+RUN cd /qiita-files && pip install -e . -v
+
 RUN git clone https://github.com/qiita-spots/qtp-visualization.git
-WORKDIR qtp-visualization
+WORKDIR /qtp-visualization
+RUN sed -i "s|'qiita_client', 'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
-
-# TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 WORKDIR /
 
@@ -72,3 +87,9 @@ RUN /qtp-visualization/scripts/configure_visualization_types --env-script "true"
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
 CMD ["./start_qtp-visualization.sh"]
+
+# # ==========================
+# # Stage 2: Runtime
+# # ==========================
+# FROM python:3.8-slim
+
