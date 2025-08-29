@@ -51,7 +51,7 @@ RUN sed -n '/channels/,/dependencies/p' qiime2-2022.8-py38-linux-conda.yml > tin
 # # #RUN echo "- q2-feature-table" >> qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
 # # #RUN sed -i "s|- conda-forge|- https://packages.qiime2.org/qiime2/${QIIME2RELEASE}/passed/core/\n- conda-forge|" qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
 # Create conda env
-RUN conda config --set channel_priority strict && conda env create --quiet -n qtp-biom --file tinyq2.yml
+RUN conda env create --quiet -n qtp-biom --file tinyq2.yml
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
