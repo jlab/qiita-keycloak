@@ -1,9 +1,9 @@
-# VERSION: 2025.08.26
+# VERSION: 2025.08.29
 
 FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
-ARG QIITARELEASE=2025.7
+ARG QIIME2RELEASE=2022.8
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -36,11 +36,22 @@ RUN conda install tornado
 COPY trigger.py /trigger.py
 
 # Download qtp-biom yaml
-RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/${QIITARELEASE}/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
-RUN echo "- q2-feature-table" >> qiime2-tiny-ubuntu-latest-conda.yml
-RUN sed -i "s|- conda-forge|- https://packages.qiime2.org/qiime2/${QIITARELEASE}/amplicon/released/\n- conda-forge|" qiime2-tiny-ubuntu-latest-conda.yml
+# RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/${QIIME2RELEASE}/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
+RUN wget https://data.qiime2.org/distro/core/qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
+
+RUN sed -n '/channels/,/dependencies/p' qiime2-2022.8-py38-linux-conda.yml > tinyq2.yml && \
+	echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2-mystery-stew=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml && \
+	echo "  - qiime2" >> tinyq2.yml && \
+	echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
+
+# # #RUN echo "- q2-feature-table" >> qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
+# # #RUN sed -i "s|- conda-forge|- https://packages.qiime2.org/qiime2/${QIIME2RELEASE}/passed/core/\n- conda-forge|" qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
 # Create conda env
-RUN conda env create --quiet -n qtp-biom --file qiime2-tiny-ubuntu-latest-conda.yml
+RUN conda env create --quiet -n qtp-biom --file tinyq2.yml
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
@@ -92,32 +103,35 @@ WORKDIR /
 # prepare for runtime stage
 # WORKDIR /
 RUN pip uninstall pip-system-certs -y
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-feature-table.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-metadata.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-mystery-stew.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2-types.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2cli.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/q2templates.git
-RUN git clone -b Release-${QIITARELEASE} https://github.com/qiime2/qiime2.git
+RUN repo=q2-feature-table; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.1.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2-metadata; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2-mystery-stew; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2-types; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2cli; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=q2templates; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.0.tar.gz | tar -xz --strip-components=1 -C /$repo
+RUN repo=qiime2; mkdir -p /$repo && wget -O- https://github.com/qiime2/$repo/archive/refs/tags/${QIIME2RELEASE}.3.tar.gz | tar -xz --strip-components=1 -C /$repo
 
 COPY requirements.txt ./requirements.txt
+RUN conda install cython
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+RUN pip install iow
 
 CMD ["./start_qtp-biom.sh"]
 
 # ==========================
 # Stage 2: Runtime
 # ==========================
-FROM python:3.10-slim
+FROM python:3.8-slim
 
 # python package compile in build stage
 COPY --from=builder /wheels /wheels
 
 RUN pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.10/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 # ^^ 788MB
 
-COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.10/site-packages/bp /usr/local/lib/python3.10/site-packages/bp
+COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
+RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
 # install tornado based trigger layer in base environment
 RUN pip install -U --no-cache-dir tornado
@@ -149,6 +163,9 @@ RUN mkdir -p /qiita_server_certificates/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /usr/local/bin/configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
+
+# fix an pandas deprecation issue, i.e. patch q2templates code
+RUN sed -i "s/'display.max_colwidth', -1/'display.max_colwidth', None/" /usr/local/lib/python3.8/site-packages/q2templates/util.py
 
 # remove conda command from tigger.py
 # RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py

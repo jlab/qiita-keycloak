@@ -22,7 +22,8 @@ jinja2
 ijson
 pyhmmer
 frictionless
-numpy==1.26.4
+numpy
+iow
 
 -e /qtp-biom
 -e /qiita-files
