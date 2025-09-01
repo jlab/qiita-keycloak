@@ -58,12 +58,11 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b uncouplePlugins https://github.com/jlab/qiita_client.git
-RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
+RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
-RUN git clone -b migrate_py310 https://github.com/jlab/qiita-files.git
+RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 # COPY ./qiita-files /qiita-files
 RUN cd /qiita-files && pip install -e . -v
 RUN git clone https://github.com/qiita-spots/qtp-biom.git

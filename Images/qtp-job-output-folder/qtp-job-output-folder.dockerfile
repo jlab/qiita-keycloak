@@ -36,7 +36,7 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-job-output-folder", "/bin/bash
 
 RUN pip install -U pip
 RUN git clone https://github.com/qiita-spots/qtp-job-output-folder.git
-WORKDIR qtp-job-output-folder
+WORKDIR /qtp-job-output-folder
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
