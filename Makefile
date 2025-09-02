@@ -41,7 +41,7 @@ plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REF
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qtp-sequencing: Images/qtp-sequencing/qtp-sequencing.dockerfile Images/qtp-sequencing/start_qtp-sequencing.sh Images/qtp-sequencing/requirements.txt
+.built_image_qtp-sequencing: Images/qtp-sequencing/qtp-sequencing.dockerfile Images/qtp-sequencing/start_qtp-sequencing.sh Images/qtp-sequencing/test_qtp-sequencing.sh Images/qtp-sequencing/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
@@ -59,7 +59,7 @@ plugin: Images/qtp-biom/trigger.py Images/qp-deblur/trigger_noconda.py $(DIR_REF
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qtp-diversity: Images/qtp-diversity/qtp-diversity.dockerfile Images/qtp-diversity/start_qtp-diversity.sh
+.built_image_qtp-diversity: Images/qtp-diversity/qtp-diversity.dockerfile Images/qtp-diversity/start_qtp-diversity.sh Images/qtp-diversity/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
@@ -105,7 +105,7 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita
 	touch .built_image_qiita
 
-.built_image_plugin_collector: Images/plugin_collector/plugin_collector.dockerfile Images/plugin_collector/fix_test_db.py Images/plugin_collector/collect_configs.py Images/plugin_collector/startup_plugin_collector.sh
+.built_image_plugin_collector: Images/plugin_collector/plugin_collector.dockerfile Images/plugin_collector/fix_test_db.py Images/plugin_collector/collect_configs.py Images/plugin_collector/start_plugin_collector.sh
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
