@@ -345,7 +345,7 @@ services:
         condition: service_started
     environment:
       - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
-    command: ['/startup_plugin_collector.sh']
+    command: ['/start_plugin_collector.sh']
 
 networks:
   qiita-net:
