@@ -31,7 +31,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py Images/qtp-biom/trigger.py Images/nginx/nginx_qiita.conf Images/${{ matrix.plugin }}/requirements.txt .
+          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/${{ matrix.plugin }}/test_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py Images/qtp-biom/trigger.py Images/nginx/nginx_qiita.conf Images/${{ matrix.plugin }}/requirements.txt .
           cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf .
           mkdir -p qiita_server_certificates/
@@ -70,7 +70,7 @@ jobs:
             ${{ matrix.plugin }}
       - name: Execute tests in the running services
         run: |
-          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "apt-get update; apt-get install git; pip install pytest; git clone https://github.com/qiita-spots/${{ matrix.plugin }}; for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name \"testing.py\"`; do sed -i 's|URL = \"https://localhost:8383\"|URL = \"https://tinqiita-nginx-1:8383\"' $f; done; for f in `find /${{ matrix.plugin }}/*/tests/ -name 'test_*.py'`; do sed -i \"s|https://localhost:21174|https://tinqiita-nginx-1:8383|\" $f; done; export QIITA_PORT=8383; cd ${{ matrix.plugin }}; pytest"
+          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "PLUGIN=${{ matrix.plugin }}; bash /test_${{ matrix.plugin }}.sh"
 
       - name: Push production image (only if tests passed)
         if: success()
