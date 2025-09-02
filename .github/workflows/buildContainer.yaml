@@ -70,7 +70,7 @@ jobs:
             ${{ matrix.plugin }}
       - name: Execute tests in the running services
         run: |
-          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "PLUGIN=${{ matrix.plugin }}; bash /test_${{ matrix.plugin }}.sh"
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN=${{ matrix.plugin }}; bash /test_${{ matrix.plugin }}.sh"
 
       - name: Push production image (only if tests passed)
         if: success()
