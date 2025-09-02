@@ -38,7 +38,7 @@ jobs:
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
           echo "fake" > qiita_server_certificates/fake_server.crt
 
-      - name: Build Image (but don not push yet)
+      - name: Build Image (but do not push yet)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -51,10 +51,23 @@ jobs:
         run: |
           make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre ./environments/qiita_db.env ./environments/qiita.env config
 
+      - name: adapt compose file to select specific plugin
+        run: |
+          sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+          sed -i "s|image: janssenlab/${{ matrix.plugin }}:latest|image: tinqiita/${{ matrix.plugin }}:testcandidate|" compose_github.yaml
+
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "compose_github.yaml"
+          services: |
+            qiita-db
+            qiita-initialize-db
+            qiita
+            qiita-worker
+            redis
+            nginx
+            ${{ matrix.plugin }}
 
       - name: Push production image (only if tests passed)
         if: success()

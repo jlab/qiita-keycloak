@@ -35,6 +35,7 @@ services:
       - server-plugin-configs:/qiita_plugins
       - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
       - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+      - qiita-logs:/logs
     networks:
       - qiita-net
 
@@ -63,7 +64,7 @@ services:
         - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       volumes:
         - qiita-data:/qiita_data
-        - ./logs:/logs
+        - qiita-logs:/logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
         - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
         - server-plugin-configs:/qiita_plugins
@@ -101,7 +102,7 @@ services:
         - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       volumes:
         - qiita-data:/qiita_data
-        - ./logs:/logs
+        - qiita-logs:/logs
         - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
         - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
         - server-plugin-configs:/qiita_plugins
@@ -119,7 +120,7 @@ services:
              redis-server --port 6379"
     volumes:
       - qiita-data:/qiita
-      - ./logs:/logs
+      - qiita-logs:/logs
     networks:
       - qiita-net
 
@@ -136,14 +137,14 @@ services:
       - qiita
     volumes:
       - qiita-data:/qiita_data
-      - ./logs:/logs
+      - qiita-logs:/logs
       - ./Images/nginx/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
       - ./references/qiita_server_certificates:/qiita_certificates
     networks:
       - qiita-net
 
   # qtp-biom:
-  #   image: local-qtp-biom:latest
+  #   image: janssenlab/qtp-biom:latest
   #   command: ['./start_qtp-biom.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -158,23 +159,23 @@ services:
   #   networks:
   #     - qiita-net
 
-  # qtp-sequencing:
-  #   image: local-qtp-sequencing:latest
-  #   command: ['./start_qtp-sequencing.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qtp-sequencing:
+    image: janssenlab/qtp-sequencing:latest
+    command: ['./start_qtp-sequencing.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
   # qp-target-gene:
-  #   image: local-qp-target-gene:latest
+  #   image: janssenlab/qp-target-gene:latest
   #   command: ['./start_qp-target-gene.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -189,7 +190,7 @@ services:
   #     - qiita-net
 
   # qtp-visualization:
-  #   image: local-qtp-visualization:latest
+  #   image: janssenlab/qtp-visualization:latest
   #   command: ['./start_qtp-visualization.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -204,7 +205,7 @@ services:
   #     - qiita-net
 
   # qtp-diversity:
-  #   image: local-qtp-diversity:latest
+  #   image: janssenlab/qtp-diversity:latest
   #   command: ['./start_qtp-diversity.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -218,21 +219,21 @@ services:
   #   networks:
   #     - qiita-net
 
-  qp-deblur:
-    image: janssenlab/qp-deblur:latest
-    command: ['./start_qp-deblur.sh']
-    restart: no
-    volumes:
-      - qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
-      - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
-    environment:
-      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-    networks:
-      - qiita-net
+  # qp-deblur:
+  #   image: janssenlab/qp-deblur:latest
+  #   command: ['./start_qp-deblur.sh']
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #     - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
 
   # qp-qiime2:
-  #   image: local-qp-qiime2:latest
+  #   image: janssenlab/qp-qiime2:latest
   #   command: ['./start_qp-qiime2.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -248,7 +249,7 @@ services:
   #     - qiita-net
 
   # qtp-job-output-folder:
-  #   image: local-qtp-job-output-folder:latest
+  #   image: janssenlab/qtp-job-output-folder:latest
   #   command: ['./start_qtp-job-output-folder.sh']
   #   # network_mode: host
   #   # stdin_open: true
@@ -276,6 +277,8 @@ services:
     depends_on:
       qiita-initialize-db:
         condition: service_completed_successfully
+      MATRIXPLUGIN:
+        condition: service_started
       # qtp-biom:  # one of the plugins
       #   condition: service_started
       # qtp-sequencing:
@@ -286,14 +289,14 @@ services:
       #   condition: service_started
       # qtp-diversity:
       #   condition: service_started
-      qp-deblur:
-        condition: service_started
+      # qp-deblur:
+      #   condition: service_started
       # qp-qiime2:
       #   condition: service_started
       # qtp-job-output-folder:
       #   condition: service_started
     environment:
-      - QIITA_PLUGINS="qp-deblur:"
+      - QIITA_PLUGINS="MATRIXPLUGIN:"
     command: ['/start_plugin_collector.sh']
 
 networks:
@@ -304,3 +307,4 @@ volumes:
   postgres-data:
   qiita-data:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
+  qiita-logs:
