@@ -1,3 +1,5 @@
+# VERSION: 2025.09.02
+
 FROM ubuntu:24.04
 
 RUN apt-get -y update
