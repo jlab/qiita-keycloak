@@ -43,3 +43,12 @@ jobs:
           push: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
+
+      - name: Make tinqiita targets
+        run: |
+          make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre
+
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "compose_github.yaml"

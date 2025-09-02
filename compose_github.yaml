@@ -1,0 +1,306 @@
+name: tinqiita
+
+services:
+  qiita-db:
+    image: postgres:15
+    container_name: qiita-db
+    hostname: qiita-db
+    restart: no
+    env_file:
+      - ./environments/qiita_db.env
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+    volumes:
+      - './environments/qiita-db-init.sh:/docker-entrypoint-initdb.d/qiita-db-init.sh'
+      - 'postgres-data:/var/lib/postgresql/data'
+      - server-plugin-configs:/qiita_plugins
+    networks:
+      - qiita-net
+    ports:
+      - "15432:5432"
+
+  qiita-initialize-db:
+    image: janssenlab/qiita:latest
+    command: ['/start_qiita-initDB.sh']
+    depends_on:
+      - qiita-db
+    env_file:
+      - './environments/qiita.env'
+    environment:
+      - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    volumes:
+      - qiita-data:/qiita_data
+      - server-plugin-configs:/qiita_plugins
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+    networks:
+      - qiita-net
+
+  qiita:
+      image: janssenlab/qiita:latest
+      build: # image wird hier direkt gebaut
+        context: ./Images/qiita
+        dockerfile: Dockerfile
+      command: ['/start_qiita.sh'] # executes bash script inside the container
+      # entrypoint: /bin/bash
+      # stdin_open: true
+      # tty: true
+      # ports:
+        # - "21174:21174"  # wihtout nginx
+        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
+      restart: no
+      depends_on:
+        - qiita-worker
+      env_file:
+        - './environments/qiita.env'
+      environment:
+        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
+        - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+        - PORT=21174
+        - MASTER=--master
+        - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+      volumes:
+        - qiita-data:/qiita_data
+        - ./logs:/logs
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - server-plugin-configs:/qiita_plugins
+        - ./references/qiita_server_certificates:/qiita_certificates
+      networks:
+        - qiita-net
+      ports:
+      - "21174:21174"
+
+  qiita-worker:
+      image: janssenlab/qiita:latest
+      build: # image wird hier direkt gebaut
+        context: ./Images/qiita
+        dockerfile: Dockerfile
+      command: ['./start_qiita.sh'] # executes bash script inside the container
+      # entrypoint: /bin/bash
+      # stdin_open: true
+      # tty: true
+      # ports:
+        # - "21174:21174"  # wihtout nginx
+        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
+      restart: no
+      depends_on:
+        redis:
+          condition: service_started
+        plugin-collector:
+          condition: service_completed_successfully
+      env_file:
+        - './environments/qiita.env'
+      environment:
+        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
+        - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+        - PORT=21175
+        - MASTER=
+        - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+      volumes:
+        - qiita-data:/qiita_data
+        - ./logs:/logs
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - server-plugin-configs:/qiita_plugins
+        - ./references/qiita_server_certificates:/qiita_certificates
+      networks:
+        - qiita-net
+      deploy:
+        replicas: 3
+
+  redis:
+    image: redis:latest
+    restart: no
+    command: >
+      sh -c "redis-server --port 7777 &&
+             redis-server --port 6379"
+    volumes:
+      - qiita-data:/qiita
+      - ./logs:/logs
+    networks:
+      - qiita-net
+
+  nginx:
+    image: janssenlab/nginx:latest
+    build:
+      context: ./Images/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8383:8383"
+    command: ['./start_nginx.sh']
+    restart: no
+    depends_on:
+      - qiita
+    volumes:
+      - qiita-data:/qiita_data
+      - ./logs:/logs
+      - ./Images/nginx/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
+      - ./references/qiita_server_certificates:/qiita_certificates
+    networks:
+      - qiita-net
+
+  # qtp-biom:
+  #   image: local-qtp-biom:latest
+  #   command: ['./start_qtp-biom.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #     - ./src/qtp-biom:/qtp-biom:U
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  # qtp-sequencing:
+  #   image: local-qtp-sequencing:latest
+  #   command: ['./start_qtp-sequencing.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  # qp-target-gene:
+  #   image: local-qp-target-gene:latest
+  #   command: ['./start_qp-target-gene.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  # qtp-visualization:
+  #   image: local-qtp-visualization:latest
+  #   command: ['./start_qtp-visualization.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  # qtp-diversity:
+  #   image: local-qtp-diversity:latest
+  #   command: ['./start_qtp-diversity.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  qp-deblur:
+    image: janssenlab/qp-deblur:latest
+    command: ['./start_qp-deblur.sh']
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
+
+  # qp-qiime2:
+  #   image: local-qp-qiime2:latest
+  #   command: ['./start_qp-qiime2.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #     - TZ=Europe/Berlin  # this is important to avoid a local timezone error! See https://forum.qiime2.org/t/qiime2-timezone-error/17410
+  #   networks:
+  #     - qiita-net
+
+  # qtp-job-output-folder:
+  #   image: local-qtp-job-output-folder:latest
+  #   command: ['./start_qtp-job-output-folder.sh']
+  #   # network_mode: host
+  #   # stdin_open: true
+  #   # tty: true
+  #   restart: no
+  #   volumes:
+  #     - qiita-data:/qiita_data
+  #     - ./references/qiita_server_certificates:/qiita_server_certificates
+  #   environment:
+  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  #   networks:
+  #     - qiita-net
+
+  plugin-collector:
+    # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
+    # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
+    image: janssenlab/plugin_collector:latest
+    restart: no
+    networks:
+      - qiita-net
+    volumes:
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - server-plugin-configs:/qiita_plugins
+      - qiita-data:/qiita_data
+    depends_on:
+      qiita-initialize-db:
+        condition: service_completed_successfully
+      # qtp-biom:  # one of the plugins
+      #   condition: service_started
+      # qtp-sequencing:
+      #   condition: service_started
+      # qp-target-gene:
+      #   condition: service_started
+      # qtp-visualization:
+      #   condition: service_started
+      # qtp-diversity:
+      #   condition: service_started
+      qp-deblur:
+        condition: service_started
+      # qp-qiime2:
+      #   condition: service_started
+      # qtp-job-output-folder:
+      #   condition: service_started
+    environment:
+      - QIITA_PLUGINS="qp-deblur:"
+    command: ['/start_plugin_collector.sh']
+
+networks:
+  qiita-net:
+    name: qiita-net
+
+volumes:
+  postgres-data:
+  qiita-data:
+  server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
