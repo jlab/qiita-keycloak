@@ -94,4 +94,7 @@ COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-sequencing/" /unshared_plugins/*.conf
 
+# for testing
+COPY test_qtp-sequencing.sh /test_qtp-sequencing.sh
+
 CMD ["./start_qtp-sequencing.sh"]
