@@ -68,6 +68,9 @@ jobs:
             redis
             nginx
             ${{ matrix.plugin }}
+      - name: Execute tests in the running services
+        run: |
+          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "apt-get update; apt-get install git; pip install pytest; git clone https://github.com/qiita-spots/${{ matrix.plugin }}; for f in `find / -name "testing.py" | grep qiita_client`; do sed -i 's|URL = \"https://localhost:8383\"|URL = \"https://tinqiita-nginx-1:8383\"' $f; done; export QIITA_PORT=8383; cd ${{ matrix.plugin }}; pytest"
 
       - name: Push production image (only if tests passed)
         if: success()
@@ -75,6 +78,7 @@ jobs:
         with:
           context: .
           push: true
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
             ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
