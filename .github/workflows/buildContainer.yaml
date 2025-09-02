@@ -9,7 +9,7 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qp-deblur",  "qtp-biom", "qp-target-gene", "qtp-sequencing", "nginx", "qtp-visualization", #"qtp-diversity",
+        plugin: ["qp-deblur",  #"qtp-biom", "qp-target-gene", "qtp-sequencing", "nginx", "qtp-visualization", #"qtp-diversity",
                  "qiita", "plugin_collector"]
     runs-on: ubuntu-latest
     steps:
@@ -36,21 +36,44 @@ jobs:
           mkdir -p qiita_server_certificates/
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
           echo "fake" > qiita_server_certificates/fake_server.crt
-      - name: Build and push Docker image
+
+      - name: Build Image (but don not push yet)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
+          tags: tinqiita/${{ matrix.plugin }}:testcandidate
 
       - name: Make tinqiita targets
         run: |
           make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre ./environments/qiita_db.env ./environments/qiita.env config
 
-      # - name: Run docker compose
-      #   uses: hoverkraft-tech/compose-action@v2.0.1
-      #   with:
-      #     compose-file: "compose_github.yaml"
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "compose_github.yaml"
+
+      - name: Push production image (only if tests passed)
+        if: success()
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
+
+
+
+      # - name: Run integration tests with docker-compose
+      #   run: |
+      #     docker compose -f docker-compose.test.yml up -d
+      #     # kurze Wartezeit, bis Services bereit sind
+      #     sleep 10
+      #     # Beispiel: Tests im Container ausführen
+      #     docker exec my_service_container pytest -v
+      #     docker compose -f docker-compose.test.yml down
+
+
