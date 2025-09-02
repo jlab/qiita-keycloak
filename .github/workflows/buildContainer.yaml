@@ -9,7 +9,8 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "nginx", "qtp-visualization"]
+        plugin: ["qp-deblur",  #, "qtp-biom", "qp-target-gene", "qtp-sequencing", "nginx", "qtp-visualization", "qtp-diversity",
+                 "qiita"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,6 +31,7 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
           cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/qp-deblur/trigger_noconda.py Images/qtp-biom/trigger.py Images/nginx/nginx_qiita.conf Images/${{ matrix.plugin }}/requirements.txt .
+          cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           mkdir -p qiita_server_certificates/
           echo "fake" > qiita_server_certificates/qiita_server_certificates.pem
           echo "fake" > qiita_server_certificates/fake_server.crt
