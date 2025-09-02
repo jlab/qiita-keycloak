@@ -70,7 +70,7 @@ jobs:
             ${{ matrix.plugin }}
       - name: Execute tests in the running services
         run: |
-          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "apt-get update; apt-get install git; pip install pytest; git clone https://github.com/qiita-spots/${{ matrix.plugin }}; for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name "testing.py" | grep qiita_client`; do sed -i 's|URL = \"https://localhost:8383\"|URL = \"https://tinqiita-nginx-1:8383\"' $f; done; for f in `find ${{ matrix.plugin }}/*/tests/ -name "test_*.py`; do sed -i \"s|https://localhost:21174|https://tinqiita-nginx-1:8383|\" $f; done; export QIITA_PORT=8383; cd ${{ matrix.plugin }}; pytest"
+          docker compose exec tinqiita-${{ matrix.plugin }}-1 /bin/bash -c "apt-get update; apt-get install git; pip install pytest; git clone https://github.com/qiita-spots/${{ matrix.plugin }}; for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name testing.py`; do sed -i 's|URL = \"https://localhost:8383\"|URL = \"https://tinqiita-nginx-1:8383\"' $f; done; for f in `find ${{ matrix.plugin }}/*/tests/ -name 'test_*.py'`; do sed -i \"s|https://localhost:21174|https://tinqiita-nginx-1:8383|\" $f; done; export QIITA_PORT=8383; cd ${{ matrix.plugin }}; pytest"
 
       - name: Push production image (only if tests passed)
         if: success()
