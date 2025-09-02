@@ -42,7 +42,9 @@ jobs:
           context: .
           push: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
 
       - name: Make tinqiita targets
         run: |
