@@ -4,7 +4,7 @@ echo "plugin to be tested is: '$PLUGIN':wq"
 
 # install dependencies
 apt-get update
-apt-get install git
+apt-get -y --fix-missing install git
 pip install pytest
 
 # clone plugin repository
@@ -16,15 +16,12 @@ for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name "testing
 done
 
 # fix qiita base url in plugin tests
-for f in `find ${PLUGIN}/*/tests/ -name 'test_*.py'`; do
+for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
     sed -i 's|https://localhost:21174|https://tinqiita-nginx-1:8383|' $f;
 done
 
 # better save than sorry
 export QIITA_PORT=8383;
 
-# change into plugin source directory
-cd ${PLUGIN}
-
-# execute actual tests
-pytest
+# change into plugin source directory and execute actual tests
+cd ${PLUGIN} && pytest
