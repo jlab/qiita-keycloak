@@ -19,6 +19,12 @@ services:
       - qiita-net
     ports:
       - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   qiita-initialize-db:
     image: janssenlab/qiita:latest
@@ -115,14 +121,23 @@ services:
   redis:
     image: redis:latest
     restart: no
+    environment:
+      - PORTSTATS=7777
+      - PORTREDBIOM=6379
     command: >
-      sh -c "redis-server --port 7777 &&
-             redis-server --port 6379"
+      sh -c "redis-server --port $$PORTSTATS &&
+             redis-server --port $$PORTREDBIOM"
     volumes:
       - qiita-data:/qiita
       - qiita-logs:/logs
     networks:
       - qiita-net
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p $$PORTSTATS ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   nginx:
     image: janssenlab/nginx:latest
@@ -142,6 +157,15 @@ services:
       - ./references/qiita_server_certificates:/qiita_certificates
     networks:
       - qiita-net
+    healthcheck:
+      # looks wired as wget is the busybox version and lacks certificates
+      # we thus just test if anything answers on the port, otherwise nginx
+      # returns a "Connection refused"
+      test: ["CMD-SHELL", "wget https://tinqiita-nginx-1:8383 2>&1 | grep refused -c || true"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # qtp-biom:
   #   image: janssenlab/qtp-biom:latest
@@ -173,6 +197,12 @@ services:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
       - qiita-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget http://localhost:5000/config -O /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 3s
 
   # qp-target-gene:
   #   image: janssenlab/qp-target-gene:latest
@@ -278,7 +308,7 @@ services:
       qiita-initialize-db:
         condition: service_completed_successfully
       MATRIXPLUGIN:
-        condition: service_started
+        condition: service_healthy
       # qtp-biom:  # one of the plugins
       #   condition: service_started
       # qtp-sequencing:
