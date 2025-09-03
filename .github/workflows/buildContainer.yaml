@@ -62,8 +62,9 @@ jobs:
           compose-file: "compose_github.yaml"
           services: |
             nginx
-      - name: Execute tests in the running services
+      - name: Execute tests in the running services (wait till qiita plugins are registered)
         run: |
+          sleep 60
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN=${{ matrix.plugin }} bash /test_${{ matrix.plugin }}.sh"
 
       - name: Push production image (only if tests passed)
