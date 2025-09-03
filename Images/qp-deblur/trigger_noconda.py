@@ -6,11 +6,12 @@ from glob import glob
 import sys
 import traceback
 import os
+import asyncio
 
 plugin_start_script = None
 
 class RunCommandHandler(tornado.web.RequestHandler):
-    def post(self):
+    async def post(self):
         try:
             # JSON-Request-Daten lesen
             data = json.loads(self.request.body.decode("utf-8"))
@@ -27,13 +28,21 @@ class RunCommandHandler(tornado.web.RequestHandler):
 
             # Systembefehl ausfuehren
             cmd = '%s %s %s %s' % (plugin_start_script, qiita_worker_url, job_id, output_dir)
-            result = subprocess.run(cmd, shell=True, universal_newlines=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Asynchronen Subprozess starten
+            proc = await asyncio.create_subprocess_exec(
+                cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                executable='/bin/bash'
+            )
+            stdout, stderr = await proc.communicate()
+            #result = subprocess.run(cmd, shell=True, universal_newlines=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Antwort zurueckgeben
             self.write({
-                "stdout": result.stdout,
-                "stderr": result.stderr,
-                "returncode": result.returncode,
+                "stdout": stdout.decode(),
+                "stderr": stderr.decode(),
+                "returncode": proc.returncode,
                 "cmd": cmd,
             })
 
@@ -46,14 +55,14 @@ class RunCommandHandler(tornado.web.RequestHandler):
             self.write({"error": str(e)})
 
 class RunConfigHandler(tornado.web.RequestHandler):
-  def get(self):
-    try:
-      for fp_config in glob('/unshared_plugins/*.conf'):
-        with open(fp_config, 'r') as f:
-          self.write('\n'.join(f.readlines()) + '\n')
-    except Exception as e:
-      self.set_status(500)
-      self.write({"error": str(e)})
+    async def get(self):
+        try:
+            for fp_config in glob('/unshared_plugins/*.conf'):
+                with open(fp_config, 'r') as f:
+                    self.write('\n'.join(f.readlines()) + '\n')
+        except Exception as e:
+            self.set_status(500)
+            self.write({"error": str(e)})
 
 def make_app():
     return tornado.web.Application([
