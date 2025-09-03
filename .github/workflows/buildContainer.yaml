@@ -61,7 +61,7 @@ jobs:
         with:
           compose-file: "compose_github.yaml"
           services: |
-            qiita-worker
+            nginx
       - name: Execute tests in the running services
         run: |
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN=${{ matrix.plugin }} bash /test_${{ matrix.plugin }}.sh"
