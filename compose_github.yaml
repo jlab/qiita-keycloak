@@ -75,6 +75,7 @@ services:
         - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
+        - test_tmp_dir:/tmp
       networks:
         - qiita-net
       ports:
@@ -113,6 +114,7 @@ services:
         - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
+        - test_tmp_dir:/tmp
       networks:
         - qiita-net
       deploy:
@@ -193,6 +195,7 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -338,3 +341,4 @@ volumes:
   qiita-data:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   qiita-logs:
+  test_tmp_dir: # many of plugin tests are written under the assumption that they are executed on same machine as qiita main and thus share /tmp - which is not the case in our docker compose scenario!
