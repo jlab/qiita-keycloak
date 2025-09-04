@@ -59,7 +59,8 @@ services:
         # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
-        - qiita-worker
+        qiita-worker:
+          condition: service_started
       env_file:
         - './environments/qiita.env'
       environment:
@@ -96,7 +97,8 @@ services:
       restart: no
       depends_on:
         redis:
-          condition: service_started
+          condition: service_healthy
+          restart: true
         plugin-collector:
           condition: service_completed_successfully
       env_file:
