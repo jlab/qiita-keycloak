@@ -21,7 +21,8 @@ for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
 done
 
 # better save than sorry
-export QIITA_PORT=8383;
+export QIITA_PORT=8383
+export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 
 # change into plugin source directory and execute actual tests
 cd ${PLUGIN} && pytest
