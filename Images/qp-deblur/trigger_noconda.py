@@ -29,7 +29,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
             # Systembefehl ausfuehren
             cmd = '%s %s %s %s' % (plugin_start_script, qiita_worker_url, job_id, output_dir)
             # Asynchronen Subprozess starten
-            proc = await asyncio.create_subprocess_exec(
+            proc = await asyncio.create_subprocess_shell(
                 cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
@@ -37,6 +37,9 @@ class RunCommandHandler(tornado.web.RequestHandler):
             )
             stdout, stderr = await proc.communicate()
             #result = subprocess.run(cmd, shell=True, universal_newlines=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            if proc.returncode != 0:
+                self.set_status(500)
 
             # Antwort zurueckgeben
             self.write({
