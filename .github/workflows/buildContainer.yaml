@@ -35,6 +35,10 @@ jobs:
           cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf .
 
+      - name: Make tinqiita targets
+        run: |
+          make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre ./environments/qiita_db.env ./environments/qiita.env config
+
       - name: Build Image (but do not push yet)
         uses: docker/build-push-action@v6
         with:
@@ -43,10 +47,6 @@ jobs:
           load: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: tinqiita/${{ matrix.plugin }}:testcandidate
-
-      - name: Make tinqiita targets
-        run: |
-          make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre ./environments/qiita_db.env ./environments/qiita.env config
 
       - name: adapt compose file to select specific plugin
         run: |
