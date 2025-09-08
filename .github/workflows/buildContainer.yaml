@@ -20,8 +20,9 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: harbor.computational.bio.uni-giessen.de
+          username: ${{ vars.HARBOR_CB_USERNAME }}
+          password: ${{ secrets.HARBOR_CB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
