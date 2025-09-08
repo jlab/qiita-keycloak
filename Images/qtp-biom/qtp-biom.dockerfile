@@ -169,6 +169,9 @@ RUN sed -i "s/'display.max_colwidth', -1/'display.max_colwidth', None/" /usr/loc
 # remove conda command from tigger.py
 # RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
 
+# for testing
+COPY test_plugin.sh /test_plugin.sh
+
 CMD ["./start_qtp-biom.sh"]
 
 # python -c "import qiime2.plugins.feature_table"

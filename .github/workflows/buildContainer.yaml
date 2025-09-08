@@ -9,8 +9,8 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qtp-sequencing" # "qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "nginx", "qtp-visualization", #"qtp-diversity",
-                # "qiita", "plugin_collector"
+        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "qtp-visualization",
+                 "nginx", "qiita", "plugin_collector"
                 ]
     runs-on: ubuntu-latest
     steps:
@@ -56,6 +56,7 @@ jobs:
           sed -i "s|image: janssenlab/${{ matrix.plugin }}:latest|image: tinqiita/${{ matrix.plugin }}:testcandidate|" compose_github.yaml
 
       - name: Run docker compose
+        if: ${{ !contains('nginx,qiita,plugin_collector', matrix.plugin) }}
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "compose_github.yaml"
@@ -77,16 +78,3 @@ jobs:
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
             ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
-
-
-
-      # - name: Run integration tests with docker-compose
-      #   run: |
-      #     docker compose -f docker-compose.test.yml up -d
-      #     # kurze Wartezeit, bis Services bereit sind
-      #     sleep 10
-      #     # Beispiel: Tests im Container ausführen
-      #     docker exec my_service_container pytest -v
-      #     docker compose -f docker-compose.test.yml down
-
-

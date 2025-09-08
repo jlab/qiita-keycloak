@@ -118,4 +118,7 @@ RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene
 RUN configure_target_gene --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-target-gene/" /unshared_plugins/*.conf
 
+# for testing
+COPY test_plugin.sh /test_plugin.sh
+
 CMD ["./start_qp-target-gene.sh"]

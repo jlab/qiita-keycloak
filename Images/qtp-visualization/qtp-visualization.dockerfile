@@ -113,4 +113,7 @@ ENV CONDA_PREFIX=/usr/local
 RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
+# for testing
+COPY test_plugin.sh /test_plugin.sh
+
 CMD ["./start_qtp-visualization.sh"]
