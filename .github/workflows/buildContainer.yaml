@@ -38,6 +38,7 @@ jobs:
       - name: Make tinqiita targets
         run: |
           make ./references/qiita_server_certificates ./references/qp-deblur/reference-gg-raxml-bl.tre ./environments/qiita_db.env ./environments/qiita.env config
+          mv ./references/qiita_server_certificates ./qiita_server_certificates
 
       - name: Build Image (but do not push yet)
         uses: docker/build-push-action@v6
