@@ -64,7 +64,8 @@ jobs:
             nginx
       - name: Execute tests in the running services (wait till qiita plugins are registered)
         run: |
-          sleep 60
+          sleep 5
+          docker compose exec qiita /bin/bash -c "cat /logs/*; cat /qiita_plugins/*"
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN=${{ matrix.plugin }} bash /test_${{ matrix.plugin }}.sh"
 
       - name: Push production image (only if tests passed)
