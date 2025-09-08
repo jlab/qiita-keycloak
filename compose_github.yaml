@@ -27,7 +27,7 @@ services:
     #   start_period: 20s
 
   qiita-initialize-db:
-    image: janssenlab/qiita:latest
+    image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
     command: ['/start_qiita-initDB.sh']
     depends_on:
       - qiita-db
@@ -46,7 +46,7 @@ services:
       - qiita-net
 
   qiita:
-      image: janssenlab/qiita:latest
+      image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
@@ -82,7 +82,7 @@ services:
       - "21174:21174"
 
   qiita-worker:
-      image: janssenlab/qiita:latest
+      image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
@@ -142,7 +142,7 @@ services:
     #   start_period: 20s
 
   nginx:
-    image: janssenlab/nginx:latest
+    image: harbor.computational.bio.uni-giessen.de/tinqiita/nginx:latest
     build:
       context: ./Images/nginx
       dockerfile: Dockerfile
@@ -305,7 +305,7 @@ services:
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
-    image: janssenlab/plugin_collector:latest
+    image: harbor.computational.bio.uni-giessen.de/tinqiita/plugin_collector:latest
     restart: no
     networks:
       - qiita-net

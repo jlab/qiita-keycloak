@@ -9,7 +9,7 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "qtp-visualization",
+        plugin: [#"qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "qtp-visualization",
                  "nginx", "qiita", "plugin_collector"
                 ]
     runs-on: ubuntu-latest
@@ -83,5 +83,5 @@ jobs:
           push: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.plugin }}:latest
+            harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.plugin }}:${{ env.IMAGE_TAG }}
+            harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.plugin }}:latest
