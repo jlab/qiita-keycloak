@@ -169,21 +169,21 @@ services:
     #   retries: 5
     #   start_period: 10s
 
-  # qtp-biom:
-  #   image: janssenlab/qtp-biom:latest
-  #   command: ['./start_qtp-biom.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #     - ./src/qtp-biom:/qtp-biom:U
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qtp-biom:
+    image: janssenlab/qtp-biom:latest
+    command: ['./start_qtp-biom.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
   qtp-sequencing:
     image: janssenlab/qtp-sequencing:latest
@@ -207,94 +207,100 @@ services:
     #   retries: 2
     #   start_period: 3s
 
-  # qp-target-gene:
-  #   image: janssenlab/qp-target-gene:latest
-  #   command: ['./start_qp-target-gene.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qp-target-gene:
+    image: janssenlab/qp-target-gene:latest
+    command: ['./start_qp-target-gene.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
-  # qtp-visualization:
-  #   image: janssenlab/qtp-visualization:latest
-  #   command: ['./start_qtp-visualization.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qtp-visualization:
+    image: janssenlab/qtp-visualization:latest
+    command: ['./start_qtp-visualization.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
-  # qtp-diversity:
-  #   image: janssenlab/qtp-diversity:latest
-  #   command: ['./start_qtp-diversity.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qtp-diversity:
+    image: janssenlab/qtp-diversity:latest
+    command: ['./start_qtp-diversity.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
-  # qp-deblur:
-  #   image: janssenlab/qp-deblur:latest
-  #   command: ['./start_qp-deblur.sh']
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #     - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qp-deblur:
+    image: janssenlab/qp-deblur:latest
+    command: ['./start_qp-deblur.sh']
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
-  # qp-qiime2:
-  #   image: janssenlab/qp-qiime2:latest
-  #   command: ['./start_qp-qiime2.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #     - TZ=Europe/Berlin  # this is important to avoid a local timezone error! See https://forum.qiime2.org/t/qiime2-timezone-error/17410
-  #   networks:
-  #     - qiita-net
+  qp-qiime2:
+    image: janssenlab/qp-qiime2:latest
+    command: ['./start_qp-qiime2.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+      - TZ=Europe/Berlin  # this is important to avoid a local timezone error! See https://forum.qiime2.org/t/qiime2-timezone-error/17410
+    networks:
+      - qiita-net
 
-  # qtp-job-output-folder:
-  #   image: janssenlab/qtp-job-output-folder:latest
-  #   command: ['./start_qtp-job-output-folder.sh']
-  #   # network_mode: host
-  #   # stdin_open: true
-  #   # tty: true
-  #   restart: no
-  #   volumes:
-  #     - qiita-data:/qiita_data
-  #     - ./references/qiita_server_certificates:/qiita_server_certificates
-  #   environment:
-  #     - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-  #   networks:
-  #     - qiita-net
+  qtp-job-output-folder:
+    image: janssenlab/qtp-job-output-folder:latest
+    command: ['./start_qtp-job-output-folder.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
 
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
