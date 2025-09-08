@@ -19,12 +19,12 @@ services:
       - qiita-net
     ports:
       - "15432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 20s
 
   qiita-initialize-db:
     image: janssenlab/qiita:latest
@@ -59,8 +59,7 @@ services:
         # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
-        qiita-worker:
-          condition: service_started
+        - qiita-worker
       env_file:
         - './environments/qiita.env'
       environment:
@@ -97,8 +96,7 @@ services:
       restart: no
       depends_on:
         redis:
-          condition: service_healthy
-          restart: true
+          condition: service_started
         plugin-collector:
           condition: service_completed_successfully
       env_file:
@@ -136,12 +134,12 @@ services:
       - qiita-logs:/logs
     networks:
       - qiita-net
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p $$PORTSTATS ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "redis-cli -p $$PORTSTATS ping"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 20s
 
   nginx:
     image: janssenlab/nginx:latest
@@ -161,15 +159,15 @@ services:
       - ./references/qiita_server_certificates:/qiita_certificates
     networks:
       - qiita-net
-    healthcheck:
-      # looks wired as wget is the busybox version and lacks certificates
-      # we thus just test if anything answers on the port, otherwise nginx
-      # returns a "Connection refused"
-      test: ["CMD-SHELL", "wget https://tinqiita-nginx-1:8383 2>&1 | grep refused -c || true"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+    # healthcheck:
+    #   # looks wired as wget is the busybox version and lacks certificates
+    #   # we thus just test if anything answers on the port, otherwise nginx
+    #   # returns a "Connection refused"
+    #   test: ["CMD-SHELL", "wget https://tinqiita-nginx-1:8383 2>&1 | grep refused -c || true"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 10s
 
   # qtp-biom:
   #   image: janssenlab/qtp-biom:latest
@@ -202,12 +200,12 @@ services:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
       - qiita-net
-    healthcheck:
-      test: ["CMD-SHELL", "wget http://localhost:5000/config -O /dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 2
-      start_period: 3s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget http://localhost:5000/config -O /dev/null || exit 1"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 2
+    #   start_period: 3s
 
   # qp-target-gene:
   #   image: janssenlab/qp-target-gene:latest
@@ -313,7 +311,7 @@ services:
       qiita-initialize-db:
         condition: service_completed_successfully
       MATRIXPLUGIN:
-        condition: service_healthy
+        condition: service_started
       # qtp-biom:  # one of the plugins
       #   condition: service_started
       # qtp-sequencing:
@@ -344,3 +342,4 @@ volumes:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   qiita-logs:
   test_tmp_dir: # many of plugin tests are written under the assumption that they are executed on same machine as qiita main and thus share /tmp - which is not the case in our docker compose scenario!
+  
