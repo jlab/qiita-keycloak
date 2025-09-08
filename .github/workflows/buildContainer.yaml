@@ -63,6 +63,7 @@ jobs:
           services: |
             nginx
       - name: Execute tests in the running services (wait till qiita plugins are registered)
+        if: ${{ !contains('nginx,qiita,plugin_collector', matrix.plugin) }}
         run: |
           sleep 5
           docker compose exec qiita /bin/bash -c "cat /logs/*; cat /qiita_plugins/*"
