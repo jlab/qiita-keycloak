@@ -170,7 +170,7 @@ services:
     #   start_period: 10s
 
   qtp-biom:
-    image: janssenlab/qtp-biom:latest
+    image: tinqiita/qtp-biom:testcandidate
     command: ['./start_qtp-biom.sh']
     # network_mode: host
     # stdin_open: true
@@ -186,7 +186,7 @@ services:
       - qiita-net
 
   qtp-sequencing:
-    image: janssenlab/qtp-sequencing:latest
+    image: tinqiita/qtp-sequencing:testcandidate
     command: ['./start_qtp-sequencing.sh']
     # network_mode: host
     # stdin_open: true
@@ -208,7 +208,7 @@ services:
     #   start_period: 3s
 
   qp-target-gene:
-    image: janssenlab/qp-target-gene:latest
+    image: tinqiita/qp-target-gene:testcandidate
     command: ['./start_qp-target-gene.sh']
     # network_mode: host
     # stdin_open: true
@@ -224,7 +224,7 @@ services:
       - qiita-net
 
   qtp-visualization:
-    image: janssenlab/qtp-visualization:latest
+    image: tinqiita/qtp-visualization:testcandidate
     command: ['./start_qtp-visualization.sh']
     # network_mode: host
     # stdin_open: true
@@ -240,7 +240,7 @@ services:
       - qiita-net
 
   qtp-diversity:
-    image: janssenlab/qtp-diversity:latest
+    image: tinqiita/qtp-diversity:testcandidate
     command: ['./start_qtp-diversity.sh']
     # network_mode: host
     # stdin_open: true
@@ -256,7 +256,7 @@ services:
       - qiita-net
 
   qp-deblur:
-    image: janssenlab/qp-deblur:latest
+    image: tinqiita/qp-deblur:testcandidate
     command: ['./start_qp-deblur.sh']
     restart: no
     volumes:
@@ -270,7 +270,7 @@ services:
       - qiita-net
 
   qp-qiime2:
-    image: janssenlab/qp-qiime2:latest
+    image: tinqiita/qp-qiime2:testcandidate
     command: ['./start_qp-qiime2.sh']
     # network_mode: host
     # stdin_open: true
@@ -287,7 +287,7 @@ services:
       - qiita-net
 
   qtp-job-output-folder:
-    image: janssenlab/qtp-job-output-folder:latest
+    image: tinqiita/qtp-job-output-folder:testcandidate
     command: ['./start_qtp-job-output-folder.sh']
     # network_mode: host
     # stdin_open: true
