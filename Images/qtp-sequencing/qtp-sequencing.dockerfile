@@ -77,6 +77,9 @@ COPY --from=builder /opt/conda/envs/qtp-sequencing/bin/pigz /usr/local/bin/
 
 COPY trigger_noconda.py /trigger.py
 
+# link to quast program
+RUN ln -s /usr/local/bin/quast.py /usr/local/bin/quast
+
 # WORKDIR /
 
 COPY start_qtp-sequencing.sh .
