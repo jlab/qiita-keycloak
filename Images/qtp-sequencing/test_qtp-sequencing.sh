@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "plugin to be tested is: '$PLUGIN':wq"
+echo "plugin to be tested is: '$PLUGIN'"
 
 # install dependencies
 apt-get update
