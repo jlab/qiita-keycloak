@@ -50,6 +50,11 @@ jobs:
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: tinqiita/${{ matrix.plugin }}:testcandidate
 
+      - name: debug docker
+        run: |
+          docker image ls -a
+          docker ps -a
+
       - name: adapt compose file to select specific plugin
         run: |
           sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
