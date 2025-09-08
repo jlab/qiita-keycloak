@@ -107,6 +107,6 @@ RUN mkdir -p /usr/share/man/man1 && \
     rm -rf /var/lib/apt/lists/*
 
 # for testing
-COPY test_qtp-sequencing.sh /test_qtp-sequencing.sh
+COPY test_plugin.sh /test_plugin.sh
 
 CMD ["./start_qtp-sequencing.sh"]
