@@ -7,3 +7,6 @@ sleep 3
 mkdir -p /qiita_data/working_dir/ /qiita_data/uploads/
 python3 /collect_configs.py
 python3 /fix_test_db.py
+
+echo "plugin conf dir is >$QIITA_PLUGINS< and contains:"
+ls -la $QIITA_PLUGINS
