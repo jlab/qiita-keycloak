@@ -66,7 +66,7 @@ class RunConfigHandler(tornado.web.RequestHandler):
         try:
             for fp_config in glob('/unshared_plugins/*.conf'):
                 with open(fp_config, 'r') as f:
-                    self.write('\n'.join(f.readlines()) + '\n')
+                    self.write(''.join(f.readlines()) + '\n')
         except Exception as e:
             self.set_status(500)
             self.write({"error": str(e)})
