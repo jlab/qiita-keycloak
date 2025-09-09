@@ -24,9 +24,9 @@ for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
     sed -i 's|https://localhost:21174|https://tinqiita-qiita-1:21174|' $f;
 done
 
-# fix qiita base url in qtp-diversity plugin tests
+# fix qiita base url in qtp-diversity plugin tests. Use . instead of " or ' to be more general
 for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
-    sed -i "s|plugin('https://localhost:8383', 'register', 'ignored')|plugin('https://tinqiita-nginx-1:8383', 'register', 'ignored')|" $f;
+    sed -i "s|plugin(.https://localhost:8383., .register., .ignored.)|plugin('https://tinqiita-nginx-1:8383', 'register', 'ignored')|" $f;
 done
 
 
