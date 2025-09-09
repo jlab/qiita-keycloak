@@ -24,6 +24,8 @@ pyhmmer
 frictionless
 numpy
 iow
+tornado
+pip-system-certs
 
 -e /qtp-biom
 -e /qiita-files
