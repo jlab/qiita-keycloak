@@ -4,6 +4,7 @@
 -e /q2-taxa
 -e /q2-diversity
 -e /q2-diversity-lib
+-e /q2-mislabeld
 -e /q2cli
 -e /q2templates
 -e /qiime2
@@ -27,6 +28,7 @@ ijson
 pyhmmer
 frictionless
 numpy
+umap
 -e /unifrac
 
 -e /qtp-diversity

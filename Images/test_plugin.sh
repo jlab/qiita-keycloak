@@ -19,10 +19,16 @@ for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name "testing
     sed -i 's|URL = "https://localhost:8383"|URL = "https://tinqiita-qiita-1:21174"|' $f;
 done
 
-# fix qiita base url in plugin tests
+# fix qiita base url in qtp-sequencing plugin tests
 for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
     sed -i 's|https://localhost:21174|https://tinqiita-qiita-1:21174|' $f;
 done
+
+# fix qiita base url in qtp-diversity plugin tests
+for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
+    sed -i "s|plugin('https://localhost:8383', 'register', 'ignored')|plugin('https://tinqiita-nginx-1:8383', 'register', 'ignored')|" $f;
+done
+
 
 # better save than sorry
 export QIITA_PORT=21174
