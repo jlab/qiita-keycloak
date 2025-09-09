@@ -9,7 +9,7 @@ jobs:
   docker:
     strategy:
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "qtp-visualization",
+        plugin: ["qp-deblur", "qtp-biom", "qp-target-gene", "qtp-sequencing", "qtp-visualization", "qtp-diversity",
                  "nginx", "qiita", "plugin_collector"
                 ]
     runs-on: ubuntu-latest
