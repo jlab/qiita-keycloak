@@ -1,4 +1,4 @@
-# VERSION: 2025.09.02
+# VERSION: 2025.09.09
 
 FROM ubuntu:24.04
 
@@ -50,6 +50,11 @@ RUN pip install \
 # Clone the Qiita Repo
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
 RUN git clone -b auth_oidc https://github.com/jlab/qiita.git
+
+# should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
+RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
+RUN sed -i "s|'source ~/virtualenv/python2.7/bin/activate; export PATH=\$HOME/miniconda3/bin/:\$PATH; . activate qtp-biom'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
+RUN sed -i "s|'source activate qiita'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
 
 # We need to install necessary dependencies
 # as well as some extra dependencies for psycopg2 to work
