@@ -32,8 +32,7 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 
 # install tornado based trigger layer in base environment
 RUN pip install -U pip
-RUN conda install tornado
-# COPY trigger.py /trigger.py
+# RUN conda install tornado
 
 # Download qtp-biom yaml
 # RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/${QIIME2RELEASE}/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
@@ -75,8 +74,7 @@ RUN sed -i "s|'qiita_client/archive/master.zip'||" setup.py
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
-RUN conda install tornado
-# COPY trigger.py /trigger.py
+#RUN conda install tornado
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
@@ -133,7 +131,7 @@ COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/bp /usr
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
 # install tornado based trigger layer in base environment
-RUN pip install -U --no-cache-dir tornado
+#RUN pip install -U --no-cache-dir tornado
 COPY trigger_noconda.py /trigger.py
 
 WORKDIR /
@@ -147,10 +145,10 @@ RUN chmod 755 run_qtp-biom.sh
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-RUN pip install pip-system-certs
+# RUN pip install pip-system-certs
 
-RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_biom
-RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_biom
+#RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_biom
+#RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_biom
 
 # use git branch instead of pypi version (stored via wheel)
 #COPY --from=builder /qiita_client /qiita_client
