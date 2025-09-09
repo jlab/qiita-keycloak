@@ -133,5 +133,8 @@ RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-d
 # remove conda command from tigger.py
 RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
 
+# for testing
+COPY test_plugin.sh /test_plugin.sh
+
 CMD ["./start_qp-deblur.sh"]
 # ^^ 848 MB
