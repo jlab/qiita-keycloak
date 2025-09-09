@@ -27,8 +27,9 @@ done
 # fix qiita base url in qtp-diversity plugin tests. Use . instead of " or ' to be more general
 for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
     sed -i "s|plugin(.https://localhost:8383., .register., .ignored.)|plugin('https://tinqiita-nginx-1:8383', 'register', 'ignored')|" $f;
+    # below seen in qtp-biom
+    sed -i "s|plugin("https://localhost:8383", job_id, self.out_dir)|plugin("https://tinqiita-nginx-1:8383", job_id, self.out_dir)|" $f;
 done
-
 
 # better save than sorry
 export QIITA_PORT=21174
