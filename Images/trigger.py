@@ -28,7 +28,7 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 return
 
             # Systembefehl ausfuehren
-            cmd = '%s %s %s %s' % (plugin_start_script, qiita_worker_url, job_id, output_dir)
+            cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
             # Asynchronen Subprozess starten
             proc = await asyncio.create_subprocess_shell(
                 cmd,
