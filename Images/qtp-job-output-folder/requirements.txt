@@ -1,0 +1,6 @@
+tornado
+pip-system-certs
+
+-e /qiita_client
+-e /qiita-files
+-e /qtp-job-output-folder
