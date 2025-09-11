@@ -65,6 +65,9 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r /requirements.txt
 # ==========================
 FROM python:3.6-slim
 
+# let the container know it's plugin name
+ENV PLUGIN=qtp-job-output-folder
+
 # python package compile in build stage
 COPY --from=builder /wheels /wheels
 
