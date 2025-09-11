@@ -67,7 +67,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true
+          push: true
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
