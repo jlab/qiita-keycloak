@@ -1,0 +1,30 @@
+-e /q2-metadata
+-e /q2-mystery-stew
+-e /q2-types
+-e /q2cli
+-e /q2templates
+-e /qiime2
+
+tornado
+pip-system-certs
+pyyaml
+decorator
+tzlocal
+bibtexparser
+psutil
+flufl.lock
+parsl
+appdirs
+tomlkit
+scikit-bio
+rnanorm
+seaborn
+jinja2
+ijson
+pyhmmer
+frictionless
+numpy
+
+-e /qtp-visualization
+-e /qiita-files
+-e /qiita_client

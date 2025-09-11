@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py qtp-visualization start_visualization_types /qtp-visualization
+cd / && python trigger.py start_visualization_types
 
 tail -f /dev/null

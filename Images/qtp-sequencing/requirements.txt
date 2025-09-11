@@ -1,0 +1,7 @@
+tornado
+pip-system-certs
+quast
+
+-e /qiita_client
+-e /qiita-files
+-e /qtp-sequencing

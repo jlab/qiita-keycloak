@@ -1,0 +1,53 @@
+--- /usr/local/lib/python3.8/site-packages/qtp_biom/summary.py	2025-08-22 22:16:54.361692587 +0000
++++ /exchange/summary.py.new	2025-08-22 22:16:20.964222594 +0000
+@@ -12,8 +12,11 @@
+ import pandas as pd
+ from tempfile import mkstemp
+ 
+-import qiime2
+-from qiime2.plugins.feature_table.visualizers import summarize
++# import qiime2
++# from qiime2.plugins.feature_table.visualizers import summarize
++import sys
++sys.path.append("/")
++from q2summarize import summarize as q2_summarize  # this is a stripped, patched version from the above but comes with way less q2 dependencies!
+ from skbio.tree import TreeNode
+ from biom import load_table
+ 
+@@ -57,19 +60,19 @@
+         df = pd.DataFrame.from_dict(metadata, orient='index')
+         df.to_csv(path, index_label='#SampleID', na_rep='', sep='\t',
+                   encoding='utf-8')
+-        metadata = qiime2.Metadata.load(path)
++        metadata = df  # qiime2.Metadata.load(path)
+         remove(path)
+     else:
+-        metadata = qiime2.Metadata.load(metadata)
++        metadata = pd.read_csv(metadata, sep="\t", index_col=0)  # qiime2.Metadata.load(metadata)
+ 
+-    table = qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
++    table = load_table(biom_fp)  # qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
+ 
+-    summary, = summarize(table=table, sample_metadata=metadata)
+-    index_paths = summary.get_index_paths()
++    q2_summarize(out_dir, table=table, sample_metadata=metadata)
++    # index_paths = summary.get_index_paths()
+     # this block is not really necessary but better safe than sorry
+-    if 'html' not in index_paths:
+-        return (False, None,
+-                "Only Qiime 2 visualization with an html index are supported")
++    # if 'html' not in index_paths:
++    #     return (False, None,
++    #             "Only Qiime 2 visualization with an html index are supported")
+ 
+     # gather some stats about the phylogenetic tree if exists
+     summary_tree = ""
+@@ -99,7 +102,7 @@
+             "    </table>") % (num_placements, num_rejected,
+                                num_tips_reference)
+ 
+-    index_name = basename(index_paths['html'])
++    index_name = 'index.html'  # basename(index_paths['html'])
+     index_fp = join(out_dir, 'index.html')
+     with open(index_fp, 'w') as f:
+         f.write(Q2_INDEX % (summary_tree, index_name))

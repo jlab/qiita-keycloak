@@ -1,0 +1,6 @@
+-e /qiime_default_reference/qiime-default-reference-0.1.3
+pip-system-certs
+
+https://github.com/qiita-spots/qiita-files/archive/master.zip
+-e /qiita_client
+-e /qp-target-gene

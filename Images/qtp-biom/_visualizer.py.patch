@@ -1,0 +1,128 @@
+--- _visualizer.py	2022-12-19 21:51:47.000000000 +0000
++++ _visualizer.py	2025-08-22 12:24:22.603489318 +0000
+@@ -16,48 +16,50 @@
+ import seaborn as sns
+ import matplotlib
+ import matplotlib.pyplot as plt
+-from q2_types.feature_data import DNAIterator
+-import q2templates
+-import skbio
+-import qiime2
++# from q2_types.feature_data import DNAIterator
++# import q2templates
++# import skbio
++# import qiime2
+ import json
+-from ._vega_spec import vega_spec
++import sys; sys.path.append("/"); from q2summarize import util
++from q2summarize import _templates
++from q2summarize._vega_spec import vega_spec
+ 
+ _blast_url_template = ("http://www.ncbi.nlm.nih.gov/BLAST/Blast.cgi?"
+                        "ALIGNMENT_VIEW=Pairwise&PROGRAM=blastn&DATABASE"
+                        "=nt&CMD=Put&QUERY=%s")
+ 
+-TEMPLATES = pkg_resources.resource_filename('q2_feature_table', '_summarize')
++TEMPLATES = '/q2summarize/'
+ 
+ 
+-def tabulate_seqs(output_dir: str, data: DNAIterator) -> None:
+-    sequences = []
+-    seq_lengths = []
+-    with open(os.path.join(output_dir, 'sequences.fasta'), 'w') as fh:
+-        for sequence in data:
+-            skbio.io.write(sequence, format='fasta', into=fh)
+-            str_seq = str(sequence)
+-            seq_len = len(str_seq)
+-            sequences.append({'id': sequence.metadata['id'],
+-                              'len': seq_len,
+-                              'url': _blast_url_template % str_seq,
+-                              'seq': str_seq})
+-            seq_lengths.append(seq_len)
+-    seq_len_stats = _compute_descriptive_stats(seq_lengths)
+-    _write_tsvs_of_descriptive_stats(seq_len_stats, output_dir)
+-
+-    index = os.path.join(TEMPLATES, 'tabulate_seqs_assets', 'index.html')
+-    q2templates.render(index, output_dir, context={'data': sequences,
+-                                                   'stats': seq_len_stats})
+-
+-    js = os.path.join(
+-        TEMPLATES, 'tabulate_seqs_assets', 'js', 'tsorter.min.js')
+-    os.mkdir(os.path.join(output_dir, 'js'))
+-    shutil.copy(js, os.path.join(output_dir, 'js', 'tsorter.min.js'))
++# def tabulate_seqs(output_dir: str, data: DNAIterator) -> None:
++#     sequences = []
++#     seq_lengths = []
++#     with open(os.path.join(output_dir, 'sequences.fasta'), 'w') as fh:
++#         for sequence in data:
++#             skbio.io.write(sequence, format='fasta', into=fh)
++#             str_seq = str(sequence)
++#             seq_len = len(str_seq)
++#             sequences.append({'id': sequence.metadata['id'],
++#                               'len': seq_len,
++#                               'url': _blast_url_template % str_seq,
++#                               'seq': str_seq})
++#             seq_lengths.append(seq_len)
++#     seq_len_stats = _compute_descriptive_stats(seq_lengths)
++#     _write_tsvs_of_descriptive_stats(seq_len_stats, output_dir)
++
++#     index = os.path.join(TEMPLATES, 'tabulate_seqs_assets', 'index.html')
++#     q2templates.render(index, output_dir, context={'data': sequences,
++#                                                    'stats': seq_len_stats})
++
++#     js = os.path.join(
++#         TEMPLATES, 'tabulate_seqs_assets', 'js', 'tsorter.min.js')
++#     os.mkdir(os.path.join(output_dir, 'js'))
++#     shutil.copy(js, os.path.join(output_dir, 'js', 'tsorter.min.js'))
+ 
+ 
+ def summarize(output_dir: str, table: biom.Table,
+-              sample_metadata: qiime2.Metadata = None) -> None:
++              sample_metadata: pd.DataFrame = None) -> None:
+     # this value is to limit the amount of memory used by seaborn.histplot, for
+     # more information see: https://github.com/mwaskom/seaborn/issues/2325
+     MAX_BINS = 50
+@@ -115,10 +117,9 @@
+             os.path.join(output_dir, 'feature-frequencies.pdf'))
+         feature_frequencies_ax.get_figure().savefig(
+             os.path.join(output_dir, 'feature-frequencies.png'))
+-
+-    sample_summary_table = q2templates.df_to_html(
++    sample_summary_table = util.df_to_html(
+         sample_summary.apply('{:,}'.format).to_frame('Frequency'))
+-    feature_summary_table = q2templates.df_to_html(
++    feature_summary_table = util.df_to_html(
+         feature_summary.apply('{:,}'.format).to_frame('Frequency'))
+ 
+     index = os.path.join(TEMPLATES, 'summarize_assets', 'index.html')
+@@ -142,7 +143,7 @@
+         .apply('{:,}'.format).to_frame('Frequency')
+     feature_frequencies['# of Samples Observed In'] = \
+         pd.Series(feature_qualitative_data).astype(int).apply('{:,}'.format)
+-    feature_frequencies_table = q2templates.df_to_html(feature_frequencies)
++    feature_frequencies_table = util.df_to_html(feature_frequencies)
+     sample_frequency_template = os.path.join(
+         TEMPLATES, 'summarize_assets', 'sample-frequency-detail.html')
+     feature_frequency_template = os.path.join(
+@@ -172,11 +173,11 @@
+                                              ))
+                         })
+     context.update({'sample_frequencies_json': sample_frequencies_json})
+-    q2templates.util.copy_assets(os.path.join(TEMPLATES,
++    util.copy_assets(os.path.join(TEMPLATES,
+                                               'summarize_assets',
+                                               'vega'),
+                                  output_dir)
+-    q2templates.render(templates, output_dir, context=context)
++    _templates.render(templates, output_dir, context=context)
+ 
+     plt.close('all')
+ 
+@@ -280,3 +281,5 @@
+                                'Median frequency', '3rd quartile',
+                                'Maximum frequency', 'Mean frequency'])
+     return summary, frequencies
++
++# summarize("test.xxx", biom.load_table('reference-hit.biom'), pd.read_csv('2_20250704-123139.txt', sep="\t", index_col=0))
+\ No newline at end of file
+

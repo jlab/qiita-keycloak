@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py deblur start_deblur /qp-deblur
+cd / && python trigger.py start_deblur
 
 tail -f /dev/null

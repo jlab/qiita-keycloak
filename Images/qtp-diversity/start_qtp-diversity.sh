@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd / && python trigger.py qiime2 start_diversity_types /qtp-diversity
+cd / && python trigger.py start_diversity_types
 
 tail -f /dev/null
