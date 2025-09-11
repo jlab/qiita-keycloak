@@ -120,6 +120,9 @@ CMD ["./start_qtp-biom.sh"]
 # ==========================
 FROM python:3.8-slim
 
+# let the container know it's plugin name
+ENV PLUGIN=qtp-biom
+
 # python package compile in build stage
 COPY --from=builder /wheels /wheels
 

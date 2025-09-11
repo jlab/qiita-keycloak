@@ -61,6 +61,9 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 FROM python:3.5-slim
 # ^^ 110 MB
 
+# let the container know it's plugin name
+ENV PLUGIN=qp-deblur
+
 # deblur dependent binaries + necessary libraries: mafft, vsearch, sortmerna
 COPY --from=builder /opt/conda/envs/deblur/bin/mafft /opt/conda/envs/deblur/bin/vsearch /opt/conda/envs/deblur/bin/indexdb_rna /opt/conda/envs/deblur/bin/sortmerna /usr/local/bin/
 # ^^ 113 MB

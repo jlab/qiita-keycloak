@@ -1,3 +1,5 @@
+# VERSION: 2025.09.11
+
 FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
@@ -100,6 +102,9 @@ RUN cd /opt/conda/envs/qiime2/lib/python3.8/site-packages/q2_diversity/ && tar c
 # Stage 2: Runtime
 # ==========================
 FROM python:3.8-slim
+
+# let the container know it's plugin name
+ENV PLUGIN=qtp-diversity
 
 # python package compile in build stage
 COPY --from=builder /wheels /wheels

@@ -77,6 +77,9 @@ RUN wget https://github.com/sortmerna/sortmerna/archive/refs/tags/2.0.tar.gz && 
 # I am testing ubuntu as base image, since python:xxx-slim was too hard/large to install python2 and python3 side by side
 FROM ubuntu:22.04
 
+# let the container know it's plugin name
+ENV PLUGIN=qp-target-gene
+
 # py2 and py3
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
