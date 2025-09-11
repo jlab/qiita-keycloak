@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: certificates
-          path: ./references/qiita_server_certificates ./qiita_server_certificates
+          path: ./qiita_server_certificates
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -80,9 +80,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: certificates
+          path: ./qiita_server_certificates
 
       - name: Create fake reference databases
         run: |
+          cp -r ./references/qiita_server_certificates ./qiita_server_certificates
           mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
           for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
