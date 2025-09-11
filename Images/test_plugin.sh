@@ -5,7 +5,11 @@ echo "plugin to be tested is: '$PLUGIN'"
 # install dependencies
 apt-get update
 apt-get -y --fix-missing install git
-pip install pytest
+if [ "qp-target-gene" == "$PLUGIN" ]; then
+    REQUESTS_CA_BUNDLE="" pip2 install "pytest<5";
+else
+    REQUESTS_CA_BUNDLE="" pip install pytest;
+fi;
 
 # clone plugin repository
 git clone https://github.com/qiita-spots/${PLUGIN}
@@ -15,13 +19,15 @@ git clone https://github.com/qiita-spots/${PLUGIN}
 # go through nginx!
 
 # fix qiita base url in client
-for f in `find /usr/local/lib/python*/site-packages/qiita_client/ -name "testing.py"`; do
+for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ -name "testing.py"`; do
     sed -i 's|URL = "https://localhost:8383"|URL = "https://tinqiita-qiita-1:21174"|' $f;
 done
 
 # fix qiita base url in qtp-sequencing plugin tests
 for f in `find /${PLUGIN}/*/tests/ -name 'test_*.py'`; do
     sed -i 's|https://localhost:21174|https://tinqiita-qiita-1:21174|' $f;
+    # below seen in qp-target-gene
+    sed -i 's|plugin("https://localhost:21174", .register., .ignored.)|plugin("https://tinqiita-qiita-1:21174", "register", "ignored")|' $f;
 done
 
 # fix qiita base url in qtp-diversity plugin tests. Use . instead of " or ' to be more general
