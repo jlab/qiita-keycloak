@@ -139,9 +139,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
           load: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+          tags: tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
+          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
 
       - name: adapt compose file to select specific plugin
         run: |
