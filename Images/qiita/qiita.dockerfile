@@ -56,6 +56,9 @@ RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/
 RUN sed -i "s|'source ~/virtualenv/python2.7/bin/activate; export PATH=\$HOME/miniconda3/bin/:\$PATH; . activate qtp-biom'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
 RUN sed -i "s|'source activate qiita'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
 
+# there seems to be a conflict with parameter names für qp-target-gene. See: https://github.com/qiita-spots/qp-target-gene/issues/24
+RUN sed -i "s|'1.9.1',|'1.9.hide',|" /qiita/qiita_db/support_files/populate_test_db.sql
+
 # We need to install necessary dependencies
 # as well as some extra dependencies for psycopg2 to work
 RUN git clone https://github.com/psycopg/psycopg2.git
