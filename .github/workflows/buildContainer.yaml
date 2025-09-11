@@ -27,12 +27,10 @@ jobs:
           cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf .
 
-      - name: Create certificate and fake reference databases
+      - name: Create certificate
         # second copy of "qiita_server_certificates" is necessary to match path for docker build, first copy for mounting into container
         run: |
           make ./references/qiita_server_certificates ./environments/qiita_db.env ./environments/qiita.env config
-          mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-          for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
           cp -r ./references/qiita_server_certificates ./qiita_server_certificates
 
       - name: Log in to GitHub Container Registry
@@ -42,7 +40,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build main qiita Images and push to github's own registry
+      - name: Build main qiita images and push to github's own registry
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -51,13 +49,56 @@ jobs:
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
   
-#   build_plugins:
-#     needs: build_main
-#     strategy:
-#       matrix:
-#         container: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
-#     runs-on: ubuntu-latest
-#     steps:
+  build_plugins:
+    needs: build_main
+    strategy:
+      matrix:
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tinqiita repo
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Read image version from dockerfile
+        id: vars
+        run: |
+          VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
+          echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt .
+
+      - name: Create fake reference databases
+        run: |
+          mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
+          for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
+
+      - name: Build plugin images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+
+      - name: adapt compose file to select specific plugin
+        run: |
+          sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "compose_github.yaml"
+          services: |
+            nginx
+
+      - name: Execute tests in the running services
+        run: |
+          sleep 5
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
+
+
 
 # jobs:
 #   docker:
