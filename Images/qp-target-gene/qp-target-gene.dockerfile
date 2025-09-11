@@ -45,7 +45,7 @@ RUN python2.7 get-pip2.7.py --force-reinstall
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN cd qiita_client && pip install --no-cache-dir .
+RUN cd /qiita_client && pip install --no-cache-dir .
 
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone https://github.com/qiita-spots/qp-target-gene.git
@@ -57,9 +57,19 @@ RUN pip install pip-system-certs
 
 WORKDIR /
 
+# qiime 1.9.1 comes with https://pypi.org/project/qiime-default-reference/ as dependency, which is ~184MB
+# we "hide" it here, as necessary files will be downloaded from ftp.microbio.me/greengenes_release while setting up qiita anyway
+RUN pip download --dest /qiime_default_reference qiime_default_reference \
+    && cd /qiime_default_reference \
+	&& tar xzvf *.tar.gz \
+	&& cd qiime-default-reference-0.1.3 \
+	&& for fzip in `find . -type f -name "97*"`; do fplain=`echo $fzip | sed "s|.gz$||g"`; echo "content erased to generate small wheel file, as reference shall be mounted to target container later on." > $fplain; gzip -f $fplain; done
+
 COPY requirements.txt ./requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
+# download sortmerna / index_db sources for version 2.0 and re-compile statically as different glibc and libstdc++ couse issues
+RUN wget https://github.com/sortmerna/sortmerna/archive/refs/tags/2.0.tar.gz && tar xzvf 2.0.tar.gz && cd /sortmerna-2.0 && ./configure LDFLAGS=" -static " && make -j
 
 # ==========================
 # Stage 2: Runtime
@@ -73,22 +83,17 @@ RUN mkdir -p /usr/share/man/man1 && \
     apt-get install -y --no-install-recommends python2 python3 curl python-tk && \
     rm -rf /var/lib/apt/lists/*
 
-# # RUN apk add --no-cache python2 python3  curl
-
-# pip2 installieren
+# install pip2
 COPY --from=builder /get-pip2.7.py /get-pip3.7.py /
 RUN python2 get-pip2.7.py \
  	&& rm get-pip2.7.py
 
-# pip3 installieren
+# install pip3
 RUN python3 get-pip3.7.py \
  	&& rm get-pip3.7.py
 
 # python package compile in build stage
 COPY --from=builder /wheels /wheels
-
-# dependent binaries + necessary libraries: sortmerna
-COPY --from=builder /opt/conda/envs/qp-target-gene/bin/indexdb_rna /opt/conda/envs/qp-target-gene/bin/sortmerna /usr/local/bin/
 
 RUN pip2 install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
@@ -105,6 +110,10 @@ ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 RUN pip3 install tornado
 COPY trigger_noconda.py /trigger.py
+
+# copy sortmerna binaries
+COPY --from=builder /sortmerna-2.0/sortmerna /usr/local/bin/sortmerna
+COPY --from=builder /sortmerna-2.0/indexdb_rna /usr/local/bin/indexdb_rna
 
 ##  Export cert and config filepaths
 COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem

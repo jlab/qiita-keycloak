@@ -235,6 +235,7 @@ services:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
+      - ./references/qp-target-gene:/databases/gg/13_8/rep_set
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -355,6 +356,7 @@ services:
         condition: service_started
     environment:
       - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
+      #- QIITA_PLUGINS="qp-target-gene:"
     command: ['/start_plugin_collector.sh']
 
 networks:

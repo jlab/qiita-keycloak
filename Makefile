@@ -47,9 +47,20 @@ plugin: Images/trigger.py Images/trigger_noconda.py $(DIR_REFERENCES)/qiita_serv
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qp-target-gene: Images/qp-target-gene/qp-target-gene.dockerfile Images/qp-target-gene/start_qp-target-gene.sh Images/qp-target-gene/requirements.txt
+# download GG13.8 reference sets from ftp://ftp.microbio.me/greengenes_release/gg_13_8_otus, instead of storing these large files within the qp-target-gene image 149 MB
+$(DIR_REFERENCES)/qp-target-gene:
+	mkdir -p $(DIR_REFERENCES)/qp-target-gene
+	echo '56ef15dccf2e931ec173f4f977ed649b  97_otu_taxonomy.txt' > $(DIR_REFERENCES)/qp-target-gene/exp.md5
+	echo '50b2269712b3738afb41892bed936c29  97_otus.fasta' >> $(DIR_REFERENCES)/qp-target-gene/exp.md5
+	echo 'b7e76593bce82913af1cfb06edf15732  97_otus.tree' >> $(DIR_REFERENCES)/qp-target-gene/exp.md5
+	wget 'ftp://ftp.microbio.me/greengenes_release/gg_13_8_otus/trees/97_otus.tree' -O $(DIR_REFERENCES)/qp-target-gene/97_otus.tree
+	wget 'ftp://ftp.microbio.me/greengenes_release/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt' -O $(DIR_REFERENCES)/qp-target-gene/97_otu_taxonomy.txt
+	wget 'ftp://ftp.microbio.me/greengenes_release/gg_13_8_otus/rep_set/97_otus.fasta' -O $(DIR_REFERENCES)/qp-target-gene/97_otus.fasta
+	cd $(DIR_REFERENCES)/qp-target-gene/ && md5sum -c exp.md5 || rm -rf $(DIR_REFERENCES)/qp-target-gene/
+
+.built_image_qp-target-gene: Images/qp-target-gene/qp-target-gene.dockerfile Images/qp-target-gene/start_qp-target-gene.sh $(DIR_REFERENCES)/qp-target-gene Images/qp-target-gene/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
-	cp $^ $(TMPDIR)
+	cp -r $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
