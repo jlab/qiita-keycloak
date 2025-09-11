@@ -72,81 +72,102 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
-  
-  # build_plugins:
-  #   needs: build_main
-  #   strategy:
-  #     matrix:
-  #       plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout tinqiita repo
-  #       uses: actions/checkout@v4
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+  make_references:
+    needs: build_main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tinqiita repo
+        uses: actions/checkout@v4
 
-  #     - name: Read image version from dockerfile
-  #       id: vars
-  #       run: |
-  #         VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
-  #         echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-  #         cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt .
+      - name: Create fake reference databases
+        run: |
+          mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
+          for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
-  #     - name: Download certificates from job build_main
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: certificates
-  #         path: ./qiita_server_certificates
+      - name: Store fake references for follow up jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: fake_references
+          path: |
+            ./references/qp-deblur
+            ./references/qp-target-gene
 
-  #     - name: Create fake reference databases
-  #       run: |
-  #         cp -r ./references/qiita_server_certificates ./qiita_server_certificates
-  #         mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-  #         for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
+  build_plugins:
+    needs:
+      - build_main
+      - make_references
+    strategy:
+      matrix:
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tinqiita repo
+        uses: actions/checkout@v4
 
-  #     - name: Log in to GitHub Container Registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Build plugin images
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         context: .
-  #         push: false
-  #         load: true
-  #         file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+      - name: Read image version from dockerfile
+        id: vars
+        run: |
+          VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
+          echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt .
 
-  #     - name: adapt compose file to select specific plugin
-  #       run: |
-  #         sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+      - name: Download certificates from job build_main
+        uses: actions/download-artifact@v4
+        with:
+          name: certificates
+          path: ./
+      - name: Download fake references
+        uses: actions/download-artifact@v4
+        with:
+          name: fake_references
+          path: ./
 
-  #     - name: Run docker compose
-  #       uses: hoverkraft-tech/compose-action@v2.0.1
-  #       with:
-  #         compose-file: "compose_github.yaml"
-  #         services: |
-  #           nginx
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Execute tests in the running services
-  #       run: |
-  #         sleep 5
-  #         docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
+      - name: Build plugin images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
 
-  #     - name: Push production image (only if tests passed)
-  #       if: success()
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         context: .
-  #         push: true
-  #         file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-  #         tags: |
-  #           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
-  #           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-  #           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+      - name: adapt compose file to select specific plugin
+        run: |
+          sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+
+      - name: Run docker compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "compose_github.yaml"
+          services: |
+            nginx
+
+      - name: Execute tests in the running services
+        run: |
+          sleep 5
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
+
+      - name: Push production image (only if tests passed)
+        if: success()
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+          tags: |
+            tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
+            cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+            cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
 
   # publish_images:
   #   needs: build_plugins
