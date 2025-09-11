@@ -107,16 +107,19 @@ COPY trigger_noconda.py /trigger.py
 
 WORKDIR /
 
-COPY start_qp-deblur.sh .
-RUN chmod 755 start_qp-deblur.sh
+
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# ##  Export cert and config filepaths
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+
+RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+
 
 RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_deblur
 RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_deblur
@@ -125,9 +128,12 @@ RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_deblur
 COPY --from=builder /qiita_client /qiita_client
 RUN cd qiita_client && pip install .
 
-RUN mkdir -p /qiita_server_certificates/
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` filesystem
+# RUN mkdir -p /qiita_server_certificates/
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+# RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` filesystem
+RUN mkdir /qiita_certificates
+COPY Certificates/k8s_* /qiita_certificates/
+RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" /unshared_plugins/*.conf
 
 # remove conda command from tigger.py
@@ -135,6 +141,11 @@ RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/cond
 
 # for testing
 COPY test_plugin.sh /test_plugin.sh
+
+RUN mkdir -p /opt/conda/envs/deblur/share/fragment-insertion/ref
+
+COPY start_qp-deblur.sh .
+RUN chmod 755 start_qp-deblur.sh
 
 CMD ["./start_qp-deblur.sh"]
 # ^^ 848 MB

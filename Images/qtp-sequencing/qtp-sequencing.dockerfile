@@ -89,12 +89,20 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+# RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+
+RUN mkdir /qiita_certificates
+COPY Certificates/k8s_* /qiita_certificates/
+RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
+
+
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-sequencing/" /unshared_plugins/*.conf
 
 # for docker compose health check

@@ -97,6 +97,8 @@ COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/
 # "install" pigz
 COPY --from=builder /opt/conda/envs/qp-target-gene/bin/pigz /usr/local/bin/
 
+COPY ultimate_k8s_cacert.pem /qiita_certificates/qiita_certificates.pem
+
 COPY start_qp-target-gene.sh .
 RUN chmod 755 start_qp-target-gene.sh
 
@@ -107,15 +109,15 @@ RUN pip3 install tornado
 COPY trigger_noconda.py /trigger.py
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+#COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/qiita_certificates.pem
 
 RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+COPY Certificates/k8s_* /qiita_certificates/
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_target_gene
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene
-RUN configure_target_gene --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_target_gene --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-target-gene/" /unshared_plugins/*.conf
 
 # for testing
