@@ -80,11 +80,11 @@ jobs:
       - name: Checkout tinqiita repo
         uses: actions/checkout@v4
 
-      - name: Create fake reference databases
+      - name: Create partially fake reference databases
         run: |
-          make ./environments/qiita_db.env ./environments/qiita.env config
           mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-          for f in `echo "./references/qp-deblur/reference-gg-raxml-bl.tre references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
+          make ./environments/qiita_db.env ./environments/qiita.env config ./references/qp-deblur/reference-gg-raxml-bl.tre
+          for f in `echo "references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
       - name: Store fake references for follow up jobs
         uses: actions/upload-artifact@v4
@@ -161,7 +161,7 @@ jobs:
           sleep 5
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
 
-      - name: Push production image (only if tests passed)
+      - name: Push image to ghcr (only if tests passed)
         if: success()
         uses: docker/build-push-action@v6
         with:
@@ -170,36 +170,45 @@ jobs:
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
 
-  # publish_images:
-  #   needs: build_plugins
-  #   strategy:
-  #     matrix:
-  #       images: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
-  #                "nginx", "qiita", "plugin_collector"]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout tinqiita repo
-  #       uses: actions/checkout@v4
+  publish_images:
+    needs:
+      - build_plugins
+      - build_main
+    strategy:
+      matrix:
+        images: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
+                 "nginx", "qiita", "plugin_collector"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Login to computational.bio registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: harbor.computational.bio.uni-giessen.de
-  #         username: ${{ vars.HARBOR_CB_USERNAME }}
-  #         password: ${{ secrets.HARBOR_CB_SECRET }}
+      - name: Login to computational.bio registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.computational.bio.uni-giessen.de
+          username: ${{ vars.HARBOR_CB_USERNAME }}
+          password: ${{ secrets.HARBOR_CB_SECRET }}
 
-  #     - name: Read image version from dockerfile
-  #       id: vars
-  #       run: |
-  #         VERSION=$(head -n 1 Images/${{ matrix.images }}/${{ matrix.images }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
-  #         echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+      - name: Pull image from GHCR
+        run: docker pull ghcr.io/${{ github.repository }}/{{ matrix.images }}:testcandidate
 
-  #     - name: Push production image
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         context: .
-  #         push: true
-  #         file: Images/${{ matrix.images }}/${{ matrix.images }}.dockerfile
-  #         tags: |
-  #           harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.images }}:${{ env.IMAGE_TAG }}
-  #           harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.images }}:latest
+      - name: Read image version from dockerfile
+        id: vars
+        run: |
+          VERSION=$(head -n 1 Images/${{ matrix.images }}/${{ matrix.images }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
+          echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+
+      - name: Retag image for Docker Hub
+        run: docker tag \
+          ghcr.io/${{ github.repository }}/${{ matrix.images }}:testcandidate \
+          harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.images }}:${{ env.IMAGE_TAG }}
+
+      - name: Push image to Docker Hub
+        run: |
+          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.images }}:${{ env.IMAGE_TAG }}
+          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.images }}:latest
