@@ -33,6 +33,12 @@ jobs:
           make ./references/qiita_server_certificates ./environments/qiita_db.env ./environments/qiita.env config
           cp -r ./references/qiita_server_certificates ./qiita_server_certificates
 
+      - name: Store certifactes for follow up jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificates
+          path: ./references/qiita_server_certificates ./qiita_server_certificates
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -44,10 +50,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
           load: true
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
+          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
   
   build_plugins:
     needs: build_main
@@ -68,6 +75,11 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
           cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt .
+
+      - name: Download certificates from job build_main
+        uses: actions/download-artifact@v4
+        with:
+          name: certificates
 
       - name: Create fake reference databases
         run: |
@@ -98,6 +110,17 @@ jobs:
           sleep 5
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
 
+      - name: Push production image (only if tests passed)
+        if: success()
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
+          tags: |
+            tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
+            cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+            cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
 
 
 # jobs:
