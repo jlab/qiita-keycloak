@@ -168,10 +168,7 @@ jobs:
           context: .
           push: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: |
-            tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
-            cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-            cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
 
   # publish_images:
   #   needs: build_plugins
