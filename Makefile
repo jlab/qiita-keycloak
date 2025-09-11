@@ -96,7 +96,7 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_qtp-job-output-folder: Images/qtp-job-output-folder/qtp-job-output-folder.dockerfile Images/qtp-job-output-folder/start_qtp-job-output-folder.sh
+.built_image_qtp-job-output-folder: Images/qtp-job-output-folder/qtp-job-output-folder.dockerfile Images/qtp-job-output-folder/start_qtp-job-output-folder.sh Images/qtp-job-output-folder/requirements.txt
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`

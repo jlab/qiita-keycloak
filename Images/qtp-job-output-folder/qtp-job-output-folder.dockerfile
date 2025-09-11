@@ -1,4 +1,9 @@
-FROM ubuntu:24.04
+# VERSION: 2025.09.11
+
+# ==========================
+# Stage 1: Build wheels
+# ==========================
+FROM ubuntu:24.04 AS builder
 
 ARG MINIFORGE_VERSION=24.1.2-0
 
@@ -25,8 +30,6 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 
 # install tornado based trigger layer in base environment
 RUN pip install -U pip
-RUN conda install tornado
-COPY trigger.py /trigger.py
 
 # Create conda env
 RUN conda create --name qtp-job-output-folder -y python=3.6 pip==9.0.3
@@ -35,16 +38,40 @@ RUN conda create --name qtp-job-output-folder -y python=3.6 pip==9.0.3
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-job-output-folder", "/bin/bash", "-c"]
 
 RUN pip install -U pip
+
+#RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN cd qiita_client && pip install --no-cache-dir .
+
+# RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
+RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
+RUN cd /qiita-files && pip install -e . -v
+
 RUN git clone https://github.com/qiita-spots/qtp-job-output-folder.git
 WORKDIR /qtp-job-output-folder
+RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
+RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
+RUN sed -i "s|'qiita_client @ https://github.com/'||" setup.py
+RUN sed -i "s|'qiita-spots/qiita_client/archive/master.zip'||" setup.py
 RUN pip install -e .
-RUN pip install --upgrade certifi
-RUN pip install pip-system-certs
-
-# TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 WORKDIR /
+COPY requirements.txt /requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r /requirements.txt
+
+
+# ==========================
+# Stage 2: Runtime
+# ==========================
+FROM python:3.6-slim
+
+# python package compile in build stage
+COPY --from=builder /wheels /wheels
+
+RUN pip install --no-cache-dir /wheels/* \
+	&& rm -rf rm -rf `find /usr/local/lib/python3.6/site-packages -type d -name "tests" | grep -v numpy`
+
+COPY trigger_noconda.py /trigger.py
 
 COPY start_qtp-job-output-folder.sh .
 RUN chmod 755 start_qtp-job-output-folder.sh
@@ -58,9 +85,12 @@ ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-RUN chmod u+x /qtp-job-output-folder/scripts/configure_qtp_job_output_folder /qtp-job-output-folder/scripts/start_qtp_job_output_folder
+RUN chmod u+x /usr/local/bin/configure_qtp_job_output_folder /usr/local/bin/start_qtp_job_output_folder
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qtp-job-output-folder/scripts/configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-job-output-folder/" /unshared_plugins/*.conf
+
+# for testing
+COPY test_plugin.sh /test_plugin.sh
 
 CMD ["./start_qtp-job-output-folder.sh"]
