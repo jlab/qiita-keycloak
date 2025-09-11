@@ -44,7 +44,10 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
 RUN pip install q2-umap q2-greengenes2
 RUN git clone https://github.com/qiita-spots/qp-qiime2.git
-WORKDIR qp-qiime2
+WORKDIR /qp-qiime2
+
+RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /qp-qiime2/qp_qiime2/tests/test_qiime2.py
+
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
@@ -62,6 +65,9 @@ RUN export QP_QIIME2_FILTER_QZA=/filtering/
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
+
+# let the container know it's plugin name
+ENV PLUGIN=qp-qiime2
 
 WORKDIR /
 
@@ -83,5 +89,8 @@ ENV QP_QIIME2_FILTER_QZA=/filtering/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-qiime2/" /unshared_plugins/*.conf
+
+# for testing
+COPY test_plugin.sh /test_plugin.sh
 
 CMD ["./start_qp-qiime2.sh"]
