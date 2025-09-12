@@ -195,7 +195,7 @@ jobs:
           password: ${{ secrets.HARBOR_CB_SECRET }}
 
       - name: Pull image from GHCR
-        run: docker pull ghcr.io/${{ github.repository }}/{{ matrix.images }}:testcandidate
+        run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.images }}:testcandidate
 
       - name: Read image version from dockerfile
         id: vars
