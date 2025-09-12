@@ -28,14 +28,16 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 
 # install tornado based trigger layer in base environment
 RUN pip install -U pip
-RUN conda install tornado
+RUN pip install tornado
 COPY trigger.py /trigger.py
 
 # Download qiime2 yaml
 RUN wget --quiet https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml
 
 # Create conda env
-RUN conda env create --name qiime2 -y --file qiime2-2023.5-py38-linux-conda.yml
+RUN conda env create --name qiime2 -y --file qiime2-2023.5-py38-linux-conda.yml \
+  && conda clean --all -y \
+  && rm -rf /opt/conda/pkgs
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
@@ -61,8 +63,9 @@ RUN export QP_QIIME2_DBS=/databases
 
 # configuring the filtering QZAs available for QIIME 2
 RUN mkdir /filtering
-RUN wget -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip
-RUN unzip -j /filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d /filtering/
+RUN wget -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip \
+  && unzip -j /filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d /filtering/ \
+  && rm -f /filtering/bloom-analyses.zip
 RUN export QP_QIIME2_FILTER_QZA=/filtering/
 
 # TODO: should the plugin get the server configuration?!
