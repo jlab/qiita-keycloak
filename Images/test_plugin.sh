@@ -11,8 +11,10 @@ else
     REQUESTS_CA_BUNDLE="" pip install pytest;
 fi;
 
-# clone plugin repository
-git clone https://github.com/qiita-spots/${PLUGIN}
+if [ "qp-qiime2" != "$PLUGIN" ]; then
+    # clone plugin repository
+    git clone https://github.com/qiita-spots/${PLUGIN}
+fi;
 
 # NOTE: client api reset only works when communicating with Qitta Master,
 # thus, you need to directly address the port of the master container. Don't
@@ -42,4 +44,8 @@ export QIITA_PORT=21174
 export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 
 # change into plugin source directory and execute actual tests
-cd ${PLUGIN} && pytest
+if [ "qp-qiime2" == "$PLUGIN" ]; then
+    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
+else
+    cd ${PLUGIN} && pytest;
+fi;
