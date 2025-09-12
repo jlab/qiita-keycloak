@@ -289,6 +289,7 @@ jobs:
       - name: Retag image for Docker Hub
         run: |
           docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
+          docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
 
       - name: Push image to Docker Hub
         run: |
