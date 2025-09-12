@@ -3,9 +3,12 @@
 name: docker
 
 on:
+  pull_request:
+    branches:
+      - tinqiita
   push:
     branches:
-      - 'restructure_github_actions'
+      - tinqiita
 
 jobs:
   make_certificates:
