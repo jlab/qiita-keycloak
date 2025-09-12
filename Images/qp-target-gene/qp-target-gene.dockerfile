@@ -112,7 +112,7 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 RUN pip3 install tornado
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 # copy sortmerna binaries
 COPY --from=builder /sortmerna-2.0/sortmerna /usr/local/bin/sortmerna

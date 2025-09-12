@@ -78,7 +78,7 @@ COPY --from=builder /opt/conda/envs/qtp-sequencing/lib/libdeflate.so.0 /lib/x86_
 # "install" pigz
 COPY --from=builder /opt/conda/envs/qtp-sequencing/bin/pigz /usr/local/bin/
 
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 # link to quast program
 RUN ln -s /usr/local/bin/quast.py /usr/local/bin/quast

@@ -5,11 +5,13 @@ import subprocess
 from glob import glob
 import sys
 import traceback
+import os
 import asyncio
 
 conda_env_name = None
 plugin_start_script = None
 plugin_src_dir = None
+use_conda = False
 
 class RunCommandHandler(tornado.web.RequestHandler):
     async def post(self):
@@ -28,7 +30,12 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 return
 
             # Systembefehl ausfuehren
-            cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
+            cmd = ""
+            if use_conda:
+                cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
+            else:
+                cmd = '%s %s %s %s' % (plugin_start_script, qiita_worker_url, job_id, output_dir)
+
             # Asynchronen Subprozess starten
             proc = await asyncio.create_subprocess_shell(
                 cmd,
@@ -52,11 +59,8 @@ class RunCommandHandler(tornado.web.RequestHandler):
 
         except Exception as e:
             self.set_status(500)
-            # a hack to learn which docker service I am in
-            plugin_name = "unknown"
-            for f in glob('/start_*.sh'):
-                plugin_name = f.split('_')[-1].replace('.sh', '')
-                break
+            # I assume each image has set this env variable correctly!
+            plugin_name = os.environ["PLUGIN"]
             print("Error in service '%s': %s" % (plugin_name, str(e)), file=sys.stderr)
             traceback.print_exc()
             self.write({"error": str(e)})
@@ -78,9 +82,16 @@ def make_app():
     ])
 
 if __name__ == "__main__":
-    conda_env_name = sys.argv[1]
-    plugin_start_script = sys.argv[2]
-    plugin_src_dir = sys.argv[3]
+    if len(sys.argv) == 1:
+        use_conda = False
+        plugin_start_script = sys.argv[1]
+    elif len(sys.argv) == 3:
+        use_conda = True
+        conda_env_name = sys.argv[1]
+        plugin_start_script = sys.argv[2]
+        plugin_src_dir = sys.argv[3]
+    else:
+        raise ValueError("incorrect number of arguments provided for trigger.py!")
 
     app = make_app()
     app.listen(5000)  # Server auf Port 5000 starten

@@ -105,7 +105,7 @@ RUN sed -i "s|/opt/conda/envs/deblur/share/fragment-insertion/sepp/.sepp/bundled
 
 # install tornado based trigger layer in base environment
 RUN pip install -U --no-cache-dir tornado pip-system-certs
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 # ^^ 848 MB
 
 WORKDIR /
