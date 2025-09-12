@@ -27,7 +27,7 @@ services:
     #   start_period: 20s
 
   qiita-initialize-db:
-    image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
+    image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
     command: ['/start_qiita-initDB.sh']
     depends_on:
       - qiita-db
@@ -46,7 +46,7 @@ services:
       - qiita-net
 
   qiita:
-      image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
+      image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
@@ -82,7 +82,7 @@ services:
       - "21174:21174"
 
   qiita-worker:
-      image: harbor.computational.bio.uni-giessen.de/tinqiita/qiita:latest
+      image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
@@ -142,7 +142,7 @@ services:
     #   start_period: 20s
 
   nginx:
-    image: harbor.computational.bio.uni-giessen.de/tinqiita/nginx:latest
+    image: ghcr.io/jlab/qiita-keycloak/nginx:testcandidate
     build:
       context: ./Images/nginx
       dockerfile: Dockerfile
@@ -170,7 +170,7 @@ services:
     #   start_period: 10s
 
   qtp-biom:
-    image: tinqiita/qtp-biom:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qtp-biom:testcandidate
     command: ['./start_qtp-biom.sh']
     # network_mode: host
     # stdin_open: true
@@ -186,7 +186,7 @@ services:
       - qiita-net
 
   qtp-sequencing:
-    image: tinqiita/qtp-sequencing:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qtp-sequencing:testcandidate
     command: ['./start_qtp-sequencing.sh']
     # network_mode: host
     # stdin_open: true
@@ -208,7 +208,7 @@ services:
     #   start_period: 3s
 
   qp-target-gene:
-    image: tinqiita/qp-target-gene:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qp-target-gene:testcandidate
     command: ['./start_qp-target-gene.sh']
     # network_mode: host
     # stdin_open: true
@@ -225,7 +225,7 @@ services:
       - qiita-net
 
   qtp-visualization:
-    image: tinqiita/qtp-visualization:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qtp-visualization:testcandidate
     command: ['./start_qtp-visualization.sh']
     # network_mode: host
     # stdin_open: true
@@ -241,7 +241,7 @@ services:
       - qiita-net
 
   qtp-diversity:
-    image: tinqiita/qtp-diversity:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qtp-diversity:testcandidate
     command: ['./start_qtp-diversity.sh']
     # network_mode: host
     # stdin_open: true
@@ -257,7 +257,7 @@ services:
       - qiita-net
 
   qp-deblur:
-    image: tinqiita/qp-deblur:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qp-deblur:testcandidate
     command: ['./start_qp-deblur.sh']
     restart: no
     volumes:
@@ -271,7 +271,7 @@ services:
       - qiita-net
 
   qp-qiime2:
-    image: tinqiita/qp-qiime2:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qp-qiime2:testcandidate
     command: ['./start_qp-qiime2.sh']
     # network_mode: host
     # stdin_open: true
@@ -288,7 +288,7 @@ services:
       - qiita-net
 
   qtp-job-output-folder:
-    image: tinqiita/qtp-job-output-folder:testcandidate
+    image: ghcr.io/jlab/qiita-keycloak/qtp-job-output-folder:testcandidate
     command: ['./start_qtp-job-output-folder.sh']
     # network_mode: host
     # stdin_open: true
@@ -306,7 +306,7 @@ services:
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
-    image: harbor.computational.bio.uni-giessen.de/tinqiita/plugin_collector:latest
+    image: ghcr.io/jlab/qiita-keycloak/plugin_collector:testcandidate
     restart: no
     networks:
       - qiita-net

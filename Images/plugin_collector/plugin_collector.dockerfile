@@ -14,4 +14,4 @@ COPY fix_test_db.py /fix_test_db.py
 COPY start_plugin_collector.sh /start_plugin_collector.sh
 RUN chmod u+x /start_plugin_collector.sh
 
-CMD /start_plugin_collector.sh
+CMD ["/start_plugin_collector.sh"]
