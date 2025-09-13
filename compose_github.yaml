@@ -261,7 +261,7 @@ services:
     command: ['./start_qp-deblur.sh']
     restart: no
     volumes:
-      - qiita-data:/qiita_data
+      # - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
       - test_tmp_dir:/tmp
