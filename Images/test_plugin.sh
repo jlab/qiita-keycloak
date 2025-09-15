@@ -43,6 +43,9 @@ done
 export QIITA_PORT=21174
 export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 
+# either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
+export QIITA_PLUGINCOUPING=https
+
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
     source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
