@@ -44,7 +44,7 @@ export QIITA_PORT=21174
 export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 
 # either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
-export QIITA_PLUGINCOUPING=https
+export QIITA_PLUGINCOUPLING=https
 
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
