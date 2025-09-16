@@ -2,6 +2,11 @@
 
 echo "plugin to be tested is: '$PLUGIN'"
 
+# by default, clone from master. But can also clone different branches
+branch="${PLUGIN_BRANCH:-master}"
+# by default, clone from qiita-spots branch. But can also use alternative forks
+fork="${PLUGIN_FORK:-qiita-spots}"
+
 # install dependencies
 apt-get update
 apt-get -y --fix-missing install git
@@ -13,7 +18,8 @@ fi;
 
 if [ "qp-qiime2" != "$PLUGIN" ]; then
     # clone plugin repository
-    git clone https://github.com/qiita-spots/${PLUGIN}
+    git clone -b ${branch} https://github.com/${fork}/${PLUGIN};
+    echo "Clone from '${fork}', branch '${branch}'" 1>&2;
 fi;
 
 # NOTE: client api reset only works when communicating with Qitta Master,

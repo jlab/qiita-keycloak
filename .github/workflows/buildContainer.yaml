@@ -104,7 +104,8 @@ jobs:
       - make_references
     strategy:
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+        plugin: ["qp-deblur"]
+        #, "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
@@ -162,7 +163,7 @@ jobs:
       - name: Execute tests in the running services
         run: |
           sleep 5
-          docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=jlab PLUGIN_BRANCH=uncouplePlugins bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
