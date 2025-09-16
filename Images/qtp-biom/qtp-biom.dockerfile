@@ -32,7 +32,8 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 
 # install tornado based trigger layer in base environment
 RUN pip install -U pip
-# RUN conda install tornado
+RUN conda install tornado
+# COPY trigger.py /trigger.py
 
 # Download qtp-biom yaml
 # RUN wget https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/${QIIME2RELEASE}/tiny/released/qiime2-tiny-ubuntu-latest-conda.yml
@@ -74,7 +75,8 @@ RUN sed -i "s|'qiita_client/archive/master.zip'||" setup.py
 RUN pip install -e .
 RUN pip install --upgrade certifi
 RUN pip install pip-system-certs
-#RUN conda install tornado
+RUN conda install tornado
+# COPY trigger.py /trigger.py
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
