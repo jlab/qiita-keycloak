@@ -102,6 +102,9 @@ COPY ultimate_k8s_cacert.pem /qiita_certificates/qiita_certificates.pem
 COPY start_qp-target-gene.sh .
 RUN chmod 755 start_qp-target-gene.sh
 
+COPY run_qp-target-gene.sh .
+RUN chmod 755 run_qp-target-gene.sh
+
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 

@@ -147,5 +147,8 @@ RUN mkdir -p /opt/conda/envs/deblur/share/fragment-insertion/ref
 COPY start_qp-deblur.sh .
 RUN chmod 755 start_qp-deblur.sh
 
+COPY run_qp-deblur.sh .
+RUN chmod 755 run_qp-deblur.sh
+
 CMD ["./start_qp-deblur.sh"]
 # ^^ 848 MB
