@@ -1,0 +1,9 @@
+tornado
+q2-umap
+q2-greengenes2
+certifi
+pip-system-certs
+
+-e /qiita_client
+-e /qiita-files
+-e /qp-qiime2
