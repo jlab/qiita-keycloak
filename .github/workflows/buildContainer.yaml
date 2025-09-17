@@ -162,7 +162,9 @@ jobs:
       - name: Execute tests in the running services
         run: |
           sleep 5
-          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=jlab PLUGIN_BRANCH=uncouplePlugins bash /test_plugin.sh"
+          fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then echo "jlab"; else echo "qiita-spots"; fi`
+          branch=`if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then echo "uncouplePlugins"; else echo "master"; fi`
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
