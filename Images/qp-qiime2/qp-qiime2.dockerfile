@@ -69,7 +69,8 @@ RUN wget -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/
 RUN export QP_QIIME2_FILTER_QZA=/filtering/
 
 # TODO: should the plugin get the server configuration?!
-RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
+# Change filepath to k8s config file
+RUN export QIITA_CONFIG_FP=/config/config_qiita.cfg
 
 # let the container know it's plugin name
 ENV PLUGIN=qp-qiime2
@@ -79,20 +80,29 @@ WORKDIR /
 COPY start_qp-qiime2.sh .
 RUN chmod 755 start_qp-qiime2.sh
 
+COPY run_qp-qiime2.sh .
+RUN chmod 755 run_qp-qiime2.sh
+
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# ##  Export cert and config filepaths
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+
+RUN mkdir /qiita_certificates
+COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
+
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /qp-qiime2/scripts/configure_qiime2 /qp-qiime2/scripts/start_qiime2
 ENV QP_QIIME2_DBS=/databases
 ENV QP_QIIME2_FILTER_QZA=/filtering/
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN /qp-qiime2/scripts/configure_qiime2 --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-qiime2/" /unshared_plugins/*.conf
 
 # for testing

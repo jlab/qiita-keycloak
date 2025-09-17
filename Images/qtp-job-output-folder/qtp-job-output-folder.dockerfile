@@ -79,18 +79,26 @@ COPY trigger_noconda.py /trigger.py
 COPY start_qtp-job-output-folder.sh .
 RUN chmod 755 start_qtp-job-output-folder.sh
 
+COPY run_qtp-job-output-folder.sh .
+RUN chmod 755 run_qtp-job-output-folder.sh
+
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
+
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /usr/local/bin/configure_qtp_job_output_folder /usr/local/bin/start_qtp_job_output_folder
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+RUN configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-job-output-folder/" /unshared_plugins/*.conf
 
 # for testing

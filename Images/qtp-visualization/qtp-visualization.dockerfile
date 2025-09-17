@@ -99,21 +99,27 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY start_qtp-visualization.sh .
 RUN chmod 755 start_qtp-visualization.sh
 
+COPY run_qtp-visualization.sh .
+RUN chmod 755 run_qtp-visualization.sh
+
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 COPY trigger_noconda.py /trigger.py
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
 
 RUN chmod u+x /usr/local/bin/configure_visualization_types /usr/local/bin/start_visualization_types
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+#COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 # qiime2 expects to have a CONDA_PREFIX set, see https://github.com/qiime2/qiime2/blob/812fd09cf80b4ed76c1f39827ae2dba729448436/qiime2/sdk/parallel_config.py#L30
 ENV CONDA_PREFIX=/usr/local
-RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
 # for testing

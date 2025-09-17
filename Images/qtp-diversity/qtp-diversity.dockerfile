@@ -115,6 +115,9 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY start_qtp-diversity.sh .
 RUN chmod 755 start_qtp-diversity.sh
 
+COPY run_qtp-diversity.sh .
+RUN chmod 755 run_qtp-diversity.sh
+
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
@@ -168,13 +171,20 @@ COPY --from=builder /q2_diversity_assets.tgz /usr/local/lib/python3.8/site-packa
 RUN cd /usr/local/lib/python3.8/site-packages/q2_diversity && tar xzvf q2_diversity_assets.tgz
 
 ##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
+# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
+# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
+COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
+
+# RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
+RUN export QIITA_ROOTCA_CERT=/qiita_certificates/k8s_rootca.crt
+
+# COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN chmod u+x /usr/local/bin/configure_diversity_types /usr/local/bin/start_diversity_types
-RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-diversity/" /unshared_plugins/*.conf
 
 # for testing

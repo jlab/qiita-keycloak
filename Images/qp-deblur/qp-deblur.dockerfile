@@ -111,18 +111,8 @@ COPY trigger_noconda.py /trigger.py
 WORKDIR /
 
 
-
-
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
-
-# ##  Export cert and config filepaths
-# COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
-
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
 # ##  Export cert and config filepaths
 # COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
@@ -143,9 +133,6 @@ RUN cd qiita_client && pip install .
 # # RUN mkdir -p /qiita_server_certificates/
 # # COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 # # RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` filesystem
-RUN mkdir /qiita_certificates
-COPY Certificates/k8s_* /qiita_certificates/
-RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN mkdir /qiita_certificates
 COPY Certificates/k8s_* /qiita_certificates/
 RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
