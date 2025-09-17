@@ -104,8 +104,7 @@ jobs:
       - make_references
     strategy:
       matrix:
-        plugin: ["qp-deblur"]
-        #, "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
