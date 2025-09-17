@@ -47,9 +47,14 @@ RUN pip install \
 	psycopg2-binary
 
 
-# Clone the Qiita Repo
+# Clone the Qiita Repo: currently we need the oidc changes from our jlab fork + changes in the tornado_FetchFileFromCentralHandler branch, which send files if requested directly from tornado instead of nginx (happens in testing)
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
-RUN git clone -b auth_oidc https://github.com/jlab/qiita.git
+RUN git clone -b auth_oidc https://github.com/jlab/qiita.git \
+	&& cd qiita \
+	&& git config pull.rebase false \
+	&& git config --global user.email "jlab@uni-giessen.de" \
+	&& git config --global user.name "Stefan" && \
+	git pull origin tornado_FetchFileFromCentralHandler
 
 # should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
 RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
