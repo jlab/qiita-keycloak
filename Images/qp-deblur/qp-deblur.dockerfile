@@ -37,7 +37,8 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/deblur", "/bin/bash", "-c"]
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+# RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
 RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
 RUN cd qiita_client && pip install --no-cache-dir .
 
