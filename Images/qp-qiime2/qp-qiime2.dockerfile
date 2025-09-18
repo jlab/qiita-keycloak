@@ -15,7 +15,8 @@ RUN apt-get -y --fix-missing install \
 	python3-dev \
 	gcc \
 	build-essential \
-	zip
+	zip \
+	tzdata
 
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
@@ -73,6 +74,15 @@ RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
 
 # let the container know it's plugin name
 ENV PLUGIN=qp-qiime2
+
+# configure language
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+# configure timezone
+RUN ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
+
 
 WORKDIR /
 
