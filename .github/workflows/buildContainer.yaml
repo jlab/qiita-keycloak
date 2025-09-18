@@ -162,8 +162,8 @@ jobs:
       - name: Execute tests in the running services
         run: |
           sleep 5
-          fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then echo "jlab"; else echo "qiita-spots"; fi`
-          branch=`if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then echo "uncouplePlugins"; elif [[ "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "main"; else echo "master"; fi`
+          fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qp-target-gene" ]]; then echo "jlab"; else echo "qiita-spots"; fi`
+          branch=`if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then echo "uncouplePlugins"; elif [[ "${{ matrix.plugin }}" == "qp-target-gene" ]]; then echo "uncouplePlugin"; elif [[ "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "main"; else echo "master"; fi`
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
