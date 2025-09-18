@@ -1,4 +1,4 @@
-# VERSION: 2025.08.28
+# VERSION: 2025.09.17
 
 # ==========================
 # Stage 1: Build wheels
@@ -44,11 +44,13 @@ RUN python2.7 get-pip2.7.py --force-reinstall
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+#RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+
 RUN cd /qiita_client && pip install --no-cache-dir .
 
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
-RUN git clone https://github.com/qiita-spots/qp-target-gene.git
+RUN git clone -b uncouplePlugin https://github.com/jlab/qp-target-gene.git
 WORKDIR /qp-target-gene
 RUN pip install biom-format
 RUN pip install -e .
@@ -127,7 +129,7 @@ RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_target_gene
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene
-RUN configure_target_gene --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_target_gene --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-target-gene/" /unshared_plugins/*.conf
 
 # for testing
