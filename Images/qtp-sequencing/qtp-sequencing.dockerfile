@@ -1,4 +1,4 @@
-# VERSION: 2025.09.08
+# VERSION: 2025.09.26
 
 # ==========================
 # Stage 1: Build wheels (~5.8 GB)
@@ -36,14 +36,17 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-sequencing", "/bin/bash", "-c"
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+#RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
-RUN git clone https://github.com/qiita-spots/qtp-sequencing.git
+#RUN git clone https://github.com/qiita-spots/qtp-sequencing.git
+RUN git clone -b uncouplePlugin https://github.com/jlab/qtp-sequencing.git
 WORKDIR /qtp-sequencing
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
 RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
