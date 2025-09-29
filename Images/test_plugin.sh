@@ -52,10 +52,6 @@ export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 # either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
 export QIITA_PLUGINCOUPLING=https
 
-# for some tests, we need to prepare input files, which must be deposited into qiita's BASE_DATA_DIR
-# to do so via https protocol, we need to know the otherwise secret information of this directory in qiita main
-export BASE_DATA_DIR=/qiita_data
-
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
     source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
