@@ -1,4 +1,4 @@
-# VERSION: 2025.09.29
+# VERSION: 2025.10.27
 
 # ==========================
 # Stage 1: Build wheels (~5.8 GB)
@@ -48,6 +48,8 @@ RUN cd /qiita-files && pip install -e . -v
 #RUN git clone https://github.com/qiita-spots/qtp-sequencing.git
 RUN git clone -b uncouplePlugin https://github.com/jlab/qtp-sequencing.git
 WORKDIR /qtp-sequencing
+# report the actually clone commit hash of the source repo
+RUN git rev-parse HEAD
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
 RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
 RUN sed -i "s|'qiita_client @ https://github.com/'||" setup.py
