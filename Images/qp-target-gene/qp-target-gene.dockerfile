@@ -102,10 +102,13 @@ RUN pip2 install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
 COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
 
+RUN pip install certifi
+
 # "install" pigz
 COPY --from=builder /opt/conda/envs/qp-target-gene/bin/pigz /usr/local/bin/
-
-COPY ultimate_k8s_cacert.pem /qiita_certificates/qiita_certificates.pem
+RUN mkdir /qiita_certificates
+COPY Certificates/k8s_* /qiita_certificates/
+#COPY Certificates/k8s_qiita_certificates.pem /qiita_certificates/k8s_qiita_certificates.pem
 
 COPY start_qp-target-gene.sh .
 RUN chmod 755 start_qp-target-gene.sh
@@ -125,10 +128,10 @@ COPY --from=builder /sortmerna-2.0/indexdb_rna /usr/local/bin/indexdb_rna
 
 ##  Export cert and config filepaths
 #COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_certificates/qiita_certificates.pem
-ENV SSL_CERT_FILE=/qiita_certificates/qiita_certificates.pem
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
 
-RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
+#RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 COPY Certificates/k8s_* /qiita_certificates/
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_target_gene
 RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene
