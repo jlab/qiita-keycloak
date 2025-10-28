@@ -161,16 +161,17 @@ ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 ##  Export cert and config filepaths
 # COPY Certificates/qiita_server_certificates.pem /qiita_certificates/qiita_server_certificates.pem
-# ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-# ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+
 
 # COPY Certificates/qiita_server_certificates.pem /qiita_certificates/qiita_server_certificates.pem
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+#RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+#RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
 
 RUN mkdir /qiita_certificates
 COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
 RUN /usr/local/bin/configure_biom --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 

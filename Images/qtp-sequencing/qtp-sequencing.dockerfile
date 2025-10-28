@@ -98,14 +98,17 @@ ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 # COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
 # ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 # ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+# RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+# RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+
 
 # COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 # RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 
 RUN mkdir /qiita_certificates
 COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
 RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 
 

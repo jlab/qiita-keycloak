@@ -119,8 +119,8 @@ ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 # ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 # ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
-RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
-RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
+# RUN export REQUESTS_CA_BUNDLE=`python -c "import certifi; print(certifi.where())"`
+# RUN export SSL_CERT_FILE=`python -c "import certifi; print(certifi.where())"`
 
 
 RUN sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_deblur
@@ -135,6 +135,9 @@ RUN cd qiita_client && pip install .
 # # RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` filesystem
 RUN mkdir /qiita_certificates
 COPY Certificates/k8s_* /qiita_certificates/
+ENV REQUESTS_CA_BUNDLE=/qiita_certificates/k8s_qiita_certificates.pem
+ENV SSL_CERT_FILE=/qiita_certificates/k8s_qiita_certificates.pem
+
 RUN /usr/local/bin/configure_deblur --env-script "true" --server-cert `find /qiita_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" /unshared_plugins/*.conf
 
