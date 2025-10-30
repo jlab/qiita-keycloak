@@ -1,4 +1,4 @@
-# VERSION: 2025.08.29
+# VERSION: 2025.10.30
 
 FROM ubuntu:24.04 AS builder
 
@@ -57,7 +57,8 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+# RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
