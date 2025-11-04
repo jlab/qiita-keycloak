@@ -199,7 +199,7 @@ services:
     # tty: true
     restart: no
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - ./src/qtp-biom:/qtp-biom:U
       - test_tmp_dir:/tmp
@@ -232,7 +232,7 @@ services:
     # tty: true
     restart: no
     volumes:
-      - qiita-data:/qiita_data
+      # - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
       - ./references/qp-target-gene:/databases/gg/13_8/rep_set
