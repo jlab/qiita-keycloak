@@ -1,4 +1,4 @@
-# VERSION: 2025.09.11
+# VERSION: 2025.11.04
 
 FROM ubuntu:24.04 AS builder
 
@@ -50,7 +50,7 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
@@ -58,7 +58,7 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
 #RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
-RUN git clone https://github.com/qiita-spots/qtp-diversity.git
+RUN git clone -b uncouplePlugin https://github.com/jlab/qtp-diversity.git
 WORKDIR /qtp-diversity
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
 RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
@@ -174,7 +174,7 @@ ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN chmod u+x /usr/local/bin/configure_diversity_types /usr/local/bin/start_diversity_types
-RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-diversity/" /unshared_plugins/*.conf
 
 # for testing
