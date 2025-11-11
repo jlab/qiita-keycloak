@@ -239,7 +239,7 @@ jobs:
       - name: Execute tests in the running services
         run: |
           sleep 5
-          docker compose exec ${{ matrix.multiplugin }} /bin/bash -c "bash /test_plugin.sh"
+          docker compose exec ${{ matrix.multiplugin }} /bin/bash -c "PLUGIN_FORK=jlab PLUGIN_BRANCH=uncouplePlugin bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
