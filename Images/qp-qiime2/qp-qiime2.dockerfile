@@ -44,11 +44,14 @@ RUN conda env create --name qiime2 -y --file qiime2-2023.5-py38-linux-conda.yml 
 SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
 
 RUN pip install -U pip
-RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+#RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+RUN cd qiita_client && pip install --no-cache-dir .
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
 RUN pip install q2-umap q2-greengenes2
-RUN git clone https://github.com/qiita-spots/qp-qiime2.git
+#RUN git clone https://github.com/qiita-spots/qp-qiime2.git
+RUN git clone -b uncouplePlugin https://github.com/jlab/qp-qiime2.git
 WORKDIR /qp-qiime2
 
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /qp-qiime2/qp_qiime2/tests/test_qiime2.py
@@ -102,7 +105,7 @@ RUN chmod u+x /qp-qiime2/scripts/configure_qiime2 /qp-qiime2/scripts/start_qiime
 ENV QP_QIIME2_DBS=/databases
 ENV QP_QIIME2_FILTER_QZA=/filtering/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-qiime2/" /unshared_plugins/*.conf
 
 # for testing
