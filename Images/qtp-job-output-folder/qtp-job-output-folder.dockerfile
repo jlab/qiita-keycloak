@@ -1,4 +1,4 @@
-# VERSION: 2025.11.05
+# VERSION: 2025.11.12
 
 # ==========================
 # Stage 1: Build wheels
@@ -41,7 +41,7 @@ RUN pip install -U pip
 
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 #RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change   https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
