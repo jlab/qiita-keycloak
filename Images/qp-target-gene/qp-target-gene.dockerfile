@@ -45,7 +45,7 @@ RUN python2.7 get-pip2.7.py --force-reinstall
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 #RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b uncouple_clientpush https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush   https://github.com/jlab/qiita_client.git
 
 RUN cd /qiita_client && pip install --no-cache-dir .
 

@@ -52,14 +52,14 @@ ENV LANG=C.UTF-8
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 #RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
-RUN git clone -b uncouplePlugin https://github.com/jlab/qtp-visualization.git
+RUN git clone -b uncouple_clientpush https://github.com/jlab/qtp-visualization.git
 WORKDIR /qtp-visualization
 RUN sed -i "s|'qiita_client', 'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py
 RUN pip install -e .

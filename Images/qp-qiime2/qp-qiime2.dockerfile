@@ -45,7 +45,7 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush    https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip

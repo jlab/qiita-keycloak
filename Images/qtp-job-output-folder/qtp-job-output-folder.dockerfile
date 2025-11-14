@@ -41,14 +41,14 @@ RUN pip install -U pip
 
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 #RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b enable_pluginprotocol_change   https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush   https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
-RUN git clone -b  uncouplePlugin https://github.com/jlab/qtp-job-output-folder.git
+RUN git clone -b  uncouple_clientpush https://github.com/jlab/qtp-job-output-folder.git
 WORKDIR /qtp-job-output-folder
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
 RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
