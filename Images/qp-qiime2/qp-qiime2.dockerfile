@@ -1,4 +1,4 @@
-# VERSION: 2025.09.12
+# VERSION: 2025.11.14
 
 FROM ubuntu:24.04
 
@@ -45,13 +45,13 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
 RUN pip install q2-umap q2-greengenes2
 #RUN git clone https://github.com/qiita-spots/qp-qiime2.git
-RUN git clone -b uncouplePlugin https://github.com/jlab/qp-qiime2.git
+RUN git clone -b uncouple_clientpush https://github.com/jlab/qp-qiime2.git
 WORKDIR /qp-qiime2
 
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /qp-qiime2/qp_qiime2/tests/test_qiime2.py
