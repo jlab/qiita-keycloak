@@ -1,4 +1,4 @@
-# VERSION: 2025.11.04
+# VERSION: 2025.11.14
 
 FROM ubuntu:24.04 AS builder
 
@@ -50,7 +50,7 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qiime2", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
+RUN git clone -b uncouple_clientpush https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
@@ -58,7 +58,7 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
 #RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
-RUN git clone -b uncouplePlugin https://github.com/jlab/qtp-diversity.git
+RUN git clone -b uncouple_clientpush https://github.com/jlab/qtp-diversity.git
 WORKDIR /qtp-diversity
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py
 RUN sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py
@@ -144,11 +144,11 @@ COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_cpp.so.103.2.0    /usr/lo
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_hl_cpp.so.100.1.4 /usr/local/lib/libhdf5_hl_cpp.so.100
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_hl.so.100.1.3     /usr/local/lib/libhdf5_hl.so.100
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5.so.103.2.0        /usr/local/lib/libhdf5.so.103
-COPY --from=builder /opt/conda/envs/qiime2/lib/libcrypto.so.1.1          /usr/local/lib/libcrypto.so.1.1
+COPY --from=builder /opt/conda/envs/qiime2/lib/libcrypto.so.3            /usr/local/lib/libcrypto.so.3
 COPY --from=builder /opt/conda/envs/qiime2/lib/libcurl.so.4.8.0          /usr/local/lib/libcurl.so.4
-COPY --from=builder /opt/conda/envs/qiime2/lib/libnghttp2.so.14.24.1     /usr/local/lib/libnghttp2.so.14
+COPY --from=builder /opt/conda/envs/qiime2/lib/libnghttp2.so.14.25.1     /usr/local/lib/libnghttp2.so.14
 COPY --from=builder /opt/conda/envs/qiime2/lib/libssh2.so.1.0.1          /usr/local/lib/libssh2.so.1
-COPY --from=builder /opt/conda/envs/qiime2/lib/libssl.so.1.1             /usr/local/lib/libssl.so.1.1
+COPY --from=builder /opt/conda/envs/qiime2/lib/libssl.so.3               /usr/local/lib/libssl.so.3
 RUN ln -s /usr/local/lib/libopenblasp-r0.3.25.so /usr/local/lib/libcblas.so.3
 RUN ln -s /usr/local/lib/libopenblasp-r0.3.25.so /usr/local/lib/liblapacke.so.3
 RUN for f in `echo "libssu.so libhdf5_cpp.so.103 liblapacke.so.3 libcblas.so.3 libhdf5_hl_cpp.so.100 libhdf5_hl.so.100 libhdf5.so.103 libcrypto.so.1.1 libcurl.so.4 libgfortran.so.5 libnghttp2.so.14 libssh2.so.1 libssl.so.1.1 libquadmath.so.0"`; do ln -s /usr/local/lib/$f /lib/x86_64-linux-gnu/$f; done
