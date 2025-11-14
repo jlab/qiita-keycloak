@@ -38,7 +38,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b uncouple_clientpush    https://github.com/jlab/qiita_client.git
+RUN git clone -b enable_pluginprotocol_change https://github.com/jlab/qiita_client.git
 RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
 RUN cd qiita_client && pip install --no-cache-dir .
 
@@ -49,7 +49,7 @@ RUN pip install scikit-bio==0.5.5
 
 RUN pip install -U pip pip-system-certs
 
-RUN git clone -b uncouple_clientpush https://github.com/jlab/qp-deblur.git
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/qp-deblur.git
 RUN cd qp-deblur && pip install .
 
 COPY requirements.txt ./requirements.txt
