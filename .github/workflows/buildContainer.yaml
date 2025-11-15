@@ -103,6 +103,7 @@ jobs:
       - build_main
       - make_references
     strategy:
+      fail-fast: false
       matrix:
         plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
     runs-on: ubuntu-latest
