@@ -102,7 +102,7 @@ ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
+RUN configure_qtp_sequencing --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-sequencing/" /unshared_plugins/*.conf
 
 # for docker compose health check

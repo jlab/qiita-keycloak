@@ -91,7 +91,7 @@ ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /usr/local/bin/configure_qtp_job_output_folder /usr/local/bin/start_qtp_job_output_folder
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
+RUN configure_qtp_job_output_folder --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-job-output-folder/" /unshared_plugins/*.conf
 
 # for testing

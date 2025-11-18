@@ -174,7 +174,7 @@ ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 RUN chmod u+x /usr/local/bin/configure_diversity_types /usr/local/bin/start_diversity_types
-RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
+RUN configure_diversity_types --env-script "true" --ca-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-diversity/" /unshared_plugins/*.conf
 
 # for testing

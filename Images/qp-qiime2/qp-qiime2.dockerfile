@@ -109,7 +109,7 @@ RUN chmod u+x /qp-qiime2/scripts/configure_qiime2 /qp-qiime2/scripts/start_qiime
 ENV QP_QIIME2_DBS=/databases
 ENV QP_QIIME2_FILTER_QZA=/filtering/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https \
+RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` \
 	&& sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-qiime2/" /unshared_plugins/*.conf
 
 # for testing

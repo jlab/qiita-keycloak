@@ -113,7 +113,7 @@ RUN chmod u+x /usr/local/bin/configure_visualization_types /usr/local/bin/start_
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 # qiime2 expects to have a CONDA_PREFIX set, see https://github.com/qiime2/qiime2/blob/812fd09cf80b4ed76c1f39827ae2dba729448436/qiime2/sdk/parallel_config.py#L30
 ENV CONDA_PREFIX=/usr/local
-RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
+RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
 # for testing
