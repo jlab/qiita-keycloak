@@ -37,8 +37,10 @@ RUN pip install -U pip \
 COPY trigger.py /trigger.py
 
 # Download qiime2 yaml and  Create conda env
+# The remove list is the result of the jupyter notebook "determine_spare_conda_dependencies.ipynb"
 RUN wget --quiet https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml \
 	&& conda env create --name qiime2 -y --file qiime2-2023.5-py38-linux-conda.yml \
+	&& conda remove -n qiime2 --force htslib r-bh pigz bioconductor-summarizedexperiment q2-demux python-isal q2-dada2 q2-alignment gneiss r-futile.logger r-rcppparallel q2-fragment-insertion dnaio mafft pbzip2 cutadapt q2-quality-filter q2-quality-control gawk pcre xopen q2-vsearch q2-deblur r-futile.options r-hwriter xyzservices sortmerna bioconductor-biocparallel bioconductor-genomicalignments hmmer bioconductor-decontam bioconductor-rhtslib bioconductor-delayedarray bioconductor-shortread bioconductor-dada2 deblur samtools r-matrixstats r-lambda.r r-bitops isa-l bowtie2 sepp r-snow bioconductor-genomicranges openjdk q2-cutadapt bioconductor-matrixgenerics r-formatr q2-gneiss blast bokeh dendropy giflib bioconductor-rsamtools \
   	&& conda clean --all -y \
   	&& rm -rf /opt/conda/pkgs
 # Make RUN commands use the new environment:
@@ -58,7 +60,8 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip \
 RUN git clone --depth 1 -b uncouple_clientpush  https://github.com/jlab/qp-qiime2.git
 WORKDIR /qp-qiime2
 
-RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /qp-qiime2/qp_qiime2/tests/test_qiime2.py
+RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /qp-qiime2/qp_qiime2/tests/test_qiime2.py && \
+    sed -i "s|'gneiss', ||" /qp-qiime2/qp_qiime2/qp_qiime2.py
 
 RUN pip install -e . \
 	&& pip install --upgrade certifi \
