@@ -226,6 +226,12 @@ jobs:
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
 
+      - name: Prune build cache after build
+        run: |
+          df -h /
+          docker buildx prune -af
+          df -h /
+
       - name: adapt compose file to select specific plugin
         run: |
           if [[ "${{ matrix.multiplugin }}" == "qp-qiime2" ]]; then sed -i 's|- QIITA_PLUGINS="MATRIXPLUGIN:"|- QIITA_PLUGINS="${{ matrix.multiplugin }}:qtp-diversity:qtp-visualization:"|' compose_github.yaml; sed -i 's|MATRIXPLUGIN:|${{ matrix.multiplugin }}:\n        condition: service_started\n      qtp-diversity:\n        condition: service_started\n      qtp-visualization:|' compose_github.yaml; fi;
