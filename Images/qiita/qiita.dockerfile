@@ -93,4 +93,4 @@ RUN conda install hcc::aspera-cli
 # something is wired with permissions of the git repo?!
 RUN git config --global --add safe.directory /qiita
 
-# CMD ["conda", "run", "-n", "qiita"]
+CMD ["./start_qiita.sh"]

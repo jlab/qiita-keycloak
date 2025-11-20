@@ -50,13 +50,6 @@ services:
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
-      command: ['/start_qiita.sh'] # executes bash script inside the container
-      # entrypoint: /bin/bash
-      # stdin_open: true
-      # tty: true
-      # ports:
-        # - "21174:21174"  # wihtout nginx
-        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
         - qiita-worker
@@ -86,13 +79,6 @@ services:
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
-      command: ['./start_qiita.sh'] # executes bash script inside the container
-      # entrypoint: /bin/bash
-      # stdin_open: true
-      # tty: true
-      # ports:
-        # - "21174:21174"  # wihtout nginx
-        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
       restart: no
       depends_on:
         redis:
