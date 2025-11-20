@@ -193,10 +193,6 @@ services:
 
   qtp-biom:
     image: local-qtp-biom:latest
-    command: ['./start_qtp-biom.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -210,10 +206,6 @@ services:
 
   qtp-sequencing:
     image: local-qtp-sequencing:latest
-    command: ['./start_qtp-sequencing.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -226,10 +218,6 @@ services:
 
   qp-target-gene:
     image: local-qp-target-gene:latest
-    command: ['./start_qp-target-gene.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -243,10 +231,6 @@ services:
 
   qtp-visualization:
     image: local-qtp-visualization:latest
-    command: ['./start_qtp-visualization.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -259,10 +243,6 @@ services:
 
   qtp-diversity:
     image: local-qtp-diversity:latest
-    command: ['./start_qtp-diversity.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -275,10 +255,6 @@ services:
 
   qp-deblur:
     image: local-qp-deblur:latest
-    command: ['./start_qp-deblur.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -293,10 +269,6 @@ services:
 
   qp-qiime2:
     image: local-qp-qiime2:latest
-    command: ['./start_qp-qiime2.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -310,10 +282,6 @@ services:
 
   qtp-job-output-folder:
     image: local-qtp-job-output-folder:latest
-    command: ['./start_qtp-job-output-folder.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data

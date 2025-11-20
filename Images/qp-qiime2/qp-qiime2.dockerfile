@@ -86,8 +86,8 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 
 WORKDIR /
 
-COPY start_qp-qiime2.sh .
-RUN chmod 755 start_qp-qiime2.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -108,4 +108,4 @@ RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-q
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qp-qiime2.sh"]
+CMD ["./start_plugin.sh"]
