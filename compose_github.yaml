@@ -171,10 +171,6 @@ services:
 
   qtp-biom:
     image: ghcr.io/jlab/qiita-keycloak/qtp-biom:testcandidate
-    command: ['./start_qtp-biom.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -187,10 +183,6 @@ services:
 
   qtp-sequencing:
     image: ghcr.io/jlab/qiita-keycloak/qtp-sequencing:testcandidate
-    command: ['./start_qtp-sequencing.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -209,10 +201,6 @@ services:
 
   qp-target-gene:
     image: ghcr.io/jlab/qiita-keycloak/qp-target-gene:testcandidate
-    command: ['./start_qp-target-gene.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -226,10 +214,6 @@ services:
 
   qtp-visualization:
     image: ghcr.io/jlab/qiita-keycloak/qtp-visualization:testcandidate
-    command: ['./start_qtp-visualization.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -242,10 +226,6 @@ services:
 
   qtp-diversity:
     image: ghcr.io/jlab/qiita-keycloak/qtp-diversity:testcandidate
-    command: ['./start_qtp-diversity.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -258,7 +238,6 @@ services:
 
   qp-deblur:
     image: ghcr.io/jlab/qiita-keycloak/qp-deblur:testcandidate
-    command: ['./start_qp-deblur.sh']
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -272,10 +251,6 @@ services:
 
   qp-qiime2:
     image: ghcr.io/jlab/qiita-keycloak/qp-qiime2:testcandidate
-    command: ['./start_qp-qiime2.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
@@ -289,10 +264,6 @@ services:
 
   qtp-job-output-folder:
     image: ghcr.io/jlab/qiita-keycloak/qtp-job-output-folder:testcandidate
-    command: ['./start_qtp-job-output-folder.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
     restart: no
     volumes:
       - qiita-data:/qiita_data
