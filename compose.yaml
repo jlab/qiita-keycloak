@@ -175,9 +175,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8383:8383"
-    command: ['./start_nginx.sh']
-    # stdin_open: true
-    # tty: true
     restart: no
     depends_on:
       - qiita

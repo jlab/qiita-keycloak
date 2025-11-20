@@ -148,7 +148,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8383:8383"
-    command: ['./start_nginx.sh']
     restart: no
     depends_on:
       - qiita
