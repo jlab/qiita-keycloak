@@ -113,7 +113,7 @@ RUN conda install cython
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 RUN pip install iow
 
-CMD ["./start_qtp-biom.sh"]
+CMD ["./start_plugin.sh"]
 
 # ==========================
 # Stage 2: Runtime
@@ -139,8 +139,8 @@ COPY trigger_noconda.py /trigger.py
 
 WORKDIR /
 
-COPY start_qtp-biom.sh .
-RUN chmod 755 start_qtp-biom.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -173,6 +173,6 @@ RUN sed -i "s/'display.max_colwidth', -1/'display.max_colwidth', None/" /usr/loc
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qtp-biom.sh"]
+CMD ["./start_plugin.sh"]
 
 # python -c "import qiime2.plugins.feature_table"

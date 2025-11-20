@@ -112,8 +112,8 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 
-COPY start_qtp-diversity.sh .
-RUN chmod 755 start_qtp-diversity.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -144,11 +144,11 @@ COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_cpp.so.103.2.0    /usr/lo
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_hl_cpp.so.100.1.4 /usr/local/lib/libhdf5_hl_cpp.so.100
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5_hl.so.100.1.3     /usr/local/lib/libhdf5_hl.so.100
 COPY --from=builder /opt/conda/envs/qiime2/lib/libhdf5.so.103.2.0        /usr/local/lib/libhdf5.so.103
-COPY --from=builder /opt/conda/envs/qiime2/lib/libcrypto.so.1.1          /usr/local/lib/libcrypto.so.1.1
+COPY --from=builder /opt/conda/envs/qiime2/lib/libcrypto.so*             /usr/local/lib/
 COPY --from=builder /opt/conda/envs/qiime2/lib/libcurl.so.4.8.0          /usr/local/lib/libcurl.so.4
-COPY --from=builder /opt/conda/envs/qiime2/lib/libnghttp2.so.14.24.1     /usr/local/lib/libnghttp2.so.14
+COPY --from=builder /opt/conda/envs/qiime2/lib/libnghttp2.so.*           /usr/local/lib/
 COPY --from=builder /opt/conda/envs/qiime2/lib/libssh2.so.1.0.1          /usr/local/lib/libssh2.so.1
-COPY --from=builder /opt/conda/envs/qiime2/lib/libssl.so.1.1             /usr/local/lib/libssl.so.1.1
+COPY --from=builder /opt/conda/envs/qiime2/lib/libssl.so*                /usr/local/lib/
 RUN ln -s /usr/local/lib/libopenblasp-r0.3.25.so /usr/local/lib/libcblas.so.3
 RUN ln -s /usr/local/lib/libopenblasp-r0.3.25.so /usr/local/lib/liblapacke.so.3
 RUN for f in `echo "libssu.so libhdf5_cpp.so.103 liblapacke.so.3 libcblas.so.3 libhdf5_hl_cpp.so.100 libhdf5_hl.so.100 libhdf5.so.103 libcrypto.so.1.1 libcurl.so.4 libgfortran.so.5 libnghttp2.so.14 libssh2.so.1 libssl.so.1.1 libquadmath.so.0"`; do ln -s /usr/local/lib/$f /lib/x86_64-linux-gnu/$f; done
@@ -180,4 +180,4 @@ RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qtp-diversity.sh"]
+CMD ["./start_plugin.sh"]

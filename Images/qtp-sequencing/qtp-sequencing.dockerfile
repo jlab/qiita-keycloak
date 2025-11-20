@@ -85,8 +85,8 @@ RUN ln -s /usr/local/bin/quast.py /usr/local/bin/quast
 
 # WORKDIR /
 
-COPY start_qtp-sequencing.sh .
-RUN chmod 755 start_qtp-sequencing.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -112,4 +112,4 @@ RUN mkdir -p /usr/share/man/man1 && \
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qtp-sequencing.sh"]
+CMD ["./start_plugin.sh"]

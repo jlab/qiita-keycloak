@@ -110,8 +110,8 @@ COPY trigger_noconda.py /trigger.py
 
 WORKDIR /
 
-COPY start_qp-deblur.sh .
-RUN chmod 755 start_qp-deblur.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -139,5 +139,5 @@ RUN sed -i "s|source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/cond
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qp-deblur.sh"]
+CMD ["./start_plugin.sh"]
 # ^^ 848 MB
