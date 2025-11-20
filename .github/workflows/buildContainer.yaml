@@ -49,7 +49,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/start_plugin.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/start_nginx.sh .
           cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf Images/plugin_collector/start_plugin_collector.sh .
 
