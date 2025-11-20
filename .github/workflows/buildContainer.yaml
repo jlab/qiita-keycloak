@@ -259,50 +259,50 @@ jobs:
         #  file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
         #  tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
-  publish_images:
-    needs:
-      - build_plugins
-      - build_main
-      - build_mulit_plugins
-    strategy:
-      matrix:
-        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
-                 "nginx", "qiita", "plugin_collector",
-                 "qp-qiime2"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+  # publish_images:
+  #   needs:
+  #     - build_plugins
+  #     - build_main
+  #     - build_mulit_plugins
+  #   strategy:
+  #     matrix:
+  #       image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
+  #                "nginx", "qiita", "plugin_collector",
+  #                "qp-qiime2"]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout tinqiita repo
+  #       uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Log in to GitHub Container Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to computational.bio registry
-        uses: docker/login-action@v3
-        with:
-          registry: harbor.computational.bio.uni-giessen.de
-          username: ${{ vars.HARBOR_CB_USERNAME }}
-          password: ${{ secrets.HARBOR_CB_SECRET }}
+  #     - name: Login to computational.bio registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: harbor.computational.bio.uni-giessen.de
+  #         username: ${{ vars.HARBOR_CB_USERNAME }}
+  #         password: ${{ secrets.HARBOR_CB_SECRET }}
 
-      - name: Pull image from GHCR
-        run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate
+  #     - name: Pull image from GHCR
+  #       run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate
 
-      - name: Read image version from dockerfile
-        id: vars
-        run: |
-          VERSION=$(head -n 1 Images/${{ matrix.image }}/${{ matrix.image }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
-          echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
+  #     - name: Read image version from dockerfile
+  #       id: vars
+  #       run: |
+  #         VERSION=$(head -n 1 Images/${{ matrix.image }}/${{ matrix.image }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
+  #         echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
 
-      - name: Retag image for Docker Hub
-        run: |
-          docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+  #     - name: Retag image for Docker Hub
+  #       run: |
+  #         docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
+  #         docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
 
-      - name: Push image to Docker Hub
-        run: |
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+  #     - name: Push image to Docker Hub
+  #       run: |
+  #         docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
+  #         docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
