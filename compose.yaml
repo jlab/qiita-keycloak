@@ -107,12 +107,11 @@ services:
   redis:
     image: redis:latest
     restart: no
-    command: >
-      sh -c "redis-server --port 7777 &&
-             redis-server --port 6379"
+    command: ["/start_redis.sh"]
     volumes:
       - qiita-data:/qiita
       - ./logs:/logs
+      - ./Images/redis/start_redis.sh:/start_redis.sh
     networks:
       - qiita-net
   #~ keycloak: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
