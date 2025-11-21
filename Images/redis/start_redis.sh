@@ -11,9 +11,11 @@ cleanup() {
 trap cleanup TERM INT
 
 # start two redis server and safe PID in variable
+# for user and stats
 redis-server --port 7777 &
 PY_PID1=$!
 
+# for redbiom
 redis-server --port 6379 &
 PY_PID2=$!
 

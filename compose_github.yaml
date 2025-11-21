@@ -5,7 +5,7 @@ services:
     image: postgres:15
     container_name: qiita-db
     hostname: qiita-db
-    restart: no
+    restart: "no"
     env_file:
       - ./environments/qiita_db.env
     environment:
@@ -50,7 +50,7 @@ services:
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
-      restart: no
+      restart: "no"
       depends_on:
         - qiita-worker
       env_file:
@@ -79,7 +79,7 @@ services:
       build: # image wird hier direkt gebaut
         context: ./Images/qiita
         dockerfile: Dockerfile
-      restart: no
+      restart: "no"
       depends_on:
         redis:
           condition: service_started
@@ -108,16 +108,12 @@ services:
 
   redis:
     image: redis:latest
-    restart: no
-    environment:
-      - PORTSTATS=7777
-      - PORTREDBIOM=6379
-    command: >
-      sh -c "redis-server --port $$PORTSTATS &&
-             redis-server --port $$PORTREDBIOM"
+    restart: "no"
+    command: ["/start_redis.sh"]
     volumes:
       - qiita-data:/qiita
       - qiita-logs:/logs
+      - ./Images/redis/start_redis.sh:/start_redis.sh
     networks:
       - qiita-net
     # healthcheck:
@@ -134,7 +130,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8383:8383"
-    restart: no
+    restart: "no"
     depends_on:
       - qiita
     volumes:
@@ -156,7 +152,7 @@ services:
 
   qtp-biom:
     image: ghcr.io/jlab/qiita-keycloak/qtp-biom:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -168,7 +164,7 @@ services:
 
   qtp-sequencing:
     image: ghcr.io/jlab/qiita-keycloak/qtp-sequencing:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -186,7 +182,7 @@ services:
 
   qp-target-gene:
     image: ghcr.io/jlab/qiita-keycloak/qp-target-gene:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -199,7 +195,7 @@ services:
 
   qtp-visualization:
     image: ghcr.io/jlab/qiita-keycloak/qtp-visualization:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -211,7 +207,7 @@ services:
 
   qtp-diversity:
     image: ghcr.io/jlab/qiita-keycloak/qtp-diversity:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -223,7 +219,7 @@ services:
 
   qp-deblur:
     image: ghcr.io/jlab/qiita-keycloak/qp-deblur:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -236,7 +232,7 @@ services:
 
   qp-qiime2:
     image: ghcr.io/jlab/qiita-keycloak/qp-qiime2:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -249,7 +245,7 @@ services:
 
   qtp-job-output-folder:
     image: ghcr.io/jlab/qiita-keycloak/qtp-job-output-folder:testcandidate
-    restart: no
+    restart: "no"
     volumes:
       - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -263,7 +259,7 @@ services:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
     image: ghcr.io/jlab/qiita-keycloak/plugin_collector:testcandidate
-    restart: no
+    restart: "no"
     networks:
       - qiita-net
     volumes:
