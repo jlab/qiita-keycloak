@@ -135,7 +135,7 @@ RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3
 
 # install tornado based trigger layer in base environment
 #RUN pip install -U --no-cache-dir tornado
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 WORKDIR /
 

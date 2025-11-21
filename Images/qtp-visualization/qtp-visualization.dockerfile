@@ -102,7 +102,7 @@ RUN chmod 755 start_plugin.sh
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 ##  Export cert and config filepaths
 COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
