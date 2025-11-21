@@ -39,17 +39,14 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - server-plugin-configs:/qiita_plugins
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - qiita-logs:/logs
     networks:
       - qiita-net
 
   qiita:
       image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
       restart: "no"
       depends_on:
         - qiita-worker
@@ -64,8 +61,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -76,9 +73,6 @@ services:
 
   qiita-worker:
       image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
       restart: "no"
       depends_on:
         redis:
@@ -96,8 +90,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -125,9 +119,6 @@ services:
 
   nginx:
     image: ghcr.io/jlab/qiita-keycloak/nginx:testcandidate
-    build:
-      context: ./Images/nginx
-      dockerfile: Dockerfile
     ports:
       - "8383:8383"
     restart: "no"
@@ -263,7 +254,7 @@ services:
     networks:
       - qiita-net
     volumes:
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
     depends_on:

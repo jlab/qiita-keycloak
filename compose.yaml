@@ -35,16 +35,13 @@ services:
       - qiita-data:/qiita_data
       - server-plugin-configs:/qiita_plugins
       - ./logs:/logs
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
     networks:
       - qiita-net
 
   qiita:
       image: local-qiita:latest
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
       restart: "no"
       depends_on:
         - qiita-worker
@@ -60,8 +57,8 @@ services:
         - qiita-data:/qiita_data
         - ./src/qiita:/qiita:U
         - ./logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
@@ -73,9 +70,6 @@ services:
 
   qiita-worker:
       image: local-qiita:latest
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
       restart: "no"
       depends_on:
         redis:
@@ -93,8 +87,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - ./logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - ./src/qiita:/qiita:U
@@ -154,9 +148,6 @@ services:
 
   nginx:
     image: local-nginx_qiita:latest
-    build:
-      context: ./Images/nginx
-      dockerfile: Dockerfile
     ports:
       - "8383:8383"
     restart: "no"
@@ -281,7 +272,7 @@ services:
     networks:
       - qiita-net
     volumes:
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
     depends_on:
