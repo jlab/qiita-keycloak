@@ -119,7 +119,7 @@ RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 # install tornado based trigger layer in base environment
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 #COPY --from=builder /opt/conda/envs/dependencies/bin/* /opt/conda/bin/
 #COPY --from=builder /opt/conda/envs/dependencies/sbin/* /opt/conda/sbin/
@@ -156,7 +156,7 @@ RUN for f in `echo "libssu.so libhdf5_cpp.so.103 liblapacke.so.3 libcblas.so.3 l
 # fix an pandas deprecation issue, i.e. patch q2templates code
 RUN sed -i "s/'display.max_colwidth', -1/'display.max_colwidth', None/" /usr/local/lib/python3.8/site-packages/q2templates/util.py
 
-# COPY trigger_noconda.py /trigger.py
+# COPY trigger.py /trigger.py
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 

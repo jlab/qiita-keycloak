@@ -103,6 +103,7 @@ jobs:
       - build_main
       - make_references
     strategy:
+      fail-fast: false
       matrix:
         plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
     runs-on: ubuntu-latest
@@ -118,7 +119,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger_noconda.py Images/trigger.py .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -193,7 +194,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger_noconda.py Images/trigger.py .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
