@@ -87,17 +87,15 @@ def make_app():
     ])
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        plugin_start_script = sys.argv[1]
-    elif len(sys.argv) == 3:
-        conda_env_name = sys.argv[1]
-        plugin_start_script = sys.argv[2]
-        plugin_src_dir = sys.argv[3]
+    if len(sys.argv) == 1+1:
+        _, plugin_start_script = sys.argv
+    elif len(sys.argv) == 3+1:
+        _, conda_env_name, plugin_start_script, plugin_src_dir = sys.argv
     else:
         print("Incorrect number of arguments provided\nUsage: trigger.py <conda_env_name> <plugin_start_script> <plugin_src_dir>  <-- for use with conda\n  or   trigger.py <plugin_start_script>  <-- for use without conda\n", file=sys.stderr)
         exit(1)
 
     app = make_app()
     app.listen(5000)  # Server auf Port 5000 starten
-    print("Server laeuft auf http://localhost:5000", file=sys.stderr)
+    print("Server listening on http://localhost:5000", file=sys.stderr)
     tornado.ioloop.IOLoop.current().start()
