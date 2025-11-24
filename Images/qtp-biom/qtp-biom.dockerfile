@@ -1,4 +1,4 @@
-# VERSION: 2025.08.29
+# VERSION: 2025.11.20
 
 FROM ubuntu:24.04 AS builder
 
@@ -57,14 +57,17 @@ SHELL ["conda", "run", "-p", "/opt/conda/envs/qtp-biom", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+# RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 # RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 # COPY ./qiita-files /qiita-files
 RUN cd /qiita-files && pip install -e . -v
-RUN git clone https://github.com/qiita-spots/qtp-biom.git
+#RUN git clone https://github.com/qiita-spots/qtp-biom.git
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/qtp-biom.git
+
 # COPY ./qtp-biom /qtp-biom
 WORKDIR /qtp-biom
 RUN sed -i "s|'qiita-files @ https://github.com/qiita-spots/'||" setup.py
@@ -161,7 +164,7 @@ ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
 
 #RUN mkdir -p /qiita_server_certificates/
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_biom --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-biom/" /unshared_plugins/*.conf
 
 # fix an pandas deprecation issue, i.e. patch q2templates code

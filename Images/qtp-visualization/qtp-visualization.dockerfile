@@ -1,4 +1,4 @@
-# VERSION: 2025.08.29
+# VERSION: 2025.11.20
 
 FROM ubuntu:24.04 AS builder
 
@@ -52,14 +52,14 @@ ENV LANG=C.UTF-8
 
 RUN pip install -U pip
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git
 RUN cd qiita_client && pip install --no-cache-dir .
 
 #RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 RUN git clone -b master https://github.com/qiita-spots/qiita-files.git
 RUN cd /qiita-files && pip install -e . -v
 
-RUN git clone https://github.com/qiita-spots/qtp-visualization.git
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/qtp-visualization.git
 WORKDIR /qtp-visualization
 RUN sed -i "s|'qiita_client', 'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py
 RUN pip install -e .
@@ -113,7 +113,7 @@ RUN chmod u+x /usr/local/bin/configure_visualization_types /usr/local/bin/start_
 COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
 # qiime2 expects to have a CONDA_PREFIX set, see https://github.com/qiime2/qiime2/blob/812fd09cf80b4ed76c1f39827ae2dba729448436/qiime2/sdk/parallel_config.py#L30
 ENV CONDA_PREFIX=/usr/local
-RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f`
+RUN configure_visualization_types --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
 RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-visualization/" /unshared_plugins/*.conf
 
 # for testing

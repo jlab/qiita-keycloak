@@ -145,7 +145,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qtp-biom:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
@@ -157,7 +157,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qtp-sequencing:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
@@ -175,7 +175,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qp-target-gene:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
       - ./references/qp-target-gene:/databases/gg/13_8/rep_set
@@ -188,7 +188,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qtp-visualization:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
@@ -200,7 +200,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qtp-diversity:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
@@ -212,7 +212,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qp-deblur:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      # - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
       - test_tmp_dir:/tmp
@@ -225,7 +225,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qp-qiime2:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
@@ -238,7 +238,7 @@ services:
     image: ghcr.io/jlab/qiita-keycloak/qtp-job-output-folder:testcandidate
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
