@@ -28,7 +28,7 @@ ijson
 pyhmmer
 frictionless
 numpy
-umap
+umap-learn
 -e /unifrac
 
 -e /qtp-diversity
