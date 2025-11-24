@@ -6,6 +6,8 @@ from glob import glob
 import sys
 import traceback
 import asyncio
+import sys
+import os
 
 conda_env_name = None
 plugin_start_script = None
@@ -28,7 +30,11 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 return
 
             # Systembefehl ausfuehren
-            cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
+            cmd = ""
+            if conda_env_name is not None:
+                cmd = 'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/%s; %s/scripts/%s %s %s %s' % (conda_env_name, plugin_src_dir, plugin_start_script, qiita_worker_url, job_id, output_dir)
+            else:
+                cmd = '%s %s %s %s' % (plugin_start_script, qiita_worker_url, job_id, output_dir)
             # Asynchronen Subprozess starten
             proc = await asyncio.create_subprocess_shell(
                 cmd,
@@ -54,9 +60,12 @@ class RunCommandHandler(tornado.web.RequestHandler):
             self.set_status(500)
             # a hack to learn which docker service I am in
             plugin_name = "unknown"
-            for f in glob('/start_*.sh'):
-                plugin_name = f.split('_')[-1].replace('.sh', '')
-                break
+            if conda_env_name is not None:
+                for f in glob('/start_*.sh'):
+                    plugin_name = f.split('_')[-1].replace('.sh', '')
+                    break
+            else:
+                plugin_name = os.path.basename(plugin_start_script).replace('start_', '')
             print("Error in service '%s': %s" % (plugin_name, str(e)), file=sys.stderr)
             traceback.print_exc()
             self.write({"error": str(e)})
@@ -78,11 +87,15 @@ def make_app():
     ])
 
 if __name__ == "__main__":
-    conda_env_name = sys.argv[1]
-    plugin_start_script = sys.argv[2]
-    plugin_src_dir = sys.argv[3]
+    if len(sys.argv) == 1+1:
+        _, plugin_start_script = sys.argv
+    elif len(sys.argv) == 3+1:
+        _, conda_env_name, plugin_start_script, plugin_src_dir = sys.argv
+    else:
+        print("Incorrect number of arguments provided\nUsage: trigger.py <conda_env_name> <plugin_start_script> <plugin_src_dir>  <-- for use with conda\n  or   trigger.py <plugin_start_script>  <-- for use without conda\n", file=sys.stderr)
+        exit(1)
 
     app = make_app()
     app.listen(5000)  # Server auf Port 5000 starten
-    print("Server laeuft auf http://localhost:5000", file=sys.stderr)
+    print("Server listening on http://localhost:5000", file=sys.stderr)
     tornado.ioloop.IOLoop.current().start()

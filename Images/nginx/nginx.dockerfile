@@ -10,4 +10,4 @@ RUN chmod 777 start_nginx.sh
 
 RUN mkdir -p /var/log/nginx
 
-CMD ["nginx", "/start_nginx.sh"]
+CMD ["/start_nginx.sh"]

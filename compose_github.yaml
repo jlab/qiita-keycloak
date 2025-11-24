@@ -5,7 +5,7 @@ services:
     image: postgres:15
     container_name: qiita-db
     hostname: qiita-db
-    restart: no
+    restart: "no"
     env_file:
       - ./environments/qiita_db.env
     environment:
@@ -39,25 +39,15 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - server-plugin-configs:/qiita_plugins
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - qiita-logs:/logs
     networks:
       - qiita-net
 
   qiita:
       image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
-      command: ['/start_qiita.sh'] # executes bash script inside the container
-      # entrypoint: /bin/bash
-      # stdin_open: true
-      # tty: true
-      # ports:
-        # - "21174:21174"  # wihtout nginx
-        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
-      restart: no
+      restart: "no"
       depends_on:
         - qiita-worker
       env_file:
@@ -71,8 +61,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -83,17 +73,7 @@ services:
 
   qiita-worker:
       image: ghcr.io/jlab/qiita-keycloak/qiita:testcandidate
-      build: # image wird hier direkt gebaut
-        context: ./Images/qiita
-        dockerfile: Dockerfile
-      command: ['./start_qiita.sh'] # executes bash script inside the container
-      # entrypoint: /bin/bash
-      # stdin_open: true
-      # tty: true
-      # ports:
-        # - "21174:21174"  # wihtout nginx
-        # - 127.0.0.1:8383:8383 #damit bur ich dran komme
-      restart: no
+      restart: "no"
       depends_on:
         redis:
           condition: service_started
@@ -110,8 +90,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:r
+        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -122,16 +102,12 @@ services:
 
   redis:
     image: redis:latest
-    restart: no
-    environment:
-      - PORTSTATS=7777
-      - PORTREDBIOM=6379
-    command: >
-      sh -c "redis-server --port $$PORTSTATS &&
-             redis-server --port $$PORTREDBIOM"
+    restart: "no"
+    command: ["/start_redis.sh"]
     volumes:
       - qiita-data:/qiita
       - qiita-logs:/logs
+      - ./Images/redis/start_redis.sh:/start_redis.sh
     networks:
       - qiita-net
     # healthcheck:
@@ -143,13 +119,9 @@ services:
 
   nginx:
     image: ghcr.io/jlab/qiita-keycloak/nginx:testcandidate
-    build:
-      context: ./Images/nginx
-      dockerfile: Dockerfile
     ports:
       - "8383:8383"
-    command: ['./start_nginx.sh']
-    restart: no
+    restart: "no"
     depends_on:
       - qiita
     volumes:
@@ -171,11 +143,7 @@ services:
 
   qtp-biom:
     image: ghcr.io/jlab/qiita-keycloak/qtp-biom:testcandidate
-    command: ['./start_qtp-biom.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -187,11 +155,7 @@ services:
 
   qtp-sequencing:
     image: ghcr.io/jlab/qiita-keycloak/qtp-sequencing:testcandidate
-    command: ['./start_qtp-sequencing.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -209,11 +173,7 @@ services:
 
   qp-target-gene:
     image: ghcr.io/jlab/qiita-keycloak/qp-target-gene:testcandidate
-    command: ['./start_qp-target-gene.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -226,11 +186,7 @@ services:
 
   qtp-visualization:
     image: ghcr.io/jlab/qiita-keycloak/qtp-visualization:testcandidate
-    command: ['./start_qtp-visualization.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -242,11 +198,7 @@ services:
 
   qtp-diversity:
     image: ghcr.io/jlab/qiita-keycloak/qtp-diversity:testcandidate
-    command: ['./start_qtp-diversity.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -258,8 +210,7 @@ services:
 
   qp-deblur:
     image: ghcr.io/jlab/qiita-keycloak/qp-deblur:testcandidate
-    command: ['./start_qp-deblur.sh']
-    restart: no
+    restart: "no"
     volumes:
       # - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -272,11 +223,7 @@ services:
 
   qp-qiime2:
     image: ghcr.io/jlab/qiita-keycloak/qp-qiime2:testcandidate
-    command: ['./start_qp-qiime2.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -289,11 +236,7 @@ services:
 
   qtp-job-output-folder:
     image: ghcr.io/jlab/qiita-keycloak/qtp-job-output-folder:testcandidate
-    command: ['./start_qtp-job-output-folder.sh']
-    # network_mode: host
-    # stdin_open: true
-    # tty: true
-    restart: no
+    restart: "no"
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
@@ -307,11 +250,11 @@ services:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
     image: ghcr.io/jlab/qiita-keycloak/plugin_collector:testcandidate
-    restart: no
+    restart: "no"
     networks:
       - qiita-net
     volumes:
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
     depends_on:

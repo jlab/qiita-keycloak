@@ -49,9 +49,9 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/${{ matrix.container }}/start_${{ matrix.container }}.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
           cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
-          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf .
+          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf Images/plugin_collector/start_plugin_collector.sh .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -119,7 +119,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/${{ matrix.plugin }}/start_${{ matrix.plugin }}.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger_noconda.py Images/trigger.py .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -196,7 +196,7 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/${{ matrix.multiplugin }}/start_${{ matrix.multiplugin }}.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger_noconda.py Images/trigger.py .
+          cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -252,12 +252,6 @@ jobs:
         if: success()
         run: |
           docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
-        #uses: docker/build-push-action@v6
-        #with:
-        #  context: .
-        #  push: true
-        #  file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
-        #  tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:

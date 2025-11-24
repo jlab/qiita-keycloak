@@ -96,8 +96,8 @@ RUN ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime \
 
 WORKDIR /
 
-COPY start_qp-qiime2.sh .
-RUN chmod 755 start_qp-qiime2.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
@@ -118,4 +118,4 @@ RUN /qp-qiime2/scripts/configure_qiime2 --env-script 'true' --server-cert `find 
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qp-qiime2.sh"]
+CMD ["./start_plugin.sh"]

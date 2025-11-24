@@ -107,14 +107,14 @@ COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/
 # "install" pigz
 COPY --from=builder /opt/conda/envs/qp-target-gene/bin/pigz /usr/local/bin/
 
-COPY start_qp-target-gene.sh .
-RUN chmod 755 start_qp-target-gene.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
 RUN pip3 install tornado
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 # copy sortmerna binaries
 COPY --from=builder /sortmerna-2.0/sortmerna /usr/local/bin/sortmerna
@@ -135,4 +135,4 @@ RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-t
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qp-target-gene.sh"]
+CMD ["./start_plugin.sh"]

@@ -96,13 +96,13 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 
-COPY start_qtp-visualization.sh .
-RUN chmod 755 start_qtp-visualization.sh
+COPY start_plugin.sh .
+RUN chmod 755 start_plugin.sh
 
 RUN mkdir -p /unshared_plugins
 ENV QIITA_PLUGINS_DIR=/unshared_plugins/
 
-COPY trigger_noconda.py /trigger.py
+COPY trigger.py /trigger.py
 
 ##  Export cert and config filepaths
 COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
@@ -119,4 +119,4 @@ RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qtp-
 # for testing
 COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_qtp-visualization.sh"]
+CMD ["./start_plugin.sh"]
