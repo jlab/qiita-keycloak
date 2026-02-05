@@ -27,7 +27,7 @@ fi;
 # go through nginx!
 
 # fix qiita base url in client
-for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
+for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qp-qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
     sed -i 's|URL = "https://localhost:8383"|URL = "https://tinqiita-qiita-1:21174"|' $f;
 done
 
