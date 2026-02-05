@@ -91,21 +91,21 @@ RUN git clone --depth 1 -b uncouple_clientpush  https://github.com/jlab/${PLUGIN
 WORKDIR /${PLUGIN}
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /${PLUGIN}/qp_qiime2/tests/test_qiime2.py && \
     sed -i "s|'gneiss', ||" /${PLUGIN}/qp_qiime2/qp_qiime2.py && \
-	&& pip install -e . \
-	&& pip install --upgrade certifi \
-	&& pip install pip-system-certs
+	pip install -e . && \
+	pip install --upgrade certifi && \
+	pip install pip-system-certs
 
 # configuring the databases available for QIIME 2
-RUN mkdir /databases \
-	&& wget --no-check-certificate --quiet -O "/databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza" \
-	&& export QP_QIIME2_DBS=/databases
+RUN mkdir /databases && \
+	wget --no-check-certificate --quiet -O "/databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza" && \
+	export QP_QIIME2_DBS=/databases
 
 # configuring the filtering QZAs available for QIIME 2
-RUN mkdir /filtering \
-	&& wget --no-check-certificate -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip \
-  	&& unzip -j /filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d /filtering/ \
-  	&& rm -f /filtering/bloom-analyses.zip \
-	&& export QP_QIIME2_FILTER_QZA=/filtering/
+RUN mkdir /filtering && \
+	wget --no-check-certificate -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip && \
+    unzip -j /filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d /filtering/ && \
+    rm -f /filtering/bloom-analyses.zip && \
+    export QP_QIIME2_FILTER_QZA=/filtering/
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
@@ -127,8 +127,8 @@ ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 RUN chmod u+x /${PLUGIN}/scripts/configure_qiime2 /${PLUGIN}/scripts/start_qiime2 && \
 	ln -s /${PLUGIN}/scripts/configure_qiime2 /${PLUGIN}/scripts/configure_${PLUGIN} && \
 	ln -s /${PLUGIN}/scripts/start_qiime2 /${PLUGIN}/scripts/start_${PLUGIN} && \
-	/${PLUGIN}/scripts/configure_${PLUGIN} --env-script 'true' --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https \
-	&& sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
+	/${PLUGIN}/scripts/configure_${PLUGIN} --env-script 'true' --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
+	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
 # copy http listener
 COPY trigger.py /trigger.py
