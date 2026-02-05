@@ -54,7 +54,7 @@ export QIITA_PLUGINCOUPLING=https
 
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
-    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
+    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/${PLUGIN}; cd ${PLUGIN} && pytest;
 else
     cd ${PLUGIN} && pytest;
 fi;
