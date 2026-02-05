@@ -132,7 +132,7 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	chmod u+x /usr/local/bin/configure_visualization_types /usr/local/bin/start_visualization_types && \
 	ln -s /usr/local/bin/configure_visualization_types /usr/local/bin/configure_${PLUGIN} && \
 	ln -s /usr/local/bin/start_visualization_types /usr/local/bin/start_${PLUGIN} && \
-	configure_${PREFIX} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
+	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
 # copy http listener

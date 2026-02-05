@@ -30,7 +30,7 @@ RUN apt-get -y update && \
 		libpq-dev \
 		python3-dev \
 		gcc \
-		build-essential && \
+		build-essential \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
