@@ -136,24 +136,24 @@ COPY trigger.py /trigger.py
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/qiita_server_certificates.pem ${QIITA_CERT_DIR}/qiita_server_certificates.pem
+COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
 ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 
 # setup qiita plugin
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
-	 mv /usr/local/bin/configure_* /usr/local/bin/configure_${PLUGIN} && \
-	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_${PLUGIN} && \
-	mv /usr/local/bin/start_* /usr/local/bin/start_${PLUGIN} && \
-	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_${PLUGIN} && \
+	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_target_gene && \
+	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene && \
+	ln -s /usr/local/bin/configure_target_gene /usr/local/bin/configure_${PLUGIN} && \
+	ln -s /usr/local/bin/start_target_gene /usr/local/bin/start_${PLUGIN} && \
 	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
-# for job execution
-COPY start_plugin.sh .
+# # for job execution
+# COPY start_plugin.sh .
 
-# for testing
-COPY test_plugin.sh /test_plugin.sh
+# # for testing
+# COPY test_plugin.sh /test_plugin.sh
 
-CMD ["./start_plugin.sh"]
+# CMD ["./start_plugin.sh"]

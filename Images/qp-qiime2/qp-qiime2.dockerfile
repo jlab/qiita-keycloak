@@ -116,7 +116,7 @@ WORKDIR /
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/qiita_server_certificates.pem ${QIITA_CERT_DIR}/qiita_server_certificates.pem
+COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
 ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 
@@ -126,8 +126,8 @@ ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 
 #RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
 RUN chmod u+x /${PLUGIN}/scripts/configure_qiime2 /${PLUGIN}/scripts/start_qiime2 && \
-	mv /${PLUGIN}/scripts/configure_* /${PLUGIN}/scripts/configure_${PLUGIN} && \
-	mv /${PLUGIN}/scripts/start_* /${PLUGIN}/scripts/start_${PLUGIN} && \
+	ln -s /${PLUGIN}/scripts/configure_qiime2 /${PLUGIN}/scripts/configure_${PLUGIN} && \
+	ln -s /${PLUGIN}/scripts/start_qiime2 /${PLUGIN}/scripts/start_${PLUGIN} && \
 	/${PLUGIN}/scripts/configure_${PLUGIN} --env-script 'true' --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https \
 	&& sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 

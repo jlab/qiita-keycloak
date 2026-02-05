@@ -25,10 +25,10 @@ case "$PLUGIN" in
         STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-biom)
-        STARTSCRIPT=start_biom
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-diversity)
-        STARTSCRIPT=start_diversity_types
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-job-output-folder)
         STARTSCRIPT=start_qtp_job_output_folder
