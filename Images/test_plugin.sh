@@ -27,7 +27,7 @@ fi;
 # go through nginx!
 
 # fix qiita base url in client
-for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
+for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qp-qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
     sed -i 's|URL = "https://localhost:8383"|URL = "https://tinqiita-qiita-1:21174"|' $f;
 done
 
@@ -54,7 +54,7 @@ export QIITA_PLUGINCOUPLING=https
 
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
-    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
+    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/${PLUGIN}; cd ${PLUGIN} && pytest;
 else
     cd ${PLUGIN} && pytest;
 fi;

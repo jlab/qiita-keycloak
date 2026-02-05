@@ -41,63 +41,63 @@ services:
       - qiita-net
 
   qiita:
-      image: local-qiita:latest
-      restart: "no"
-      depends_on:
-        - qiita-worker
-      env_file:
-        - './environments/qiita.env'
-      environment:
-        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
-        - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
-        - PORT=21174
-        - MASTER=--master
-        - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-      volumes:
-        - qiita-data:/qiita_data
-        - ./src/qiita:/qiita:U
-        - ./logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
-        - server-plugin-configs:/qiita_plugins
-        - ./references/qiita_server_certificates:/qiita_certificates
-        # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
-        - test_tmp_dir:/tmp
-      networks:
-        - qiita-net
-      ports:
-      - "21174:21174"
+    image: local-qiita:latest
+    restart: "no"
+    depends_on:
+      - qiita-worker
+    env_file:
+      - './environments/qiita.env'
+    environment:
+      #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
+      - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+      - PORT=21174
+      - MASTER=--master
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    volumes:
+      - qiita-data:/qiita_data
+      - ./src/qiita:/qiita:U
+      - ./logs:/logs
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+      - server-plugin-configs:/qiita_plugins
+      - ./references/qiita_server_certificates:/qiita_certificates
+      # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
+      - test_tmp_dir:/tmp
+    networks:
+      - qiita-net
+    ports:
+    - "21174:21174"
 
   qiita-worker:
-      image: local-qiita:latest
-      restart: "no"
-      depends_on:
-        redis:
-          condition: service_started
-        plugin-collector:
-          condition: service_completed_successfully
-      env_file:
-        - './environments/qiita.env'
-      environment:
-        #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
-        - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
-        - PORT=21175
-        - MASTER=
-        - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
-      volumes:
-        - qiita-data:/qiita_data
-        - ./logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
-        - server-plugin-configs:/qiita_plugins
-        - ./references/qiita_server_certificates:/qiita_certificates
-        - ./src/qiita:/qiita:U
-        # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
-        - test_tmp_dir:/tmp
-      networks:
-        - qiita-net
-      deploy:
-        replicas: 3
+    image: local-qiita:latest
+    restart: "no"
+    depends_on:
+      redis:
+        condition: service_started
+      plugin-collector:
+        condition: service_completed_successfully
+    env_file:
+      - './environments/qiita.env'
+    environment:
+      #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
+      - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+      - PORT=21175
+      - MASTER=
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    volumes:
+      - qiita-data:/qiita_data
+      - ./logs:/logs
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+      - server-plugin-configs:/qiita_plugins
+      - ./references/qiita_server_certificates:/qiita_certificates
+      - ./src/qiita:/qiita:U
+      # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
+      - test_tmp_dir:/tmp
+    networks:
+      - qiita-net
+    deploy:
+      replicas: 3
   redis:
     image: redis:latest
     restart: "no"
@@ -147,7 +147,7 @@ services:
       #~ - qiita-net
 
   nginx:
-    image: local-nginx_qiita:latest
+    image: local-nginx:latest
     ports:
       - "8383:8383"
     restart: "no"
@@ -231,7 +231,7 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - ./references/qp-deblur:/opt/conda/envs/deblur/share/fragment-insertion/ref
+      - ./references/qp-deblur:/opt/conda/envs/qp-deblur/share/fragment-insertion/ref
       #- ./src/qtp-biom:/qtp-biom:U
       - test_tmp_dir:/tmp
     environment:
