@@ -135,10 +135,6 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
-# install tornado based trigger layer in base environment
-#RUN pip install -U --no-cache-dir tornado
-COPY trigger.py /trigger.py
-
 WORKDIR /
 
 # Handling of certificates, such that plugin can verify qiita main
@@ -157,6 +153,9 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 
 # fix an pandas deprecation issue, i.e. patch q2templates code
 RUN sed -i "s/'display.max_colwidth', -1/'display.max_colwidth', None/" /usr/local/lib/python3.8/site-packages/q2templates/util.py
+
+# copy http listener
+COPY trigger.py /trigger.py
 
 # for job execution
 COPY start_plugin.sh .

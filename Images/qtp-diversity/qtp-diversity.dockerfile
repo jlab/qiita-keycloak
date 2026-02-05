@@ -170,9 +170,6 @@ RUN qiime
 COPY --from=builder /q2_diversity_assets.tgz /usr/local/lib/python3.8/site-packages/q2_diversity/q2_diversity_assets.tgz
 RUN cd /usr/local/lib/python3.8/site-packages/q2_diversity && tar xzvf q2_diversity_assets.tgz
 
-# install tornado based trigger layer in base environment
-COPY trigger.py /trigger.py
-
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
 COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
@@ -188,6 +185,9 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	ln -s /usr/local/bin/start_diversity_types /usr/local/bin/start_${PLUGIN} && \
 	configure_${PLUGIN} --env-script "true" --ca-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
+
+# copy http listener
+COPY trigger.py /trigger.py
 
 # for job execution
 COPY start_plugin.sh .

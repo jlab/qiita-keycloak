@@ -61,7 +61,6 @@ RUN wget --no-verbose https://github.com/conda-forge/miniforge/releases/download
 # install tornado based trigger layer in base environment
 RUN pip install -U pip \
 	&& pip install --no-cache-dir tornado
-COPY trigger.py /trigger.py
 
 # Download qiime2 yaml and  Create conda env
 # The remove list is the result of the jupyter notebook "determine_spare_conda_dependencies.ipynb"
@@ -130,6 +129,9 @@ RUN chmod u+x /${PLUGIN}/scripts/configure_qiime2 /${PLUGIN}/scripts/start_qiime
 	ln -s /${PLUGIN}/scripts/start_qiime2 /${PLUGIN}/scripts/start_${PLUGIN} && \
 	/${PLUGIN}/scripts/configure_${PLUGIN} --env-script 'true' --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https \
 	&& sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
+
+# copy http listener
+COPY trigger.py /trigger.py
 
 # for job execution
 COPY start_plugin.sh .

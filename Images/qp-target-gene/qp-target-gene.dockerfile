@@ -132,7 +132,6 @@ COPY --from=builder /sortmerna-2.0/indexdb_rna /usr/local/bin/indexdb_rna
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/pigz /usr/local/bin/
 
 RUN pip3 install tornado
-COPY trigger.py /trigger.py
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
@@ -150,10 +149,13 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
-# # for job execution
-# COPY start_plugin.sh .
+# copy http listener
+COPY trigger.py /trigger.py
 
-# # for testing
-# COPY test_plugin.sh /test_plugin.sh
+# for job execution
+COPY start_plugin.sh .
 
-# CMD ["./start_plugin.sh"]
+# for testing
+COPY test_plugin.sh /test_plugin.sh
+
+CMD ["./start_plugin.sh"]

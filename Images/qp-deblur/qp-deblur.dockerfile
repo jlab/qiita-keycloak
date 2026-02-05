@@ -120,7 +120,6 @@ RUN sed -i "s|${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/bu
 
 # install tornado based trigger layer in base environment
 RUN pip install -U --no-cache-dir tornado pip-system-certs
-COPY trigger.py /trigger.py
 
 # use git branch instead of pypi version (stored via wheel)
 COPY --from=builder /qiita_client /qiita_client
@@ -146,6 +145,9 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 
 # remove conda command from tigger.py
 RUN sed -i "s|source ${CONDA_DIR}/etc/profile.d/conda.sh; conda activate ${CONDA_DIR}/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
+
+# copy http listener
+COPY trigger.py /trigger.py
 
 # for job execution
 COPY start_plugin.sh .
