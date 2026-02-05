@@ -114,6 +114,8 @@ COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
 ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 
+# setup qiita plugin
+ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	ln -s /usr/local/bin/configure_qtp_sequencing /usr/local/bin/configure_${PLUGIN} && \
     ln -s /usr/local/bin/start_qtp_sequencing /usr/local/bin/start_${PLUGIN} && \
