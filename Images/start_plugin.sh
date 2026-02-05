@@ -19,10 +19,10 @@ case "$PLUGIN" in
         STARTSCRIPT=start_$PLUGIN
         ;;
     qp-qiime2)
-        STARTSCRIPT=start_qiime2
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qp-target-gene)
-        STARTSCRIPT=start_target_gene
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-biom)
         STARTSCRIPT=start_biom
@@ -49,7 +49,7 @@ esac
 cd /
 if [ "$PLUGIN" = "qp-qiime2" ]; then
     # as this plugin still uses a conda environment
-    python trigger.py qiime2 $STARTSCRIPT /qp-qiime2 &
+    python trigger.py $PLUGIN $STARTSCRIPT /$PLUGIN &
 elif [ "$PLUGIN" = "qp-target-gene" ]; then
     # as this plugin uses old py27
     python3 trigger.py $STARTSCRIPT &
