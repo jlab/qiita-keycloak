@@ -29,6 +29,8 @@ ENV PATH=${CONDA_DIR}/bin:${PATH}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV QP_QIIME2_DBS=/databases
+ENV QP_QIIME2_FILTER_QZA=/filtering/
 
 RUN apt-get -y  update && \
 	apt-get install -y --no-install-recommends \
@@ -97,15 +99,13 @@ RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /${PLUGIN}/qp_qiime2/tests/test_
 
 # configuring the databases available for QIIME 2
 RUN mkdir /databases && \
-	wget --no-check-certificate --quiet -O "/databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza" && \
-	export QP_QIIME2_DBS=/databases
+	wget --no-check-certificate --quiet -O "/databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza"
 
 # configuring the filtering QZAs available for QIIME 2
 RUN mkdir /filtering && \
 	wget --no-check-certificate -O /filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip && \
     unzip -j /filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d /filtering/ && \
-    rm -f /filtering/bloom-analyses.zip && \
-    export QP_QIIME2_FILTER_QZA=/filtering/
+    rm -f /filtering/bloom-analyses.zip
 
 # TODO: should the plugin get the server configuration?!
 RUN export QIITA_CONFIG_FP=/qiita/config_qiita_oidc.cfg
