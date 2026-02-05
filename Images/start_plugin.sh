@@ -16,7 +16,7 @@ if [ -z "$PLUGIN" ]; then
 fi
 case "$PLUGIN" in
     qp-deblur)
-        STARTSCRIPT=start_deblur
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qp-qiime2)
         STARTSCRIPT=start_qiime2
