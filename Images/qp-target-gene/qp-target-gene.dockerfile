@@ -1,13 +1,26 @@
-# VERSION: 2025.11.20
+# VERSION: 2026.02.05
+
+# variables, specifically for this plugin
+# qiita plugin name
+ARG PLUGIN=qp-target-gene
+
+# variables, identical for whole qiita setup
+ARG QIITA_PLUGINS_DIR=/unshared_plugins
+ARG QIITA_CERT_DIR=/qiita_server_certificates
+
+# for clear dockerfile
+ARG CONDA_DIR=/opt/conda
 
 # ==========================
 # Stage 1: Build wheels
 # ==========================
 FROM ubuntu:24.04 AS builder
+ARG PLUGIN
+ARG QIITA_PLUGINS_DIR
+ARG QIITA_CERT_DIR
+ARG CONDA_DIR
 
 ARG MINIFORGE_VERSION=24.1.2-0
-
-ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
 RUN apt-get -y update
@@ -21,7 +34,7 @@ RUN apt-get -y --fix-missing install \
 
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
-RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh -O /tmp/miniforge3.sh && \
+RUN wget --no-verbose https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh -O /tmp/miniforge3.sh && \
 	/bin/bash /tmp/miniforge3.sh -b -p ${CONDA_DIR} && \
 	echo ". ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate base" >> /etc/skel/.bashrc && \
 	echo ". ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate base" >> ~/.bashrc && \
@@ -32,30 +45,35 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_
 RUN pip install -U pip
 
 # Create conda env
-RUN conda create --name qp-target-gene -y -c conda-forge -c bioconda -c biocore python=2.7 SortMeRNA==2.0 numpy==1.13.1 pigz biom-format
+RUN conda create --name ${PLUGIN} -y -c conda-forge -c bioconda -c biocore python=2.7 SortMeRNA==2.0 numpy==1.13.1 pigz biom-format
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
-SHELL ["conda", "run", "-p", "/opt/conda/envs/qp-target-gene", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # see https://stackoverflow.com/questions/49940813/pip-no-module-named-internal
-RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py -O /get-pip2.7.py
-RUN wget https://bootstrap.pypa.io/pip/3.7/get-pip.py -O /get-pip3.7.py
-RUN python2.7 get-pip2.7.py --force-reinstall
+RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py -O /get-pip2.7.py && \
+	wget https://bootstrap.pypa.io/pip/3.7/get-pip.py -O /get-pip3.7.py	&& \
+	python2.7 get-pip2.7.py --force-reinstall
 
 RUN pip install -U pip
+
+# Install qiita_client
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 #RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b refactor_exposeBaseDataDir  https://github.com/jlab/qiita_client.git
+RUN git clone -b refactor_exposeBaseDataDir  https://github.com/jlab/qiita_client.git && \
+	cd qiita_client && \
+	pip install --no-cache-dir .
 
-RUN cd /qiita_client && pip install --no-cache-dir .
-
+# Install qiita-files
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/qp-target-gene.git
-WORKDIR /qp-target-gene
-RUN pip install biom-format
-RUN pip install -e .
-RUN pip install --upgrade certifi
-RUN pip install pip-system-certs
+
+# Install qiita plugin
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+WORKDIR /${PLUGIN}
+RUN pip install biom-format && \
+	pip install -e . && \
+	pip install --upgrade certifi && \
+	pip install pip-system-certs
 
 WORKDIR /
 
@@ -78,9 +96,13 @@ RUN wget https://github.com/sortmerna/sortmerna/archive/refs/tags/2.0.tar.gz && 
 # ==========================
 # I am testing ubuntu as base image, since python:xxx-slim was too hard/large to install python2 and python3 side by side
 FROM ubuntu:22.04
+ARG PLUGIN
+ARG QIITA_PLUGINS_DIR
+ARG QIITA_CERT_DIR
+ARG CONDA_DIR
 
 # let the container know it's plugin name
-ENV PLUGIN=qp-target-gene
+ENV PLUGIN=${PLUGIN}
 
 # py2 and py3
 RUN mkdir -p /usr/share/man/man1 && \
@@ -99,38 +121,37 @@ RUN python3 get-pip3.7.py \
 
 # python package compile in build stage
 COPY --from=builder /wheels /wheels
-
 RUN pip2 install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
-COPY --from=builder /opt/conda/envs/qp-target-gene/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
-
-# "install" pigz
-COPY --from=builder /opt/conda/envs/qp-target-gene/bin/pigz /usr/local/bin/
-
-COPY start_plugin.sh .
-RUN chmod 755 start_plugin.sh
-
-RUN mkdir -p /unshared_plugins
-ENV QIITA_PLUGINS_DIR=/unshared_plugins/
-
-RUN pip3 install tornado
-COPY trigger.py /trigger.py
-
+COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
 # copy sortmerna binaries
 COPY --from=builder /sortmerna-2.0/sortmerna /usr/local/bin/sortmerna
 COPY --from=builder /sortmerna-2.0/indexdb_rna /usr/local/bin/indexdb_rna
 
-##  Export cert and config filepaths
-COPY qiita_server_certificates/qiita_server_certificates.pem /qiita_server_certificates/qiita_server_certificates.pem
-ENV REQUESTS_CA_BUNDLE=/qiita_server_certificates/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=/qiita_server_certificates/qiita_server_certificates.pem
+# "install" pigz
+COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/pigz /usr/local/bin/
 
-RUN export QIITA_ROOTCA_CERT=/unshared_certificates/ci_rootca.crt
-COPY qiita_server_certificates/*_server.* /qiita_server_certificates/
-RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_target_gene
-RUN sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_target_gene
-RUN configure_target_gene --env-script "true" --server-cert `find /qiita_server_certificates/ -name "*_server.crt" -type f` https
-RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-target-gene/" /unshared_plugins/*.conf
+RUN pip3 install tornado
+COPY trigger.py /trigger.py
+
+# Handling of certificates, such that plugin can verify qiita main
+RUN mkdir -p ${QIITA_CERT_DIR}/
+COPY qiita_server_certificates/qiita_server_certificates.pem ${QIITA_CERT_DIR}/qiita_server_certificates.pem
+ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
+ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
+
+# setup qiita plugin
+ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
+RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
+	 mv /usr/local/bin/configure_* /usr/local/bin/configure_${PLUGIN} && \
+	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/configure_${PLUGIN} && \
+	mv /usr/local/bin/start_* /usr/local/bin/start_${PLUGIN} && \
+	sed -i "s|^#\!.*|#\!/usr/bin/python2|" /usr/local/bin/start_${PLUGIN} && \
+	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
+	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
+
+# for job execution
+COPY start_plugin.sh .
 
 # for testing
 COPY test_plugin.sh /test_plugin.sh

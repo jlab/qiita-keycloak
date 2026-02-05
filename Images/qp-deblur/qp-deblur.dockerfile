@@ -27,14 +27,16 @@ ENV PATH=${CONDA_DIR}/bin:${PATH}
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN apt-get -y update
-RUN apt-get -y --fix-missing install \
-	git \
-	wget \
-	libpq-dev \
-	python3-dev \
-	gcc \
-	build-essential
+RUN apt-get -y update && \
+	apt-get -y --fix-missing install \
+		git \
+		wget \
+		libpq-dev \
+		python3-dev \
+		gcc \
+		build-essential \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/*
 
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
@@ -53,20 +55,21 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git
-RUN sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py
-RUN cd qiita_client && pip install --no-cache-dir .
+RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
+	sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py && \
+	cd qiita_client && \
+	pip install --no-cache-dir .
 
-RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.310 SortMeRNA=2.0 fragment-insertion gcc
-RUN pip install -U pip
-RUN pip install numpy cython pandas
-RUN pip install scikit-bio==0.5.5
-
-RUN pip install -U pip pip-system-certs
+RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.310 SortMeRNA=2.0 fragment-insertion gcc && \
+	pip install -U pip && \
+	pip install numpy cython pandas && \
+	pip install scikit-bio==0.5.5 && \
+	pip install -U pip pip-system-certs
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/qp-deblur.git
-RUN cd qp-deblur && pip install .
+RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+WORKDIR /${PLUGIN}
+RUN pip install .
 
 COPY requirements.txt ./requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
@@ -119,35 +122,33 @@ RUN sed -i "s|${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/bu
 RUN pip install -U --no-cache-dir tornado pip-system-certs
 COPY trigger.py /trigger.py
 
+# use git branch instead of pypi version (stored via wheel)
+COPY --from=builder /qiita_client /qiita_client
+RUN cd /qiita_client && pip install .
+
 WORKDIR /
 
-COPY start_plugin.sh .
-RUN chmod 755 start_plugin.sh
-
-ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
-RUN mkdir -p ${QIITA_PLUGINS_DIR}/
-
-##  Export cert and config filepaths
+# Handling of certificates, such that plugin can verify qiita main
+RUN mkdir -p ${QIITA_CERT_DIR}/
 COPY qiita_server_certificates/qiita_server_certificates.pem ${QIITA_CERT_DIR}/qiita_server_certificates.pem
 ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 
-RUN mv /usr/local/bin/configure_* /usr/local/bin/configure_${PLUGIN} && \
-    sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_${PLUGIN}
-RUN mv /usr/local/bin/start_* /usr/local/bin/start_${PLUGIN} && \
-	sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_${PLUGIN}
-
-# use git branch instead of pypi version (stored via wheel)
-COPY --from=builder /qiita_client /qiita_client
-RUN cd qiita_client && pip install .
-
-RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/*_server.* ${QIITA_CERT_DIR}/
-RUN /usr/local/bin/configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https
-RUN sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py qp-deblur/" ${QIITA_PLUGINS_DIR}/*.conf
+# setup qiita plugin
+ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
+RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
+	mv /usr/local/bin/configure_* /usr/local/bin/configure_${PLUGIN} && \
+    sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/configure_${PLUGIN} && \
+	mv /usr/local/bin/start_* /usr/local/bin/start_${PLUGIN} && \
+	sed -i "s|^#\!.*|#\!/usr/local/bin/python|" /usr/local/bin/start_${PLUGIN} && \
+	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
+	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
 # remove conda command from tigger.py
 RUN sed -i "s|source ${CONDA_DIR}/etc/profile.d/conda.sh; conda activate ${CONDA_DIR}/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
+
+# for job execution
+COPY start_plugin.sh .
 
 # for testing
 COPY test_plugin.sh /test_plugin.sh
