@@ -50,7 +50,7 @@ RUN pip install -U pip
 RUN conda create --name ${PLUGIN} -y python=3.6 pip==9.0.3
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
-SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/{PLUGIN}", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 RUN pip install -U pip
 

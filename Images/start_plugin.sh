@@ -31,13 +31,13 @@ case "$PLUGIN" in
         STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-job-output-folder)
-        STARTSCRIPT=start_qtp_job_output_folder
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-sequencing)
-        STARTSCRIPT=start_qtp_sequencing
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-visualization)
-        STARTSCRIPT=start_visualization_types
+        STARTSCRIPT=start_$PLUGIN
         ;;
     *)
         echo "unknown qiita plugin $PLUGIN"

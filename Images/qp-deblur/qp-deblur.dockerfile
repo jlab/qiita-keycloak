@@ -143,9 +143,6 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
-# remove conda command from tigger.py
-RUN sed -i "s|source ${CONDA_DIR}/etc/profile.d/conda.sh; conda activate ${CONDA_DIR}/envs/%s;||" /trigger.py && sed -i "s|conda_env_name, ||" /trigger.py
-
 # copy http listener
 COPY trigger.py /trigger.py
 

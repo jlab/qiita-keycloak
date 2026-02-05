@@ -132,7 +132,7 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 
-COPY --from=builder /opt/conda/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
+COPY --from=builder ${CONDA_DIR}/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
 WORKDIR /
@@ -146,8 +146,8 @@ ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
 # setup qiita plugin
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
-	mv /usr/local/bin/configure_* /usr/local/bin/configure_${PLUGIN} && \
-    mv /usr/local/bin/start_* /usr/local/bin/start_${PLUGIN} && \
+	ln -s /usr/local/bin/configure_biom /usr/local/bin/configure_${PLUGIN} && \
+    ln -s /usr/local/bin/start_biom /usr/local/bin/start_${PLUGIN} && \
 	configure_${PLUGIN} --env-script "true" --server-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` https && \
 	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
