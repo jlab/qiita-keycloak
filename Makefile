@@ -1,7 +1,5 @@
 PODMAN_FLAGS =
 PODMAN_BIN = docker buildx
-CERTNAME=stefan
-OPENSSL=/bin/openssl
 DIR_REFERENCES=references
 # docker compose prepends name of directory to containers
 
@@ -10,25 +8,7 @@ ifeq ($(origin tmpdir), undefined)
 tmpdir = $(TMPDIR)
 endif
 
-$(DIR_REFERENCES)/qiita_server_certificates: Images/plugin_collector/stefan_csr.conf Images/plugin_collector/stefan_cert.conf
-	# === create own certificates ===
-	mkdir -p $@
-	# Generate a new root CA private key and certificate
-	cd $@ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=tinqiita-nginx-1/C=DE/L=Giessen" -keyout $(CERTNAME)_rootca.key -out $(CERTNAME)_rootca.crt
-	# Generate a new server private key
-	cd $@ && $(OPENSSL) genrsa -out $(CERTNAME)_server.key 2048
-	# Copy the following to a new file named csr.conf and modify to suit your needs
-	# Copy the following to a new file named cert.conf and modify to suit your needs
-	# Nils: alt_names is the important aspect. Make entries for all valid hostnames with which services shall be addressed
-	for f in `echo "$^"`; do cat $$f > $@/`basename $$f`; done
-	#cp $^ $@/
-	# Generate a certificate signing request
-	cd $@ && $(OPENSSL) req -new -key $(CERTNAME)_server.key -out $(CERTNAME)_server.csr -config $(CERTNAME)_csr.conf
-	# Generate a new signed server.crt to use with your server.key
-	cd $@ && $(OPENSSL) x509 -req -in $(CERTNAME)_server.csr -CA $(CERTNAME)_rootca.crt -CAkey $(CERTNAME)_rootca.key -CAcreateserial -out $(CERTNAME)_server.crt -days 365 -sha256 -extfile $(CERTNAME)_cert.conf
-	# concat rootca and server certificates into one file
-	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
-	# === end: create own certificates ===
+include Configuration/makefile
 
 # a general target, executed for each plugin
 plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/qiita_server_certificates Images/test_plugin.sh

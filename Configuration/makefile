@@ -1,0 +1,43 @@
+# Communication between qiita main (this is all services but the plugins) and
+# the multiple qiita plugins need verification for both directions:
+# a) plugin verifies main
+#    This is done via SSL certificates. In the below target, a self signed 
+#    certificat is created for your BASE_URL (e.g. qiita.jlab.bio), which will 
+#    be distributed to main (located at /qiita_certificates) and plugin
+#    (located at /qiita_server_certificates) docker images.
+#    Thus, the plugin can double check that main is the correct server. Feel
+#    free to change configuration of the certificat within the *_csr.conf and 
+#    *_cert.conf, but be careful with renaming the according files, as 
+#    file*names* (not file content) must be kept in sync between the build
+#    images and the files you are mounting to the images.
+# b) main authorizes plugin
+#    Communication from the plugin with main is implemented via qiita_client,
+#    which is part of each plugin. Main needs to authorize a plugin by adding
+#    its oauth ID and secret into the database. Both values get created with
+#    the "configure_PLUGIN" script and are stored in a config file in each 
+#    plugin image under /unshared_plugins/...*.conf at build time of the image.
+#    (This is also the place where the filepath to the SSL certificat of a) is
+#    registered). The plugin_collector service iterates over plugins and
+#    transfers these files to main, such that main can add the according values
+#    into the database.
+CERTNAME=tinqiita
+OPENSSL=/bin/openssl
+$(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf Configuration/$(CERTNAME)_cert.conf
+	# === create own certificates ===
+	mkdir -p $@
+	# Generate a new root CA private key and certificate
+	cd $@ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=tinqiita-nginx-1/C=DE/L=Giessen" -keyout $(CERTNAME)_rootca.key -out $(CERTNAME)_rootca.crt
+	# Generate a new server private key
+	cd $@ && $(OPENSSL) genrsa -out $(CERTNAME)_server.key 2048
+	# Copy the following to a new file named csr.conf and modify to suit your needs
+	# Copy the following to a new file named cert.conf and modify to suit your needs
+	# Nils: alt_names is the important aspect. Make entries for all valid hostnames with which services shall be addressed
+	for f in `echo "$^"`; do cat $$f > $@/`basename $$f`; done
+	#cp $^ $@/
+	# Generate a certificate signing request
+	cd $@ && $(OPENSSL) req -new -key $(CERTNAME)_server.key -out $(CERTNAME)_server.csr -config $(CERTNAME)_csr.conf
+	# Generate a new signed server.crt to use with your server.key
+	cd $@ && $(OPENSSL) x509 -req -in $(CERTNAME)_server.csr -CA $(CERTNAME)_rootca.crt -CAkey $(CERTNAME)_rootca.key -CAcreateserial -out $(CERTNAME)_server.crt -days 365 -sha256 -extfile $(CERTNAME)_cert.conf
+	# concat rootca and server certificates into one file
+	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
+	# === end: create own certificates ===
