@@ -108,6 +108,7 @@ make clean:
 	rm -f .built_image_*
 	rm -rf $(DIR_REFERENCES)
 	git checkout Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf
+	rm -f Configuration/qiita_db.env Configuration/redis.env
 	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
 	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
 

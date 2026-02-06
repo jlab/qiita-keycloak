@@ -76,10 +76,10 @@ propagate_configuration:
 	# set postgres passwords for admin and user
 	# user
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg; \
-	echo "POSTGRES_PASSWORD=$$pp" > Configuration/qiita_db.env
+	if [ ! Configuration/qiita_db.env ]; then echo "POSTGRES_PASSWORD=$$pp" > Configuration/qiita_db.env; fi
 	# admin
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^ADMIN_PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg;
 
 	# set redis password
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
-	echo "REDISPWD=$$pp" > Configuration/redis.env
+	if [ ! Configuration/redis.env ]; then echo "REDISPWD=$$pp" > Configuration/redis.env; fi
