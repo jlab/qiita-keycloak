@@ -87,7 +87,7 @@ jobs:
       - name: Create partially fake reference databases
         run: |
           mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-          make ./environments/qiita_db.env ./environments/qiita.env config ./references/qp-deblur/reference-gg-raxml-bl.tre
+          make ./references/qp-deblur/reference-gg-raxml-bl.tre
           for f in `echo "references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
       - name: Store fake references for follow up jobs
