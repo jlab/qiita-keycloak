@@ -1,5 +1,5 @@
 # the URL for your users to browse to your qiita instance
-QIITA_BASE_URL = qiita.jlab.bio
+QIITA_BASE_URL = localhost
 
 # Communication between qiita main (this is all services but the plugins) and
 # the multiple qiita plugins need verification for both directions:
@@ -46,6 +46,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf 
 	# === end: create own certificates ===
 
 propagate_configuration:
+	# if QIITA_BASE_URL is not "localhost" add it to the certificat configurations
 	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
 		lastNo=`grep "^DNS." Configuration/$(CERTNAME)_csr.conf | tail -n 1 | cut -d "=" -f 1 | cut -d "." -f 2 | tr -d " "`; \
 		echo "DNS.$$((lastNo + 1)) = $(QIITA_BASE_URL)" >> Configuration/$(CERTNAME)_csr.conf; \
