@@ -31,6 +31,7 @@ jobs:
           path: |
             ./qiita_server_certificates
             ./references/qiita_server_certificates
+            ./Configuration
 
   build_main:
     needs: make_certificates
@@ -97,7 +98,6 @@ jobs:
           path: |
             ./references/qp-deblur
             ./references/qp-target-gene
-            ./environments
 
   build_plugins:
     needs:
