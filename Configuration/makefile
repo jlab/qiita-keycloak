@@ -1,6 +1,13 @@
 # the URL for your users to browse to your qiita instance
 QIITA_BASE_URL = localhost
 
+# an email address users will direct help requests to
+HELP_EMAIL = foo@tinqiita.com
+
+# The email address, Qiita sends internal notifications to a sys admin
+SYSADMIN_EMAIL = jeff@tinqiita.com
+
+
 # Communication between qiita main (this is all services but the plugins) and
 # the multiple qiita plugins need verification for both directions:
 # a) plugin verifies main
@@ -45,6 +52,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf 
 	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
 	# === end: create own certificates ===
 
+RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")
 propagate_configuration:
 	# if QIITA_BASE_URL is not "localhost" add it to the certificat configurations
 	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
@@ -52,3 +60,26 @@ propagate_configuration:
 		echo "DNS.$$((lastNo + 1)) = $(QIITA_BASE_URL)" >> Configuration/$(CERTNAME)_csr.conf; \
 		echo "DNS.$$((lastNo + 1)) = $(QIITA_BASE_URL)" >> Configuration/$(CERTNAME)_cert.conf; \
 	fi
+
+	# set secure passphrase for COOKIE_SECRET
+	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[main\]$$/,/^\[/ s|\(^COOKIE_SECRET = \)SECRET|\1$$escpp|" Configuration/config_qiita_oidc.cfg
+
+	# set secure passphrase for secure JWTs for delegated permission artifact download
+	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[main\]$$/,/^\[/ s|\(^JWT_SECRET = \)SUPER_SECRET|\1$$escpp|" Configuration/config_qiita_oidc.cfg
+
+	# Address a user should write to when asking for help
+	sed -i "/^\[main\]$$/,/^\[/ s|\(^HELP_EMAIL = \)foo@bar.com|\1$(HELP_EMAIL)|" Configuration/config_qiita_oidc.cfg
+
+	# The email address, Qiita sends internal notifications to a sys admin
+	sed -i "/^\[main\]$$/,/^\[/ s|\(^SYSADMIN_EMAIL = \)jeff@bar.com|\1$(HELP_EMAIL)|" Configuration/config_qiita_oidc.cfg
+
+	# set postgres passwords for admin and user
+	# user
+	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg; \
+	echo "POSTGRES_PASSWORD=$$pp" > Configuration/qiita_db.env
+	# admin
+	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^ADMIN_PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg;
+
+	# set redis password
+	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
+	echo "REDISPWD=$$pp" > Configuration/redis.env

@@ -104,19 +104,11 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 
 images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder
 
-environments/qiita_db.env: environments/qiita_db.env.example
-	cp environments/qiita_db.env.example environments/qiita_db.env
-	sed -E -i "s/^POSTGRES_PASSWORD=.+$$/POSTGRES_PASSWORD=postgres/" environments/qiita_db.env
-
-environments/qiita.env: environments/qiita.env.example
-	cp environments/qiita.env.example environments/qiita.env
-
-config: environments/qiita_db.env environments/qiita.env
-
 make clean:
-	rm .built_image_*
+	rm -f .built_image_*
 	rm -rf $(DIR_REFERENCES)
+	git checkout Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf
 	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
 	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
 
-all: config images
+all: propagate_configuration images
