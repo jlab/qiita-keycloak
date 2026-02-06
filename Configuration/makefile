@@ -73,12 +73,18 @@ propagate_configuration:
 	# The email address, Qiita sends internal notifications to a sys admin
 	sed -i "/^\[main\]$$/,/^\[/ s|\(^SYSADMIN_EMAIL = \)jeff@bar.com|\1$(HELP_EMAIL)|" Configuration/config_qiita_oidc.cfg
 
-	# set postgres passwords for admin and user
-	# user
-	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg; \
-	if [ ! -f Configuration/qiita_db.env ]; then echo "POSTGRES_PASSWORD=$$pp" > Configuration/qiita_db.env; fi
-	# admin
-	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[postgres\]$$/,/^\[/ s|\(^ADMIN_PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg;
+	# for postgres: set admin and user password to the same value, as within the containerized environment, it does not make sense to separate
+	pp=$(RANDOMPWD); \
+	escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
+	sed -i "/^\[postgres\]$$/,/^\[/ s|\(^PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg; \
+	sed -i "/^\[postgres\]$$/,/^\[/ s|\(^ADMIN_PASSWORD = \)postgres|\1$$escpp|" Configuration/config_qiita_oidc.cfg; \
+	user=`sed -n "/^\[postgres\]$$/,/^\[/ {/^USER/p}" Configuration/config_qiita_oidc.cfg | cut -d "=" -f 2 | tr -d " "`; \
+	dbname=`sed -n "/^\[postgres\]$$/,/^\[/ {/^DATABASE/p}" Configuration/config_qiita_oidc.cfg | cut -d "=" -f 2 | tr -d " "`; \
+	if [ ! -f Configuration/qiita_db.env ]; then \
+		echo "POSTGRES_USER=$$user" > Configuration/qiita_db.env; \
+		echo "POSTGRES_PASSWORD=$$pp" >> Configuration/qiita_db.env; \
+		echo "POSTGRES_DATABASE=$$dbname" >> Configuration/qiita_db.env; \
+	fi
 
 	# set redis password
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =$$\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
