@@ -83,7 +83,7 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
 .built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Configuration/nginx_qiita.conf
-	cd Images/nginx && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx_qiita
+	cd Images/nginx && cp ../../Configuration/nginx_qiita.conf . && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx
 	mkdir -p ./logs
 	touch ./logs/nginx_access.log ./logs/nginx_error.log
 	chmod a+rw ./logs/nginx_access.log ./logs/nginx_error.log

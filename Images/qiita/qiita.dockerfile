@@ -1,4 +1,4 @@
-# VERSION: 2025.11.20
+# VERSION: 2026.02.06
 
 FROM ubuntu:24.04
 
@@ -97,5 +97,8 @@ RUN conda install hcc::aspera-cli
 
 # something is wired with permissions of the git repo?!
 RUN git config --global --add safe.directory /qiita
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["/start_qiita.sh"]

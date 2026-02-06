@@ -1,4 +1,4 @@
-# VERSION: 2025.09.02
+# VERSION: 2026.02.06
 
 FROM ubuntu:24.04
 
@@ -13,5 +13,8 @@ COPY collect_configs.py /collect_configs.py
 COPY fix_test_db.py /fix_test_db.py
 COPY start_plugin_collector.sh /start_plugin_collector.sh
 RUN chmod u+x /start_plugin_collector.sh
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["/start_plugin_collector.sh"]
