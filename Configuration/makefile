@@ -1,3 +1,6 @@
+# the URL for your users to browse to your qiita instance
+QIITA_BASE_URL = qiita.jlab.bio
+
 # Communication between qiita main (this is all services but the plugins) and
 # the multiple qiita plugins need verification for both directions:
 # a) plugin verifies main
@@ -41,3 +44,10 @@ $(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf 
 	# concat rootca and server certificates into one file
 	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
 	# === end: create own certificates ===
+
+propagate_configuration:
+	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
+		lastNo=`grep "^DNS." Configuration/$(CERTNAME)_csr.conf | tail -n 1 | cut -d "=" -f 1 | cut -d "." -f 2 | tr -d " "`; \
+		echo "DNS.$$((lastNo + 1)) = $(QIITA_BASE_URL)" >> Configuration/$(CERTNAME)_csr.conf; \
+		echo "DNS.$$((lastNo + 1)) = $(QIITA_BASE_URL)" >> Configuration/$(CERTNAME)_cert.conf; \
+	fi
