@@ -7,7 +7,7 @@ services:
     hostname: qiita-db
     restart: "no"
     env_file:
-      - ./environments/qiita_db.env
+      - ./Configuration/qiita_db.env
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
@@ -31,8 +31,6 @@ services:
     command: ['/start_qiita-initDB.sh']
     depends_on:
       - qiita-db
-    env_file:
-      - './environments/qiita.env'
     environment:
       - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -50,8 +48,6 @@ services:
       restart: "no"
       depends_on:
         - qiita-worker
-      env_file:
-        - './environments/qiita.env'
       environment:
         #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
@@ -79,8 +75,6 @@ services:
           condition: service_started
         plugin-collector:
           condition: service_completed_successfully
-      env_file:
-        - './environments/qiita.env'
       environment:
         #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
@@ -104,6 +98,8 @@ services:
     image: redis:latest
     restart: "no"
     command: ["/start_redis.sh"]
+    env_file:
+      - ./Configuration/redis.env
     volumes:
       - qiita-data:/qiita
       - qiita-logs:/logs
