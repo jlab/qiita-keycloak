@@ -82,14 +82,14 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
-.built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Images/nginx/nginx_qiita.conf
+.built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Configuration/nginx_qiita.conf
 	cd Images/nginx && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx_qiita
 	mkdir -p ./logs
 	touch ./logs/nginx_access.log ./logs/nginx_error.log
 	chmod a+rw ./logs/nginx_access.log ./logs/nginx_error.log
 	touch .built_image_nginx
 
-.built_image_qiita: Images/qiita/qiita.dockerfile Images/qiita/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Images/qiita/config_portal.cfg Images/qiita/drop_workflows.py
+.built_image_qiita: Images/qiita/qiita.dockerfile Configuration/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Configuration/config_portal.cfg Images/qiita/drop_workflows.py
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
