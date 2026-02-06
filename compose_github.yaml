@@ -39,8 +39,8 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - server-plugin-configs:/qiita_plugins
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+      - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - qiita-logs:/logs
     networks:
       - qiita-net
@@ -61,8 +61,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+        - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -90,8 +90,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+        - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -127,7 +127,7 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - qiita-logs:/logs
-      - ./Images/nginx/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
+      - ./Configuration/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
       - ./references/qiita_server_certificates:/qiita_certificates
     networks:
       - qiita-net
@@ -254,7 +254,7 @@ services:
     networks:
       - qiita-net
     volumes:
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
     depends_on:
