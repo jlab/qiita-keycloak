@@ -52,6 +52,9 @@ export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 # either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
 export QIITA_PLUGINCOUPLING=https
 
+echo "Stefan debugged"
+find / -name "*RAxML*"
+
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
     source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/${PLUGIN}; cd ${PLUGIN} && pytest;
