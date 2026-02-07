@@ -131,7 +131,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: fake_references
-          path: ./
+          path: ./references
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -166,7 +166,7 @@ jobs:
           sleep 5
           fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "jlab"; else echo "qiita-spots"; fi`
           branch=`if [[ "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "uncouple_clientpush"; else echo "master"; fi`
-          if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then find / -name "*RAxML*"; fi
+          if [[ "${{ matrix.plugin }}" == "qp-deblur" ]]; then find / -name "*RAxML*" 2> /dev/null; true; fi
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
