@@ -1,4 +1,4 @@
-# VERSION: 2026.02.06
+# VERSION: 2026.02.08
 
 FROM ubuntu:24.04
 

@@ -1,4 +1,4 @@
-# VERSION: 2026.02.06
+# VERSION: 2026.02.08
 
 # variables, specifically for this plugin
 # qiita plugin name
