@@ -21,7 +21,8 @@ jobs:
       - name: Create certificate
         # second copy of "qiita_server_certificates" is necessary to match path for docker build, first copy for mounting into container
         run: |
-          SECURE_QIITA_DB=False make ./references/qiita_server_certificates propagate_configuration
+          sed -i "s/^SECURE_QIITA_DB = True/SECURE_QIITA_DB = False/" ./Configuration/makefile
+          make ./references/qiita_server_certificates propagate_configuration
           cp -r ./references/qiita_server_certificates ./qiita_server_certificates
 
       - name: Store certifactes for follow up jobs
