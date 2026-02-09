@@ -18,4 +18,4 @@ grep 'already present on the system. You can drop it by running' .env-make.err >
 # currently, commands with which you can process artifacts are limited to those that are present in available "recommended workflows".
 # As they are not properly set up in the test database, we e.g. cannot run "deblur" on demux or trimmed existing artifacts (it's different in workflows in construction)
 # As long as we don't have a nice mechanism to carry over recommended workflow, we better remove them altogether
-source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; python /drop_workflows.py; python /secure_db.py
+source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; python /drop_workflows.py
