@@ -91,6 +91,7 @@ RUN rm -rf /qiita/qiita_core/support_files
 RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_example.conf /qiita/qiita_pet/support_files/config_portal.cfg
 
 COPY drop_workflows.py /drop_workflows.py
+COPY secure_db.py /secure_db.py
 
 # install aspera client for ENA submission
 RUN conda install hcc::aspera-cli

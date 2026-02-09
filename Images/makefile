@@ -67,7 +67,7 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/qiita_server_
 	chmod a+rw ./logs/nginx_access.log ./logs/nginx_error.log
 	touch .built_image_nginx
 
-.built_image_qiita: Images/qiita/qiita.dockerfile Configuration/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Configuration/config_portal.cfg Images/qiita/drop_workflows.py
+.built_image_qiita: Images/qiita/qiita.dockerfile Configuration/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Configuration/config_portal.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
