@@ -21,6 +21,12 @@ if os.environ.get('SECURE_QIITA_DB', "True") == 'True':
         qdb.sql_connection.TRN.add(sql, [default_pwd])
         qdb.sql_connection.TRN.execute()
 
-        print("secure qiita's postgres DB: overwrite default user password. Look up password in file Configuration/qiita_db.env!", file=sys.stderr)
+        print("Secure qiita's postgres DB: overwrite default user password. Look up password in file Configuration/qiita_db.env!", file=sys.stderr)
+
+    with qdb.sql_connection.TRN:
+        qdb.sql_connection.TRN.add("UPDATE settings SET test = False", [])
+        qdb.sql_connection.TRN.execute()
+        print("Put qiita into productive mode, i.e. prohibit API reset.")
+
 else:
-    print("skip securing qiita's postgres DB. Useful for testing, otherwise this is a serious security thread!!")
+    print("Skip securing qiita's postgres DB. Useful for testing, otherwise this is a serious security thread!!")
