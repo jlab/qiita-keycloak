@@ -147,7 +147,4 @@ COPY test_plugin.sh /test_plugin.sh
 # for reference, if user wants to inspect image
 COPY *.dockerfile /
 
-# for reference, if user wants to inspect image
-COPY *.dockerfile /
-
 CMD ["./start_plugin.sh"]
