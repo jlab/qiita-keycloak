@@ -27,7 +27,7 @@
   "clients": [
     {
       "clientId": "tinqiita",
-      "name": "Tinqiita Client",
+      "name": "tinqiita Client",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
@@ -36,12 +36,11 @@
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://qiita.jlab:8383/*",
-        "http://localhost:8383/*"
+        "https://tinqiita-nginx-1:8383/auth/login_OIDC/*"
       ],
       "webOrigins": [
-        "http://qiita.jlab:8383",
-        "http://localhost:8383"
+        "https://qiita.local:8383",
+        "https://localhost:8383"
       ],
       "attributes": {
         "post.logout.redirect.uris": "+"
