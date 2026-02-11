@@ -1,0 +1,70 @@
+{
+  "realm": "tinqiita",
+  "enabled": true,
+  "displayName": "tinqiita realm",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "qiita-user",
+        "description": "Default role for Qiita users"
+      }
+    ]
+  },
+
+  "defaultRoles": [
+    "qiita-user"
+  ],
+
+  "clients": [
+    {
+      "clientId": "tinqiita",
+      "name": "Tinqiita Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "SUPERSECRET",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://qiita.jlab:8383/*",
+        "http://localhost:8383/*"
+      ],
+      "webOrigins": [
+        "http://qiita.jlab:8383",
+        "http://localhost:8383"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "test@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    }
+  ]
+}
