@@ -25,10 +25,14 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 
 make clean:
 	rm -f .built_image_*
-	rm -rf $(DIR_REFERENCES)
 	git checkout Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf
 	rm -f Configuration/qiita_db.env Configuration/redis.env
+	rm -rf $(DIR_REFERENCES)
 	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
 	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
 
 all: propagate_configuration images
+
+run-harbor: propagate_configuration
+	sed -i "s|image: local-\(.*\)\(:\?\)|image: harbor.computational.bio.uni-giessen.de/tinqiita/\1\2|" compose.yaml
+	docker compose -f compose.yaml up

@@ -11,7 +11,7 @@ SYSADMIN_EMAIL = jeff@tinqiita.com
 # whose password is "password" - also mentioned in qiita's code base.
 # Furthermore, API db reset is possibe. Both issues will be fixed if
 # SECURE_QIITA_DB = True, for testing SECURE_QIITA_DB = False is necessary.
-SECURE_QIITA_DB = True
+SECURE_QIITA_DB = False
 
 
 # Communication between qiita main (this is all services but the plugins) and
@@ -100,3 +100,11 @@ propagate_configuration:
 	# set redis password
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =$$\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
 	if [ ! -f Configuration/redis.env ]; then echo "REDISPWD=$$pp" > Configuration/redis.env; fi
+
+	# set up keycloak
+	pp=$(RANDOMPWD); \
+	echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \
+	echo "KC_DB_PASSWORD=$$pp" >> Configuration/keycloak.env; \
+	ppkk=$(RANDOMPWD); \
+	echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env;
+

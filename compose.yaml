@@ -110,43 +110,6 @@ services:
       - ./Images/redis/start_redis.sh:/start_redis.sh
     networks:
       - qiita-net
-  #~ keycloak: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
-    #~ image: quay.io/keycloak/keycloak:24.0.2
-    #~ container_name: keycloak
-    #~ environment:
-      #~ KC_DB: postgres
-      #~ KC_DB_URL: jdbc:postgresql://keycloakdb:5432/keycloak
-      #~ KC_DB_USERNAME: keycloak
-      #~ KC_DB_PASSWORD: password
-
-      #~ KC_HOSTNAME: keycloak
-      #~ KC_HOSTNAME_PORT: 9999
-      #~ KC_HOSTNAME_STRICT: false
-      #~ KC_HOSTNAME_STRICT_HTTPS: false
-
-      #~ KC_LOG_LEVEL: info
-      #~ KC_METRICS_ENABLED: false
-      #~ KC_HEALTH_ENABLED: true
-      #~ KEYCLOAK_ADMIN: admin
-      #~ KEYCLOAK_ADMIN_PASSWORD: admin
-    #~ command: ["start-dev", "--http-port=9999"]
-    #~ depends_on:
-      #~ - keycloakdb
-    #~ ports:
-      #~ - 127.0.0.1:9999:9999
-    #~ networks:
-      #~ - qiita-net
-
-  #~ keycloakdb:
-    #~ image: postgres:15
-    #~ volumes:
-      #~ - keycloak-postgres-data:/var/lib/postgresql/data
-    #~ environment:
-      #~ POSTGRES_DB: keycloak
-      #~ POSTGRES_USER: keycloak
-      #~ POSTGRES_PASSWORD: password
-    #~ networks:
-      #~ - qiita-net
 
   nginx:
     image: local-nginx:latest
@@ -301,6 +264,57 @@ services:
       #- QIITA_PLUGINS="qp-target-gene:"
     command: ['/start_plugin_collector.sh']
 
+  # keycloak-db:
+  #   image: postgres:15
+  #   restart: "no"
+  #   env_file:
+  #     - ./Configuration/keycloak.env
+  #   environment:
+  #     POSTGRES_DB: keycloak
+  #     POSTGRES_USER: keycloak
+  #   volumes:
+  #     - './environments/qiita-db-init.sh:/docker-entrypoint-initdb.d/qiita-db-init.sh'
+  #     - keycloak-postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - qiita-net
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+  #     interval: 2s
+  #     timeout: 2s
+  #     retries: 10
+
+  # keycloak: # from https://stackoverflow.com/questions/78071458/keycloak-docker-compose
+  #   image: quay.io/keycloak/keycloak:26.0.0
+  #   depends_on:
+  #     keycloak-db:
+  #       condition: service_healthy
+  #   env_file:
+  #     - ./Configuration/keycloak.env
+  #   environment:
+  #     KC_DB: postgres
+  #     KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+  #     KC_DB_USERNAME: keycloak
+
+  #     # v2 hostname config ONLY
+  #     KC_HOSTNAME: localhost
+  #     KC_HOSTNAME_STRICT: false
+
+  #     KC_LOG_LEVEL: info
+  #     KC_METRICS_ENABLED: false
+  #     KC_HEALTH_ENABLED: true
+  #     KC_BOOTSTRAP_ADMIN_USERNAME: admin
+
+  #     QUARKUS_LOG_FILE_PATH: /opt/keycloak/logs/keycloak.log
+  #   volumes:
+  #     - ./logs:/opt/keycloak/logs/
+  #   command: ["start-dev", "--http-port=9999"]
+  #   ports:
+  #   #  - "19000:9000"  # admin port
+  #     - "9999:9999"
+
+  #   networks:
+  #     - qiita-net
+
 networks:
   qiita-net:
     name: qiita-net
@@ -309,8 +323,7 @@ networks:
 
 volumes:
   postgres-data:
-  #~ keycloak-postgres-data:
-    #~ name: keycloak-postgres-data
+  keycloak-postgres-data:
   qiita-data:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   test_tmp_dir: # many of plugin tests are written under the assumption that they are executed on same machine as qiita main and thus share /tmp - which is not the case in our docker compose scenario!
