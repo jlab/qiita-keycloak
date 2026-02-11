@@ -1,4 +1,4 @@
-# VERSION: 2026.02.05
+# VERSION: 2026.02.08
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -143,5 +143,8 @@ COPY start_plugin.sh .
 
 # for testing
 COPY test_plugin.sh /test_plugin.sh
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["./start_plugin.sh"]

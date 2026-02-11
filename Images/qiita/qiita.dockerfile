@@ -1,4 +1,4 @@
-# VERSION: 2025.11.20
+# VERSION: 2026.02.08
 
 FROM ubuntu:24.04
 
@@ -54,7 +54,9 @@ RUN git clone -b auth_oidc https://github.com/jlab/qiita.git \
 	&& git config pull.rebase false \
 	&& git config --global user.email "jlab@uni-giessen.de" \
 	&& git config --global user.name "Stefan" && \
-	git pull origin  tornado_FetchFileFromCentralHandler
+	git pull origin  tornado_FetchFileFromCentralHandler && \
+	git remote add antgonza https://github.com/antgonza/qiita.git && \
+	git pull antgonza autoremove-files-created-during-testing
 
 # should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
 RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
@@ -91,11 +93,15 @@ RUN rm -rf /qiita/qiita_core/support_files
 RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_example.conf /qiita/qiita_pet/support_files/config_portal.cfg
 
 COPY drop_workflows.py /drop_workflows.py
+COPY secure_db.py /secure_db.py
 
 # install aspera client for ENA submission
 RUN conda install hcc::aspera-cli
 
 # something is wired with permissions of the git repo?!
 RUN git config --global --add safe.directory /qiita
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["/start_qiita.sh"]

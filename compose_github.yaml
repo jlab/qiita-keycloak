@@ -7,7 +7,7 @@ services:
     hostname: qiita-db
     restart: "no"
     env_file:
-      - ./environments/qiita_db.env
+      - ./Configuration/qiita_db.env
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
@@ -31,16 +31,14 @@ services:
     command: ['/start_qiita-initDB.sh']
     depends_on:
       - qiita-db
-    env_file:
-      - './environments/qiita.env'
     environment:
       - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     volumes:
       - qiita-data:/qiita_data
       - server-plugin-configs:/qiita_plugins
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-      - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+      - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - qiita-logs:/logs
     networks:
       - qiita-net
@@ -50,8 +48,6 @@ services:
       restart: "no"
       depends_on:
         - qiita-worker
-      env_file:
-        - './environments/qiita.env'
       environment:
         #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
@@ -61,8 +57,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+        - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -79,8 +75,6 @@ services:
           condition: service_started
         plugin-collector:
           condition: service_completed_successfully
-      env_file:
-        - './environments/qiita.env'
       environment:
         #- QIITA_ROOTCA_CERT=/qiita_certificates/stefan_rootca.crt  # does not seem to have effect if not set in config file
         - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
@@ -90,8 +84,8 @@ services:
       volumes:
         - qiita-data:/qiita_data
         - qiita-logs:/logs
-        - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
-        - ./Images/qiita/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
+        - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+        - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
         - test_tmp_dir:/tmp
@@ -104,6 +98,8 @@ services:
     image: redis:latest
     restart: "no"
     command: ["/start_redis.sh"]
+    env_file:
+      - ./Configuration/redis.env
     volumes:
       - qiita-data:/qiita
       - qiita-logs:/logs
@@ -127,7 +123,7 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - qiita-logs:/logs
-      - ./Images/nginx/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
+      - ./Configuration/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
       - ./references/qiita_server_certificates:/qiita_certificates
     networks:
       - qiita-net
@@ -254,7 +250,7 @@ services:
     networks:
       - qiita-net
     volumes:
-      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
+      - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - qiita-data:/qiita_data
     depends_on:

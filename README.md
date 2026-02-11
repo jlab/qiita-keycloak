@@ -1,5 +1,5 @@
 ## Howto start-up qiita through docker compose
-Note: this does currently **not** work with podman :-( So strictly stick to docker here. 
+Note: this does currently **not** work with podman :-( So strictly stick to docker here.
 
 1. We assume you operate on your local computer, i.e. not within the BCF cluster as you won't have docker, on a Ubuntu/Mint like OS. You will need approx. 55 GB free disk space.
 2. Install necessary software (git, docker.io, postgresql-client): `sudo apt-get install git docker.io postgresql-client`

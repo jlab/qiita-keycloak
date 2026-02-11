@@ -21,7 +21,8 @@ jobs:
       - name: Create certificate
         # second copy of "qiita_server_certificates" is necessary to match path for docker build, first copy for mounting into container
         run: |
-          make ./references/qiita_server_certificates ./environments/qiita_db.env ./environments/qiita.env config
+          sed -i "s/^SECURE_QIITA_DB = True/SECURE_QIITA_DB = False/" ./Configuration/makefile
+          make ./references/qiita_server_certificates propagate_configuration
           cp -r ./references/qiita_server_certificates ./qiita_server_certificates
 
       - name: Store certifactes for follow up jobs
@@ -31,6 +32,7 @@ jobs:
           path: |
             ./qiita_server_certificates
             ./references/qiita_server_certificates
+            ./Configuration
 
   build_main:
     needs: make_certificates
@@ -50,9 +52,9 @@ jobs:
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/start_plugin.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
-          cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
-          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf Images/plugin_collector/start_plugin_collector.sh .
+          cp Images/start_plugin.sh Images/test_plugin.sh Configuration/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
+          cp Configuration/config_portal.cfg Configuration/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
+          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Images/plugin_collector/start_plugin_collector.sh .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -87,7 +89,7 @@ jobs:
       - name: Create partially fake reference databases
         run: |
           mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-          make ./environments/qiita_db.env ./environments/qiita.env config ./references/qp-deblur/reference-gg-raxml-bl.tre
+          make ./references/qp-deblur/reference-gg-raxml-bl.tre
           for f in `echo "references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
       - name: Store fake references for follow up jobs
@@ -97,7 +99,6 @@ jobs:
           path: |
             ./references/qp-deblur
             ./references/qp-target-gene
-            ./environments
 
   build_plugins:
     needs:
@@ -131,7 +132,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: fake_references
-          path: ./
+          path: ./references
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

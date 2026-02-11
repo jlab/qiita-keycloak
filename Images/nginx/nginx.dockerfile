@@ -1,4 +1,4 @@
-# VERSION: 2025.08.28
+# VERSION: 2026.02.08
 
 FROM yspreen/nginx
 
@@ -9,5 +9,8 @@ RUN chmod 777 nginx_qiita.conf
 RUN chmod 777 start_nginx.sh
 
 RUN mkdir -p /var/log/nginx
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["/start_nginx.sh"]
