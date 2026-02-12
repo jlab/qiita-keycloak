@@ -61,7 +61,6 @@ services:
         - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
-        - test_tmp_dir:/tmp
       networks:
         - qiita-net
       ports:
@@ -88,7 +87,6 @@ services:
         - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
         - ./references/qiita_server_certificates:/qiita_certificates
-        - test_tmp_dir:/tmp
       networks:
         - qiita-net
       deploy:
@@ -143,7 +141,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -155,7 +152,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -173,7 +169,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
       - ./references/qp-target-gene:/databases/gg/13_8/rep_set
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -186,7 +181,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -198,7 +192,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -211,7 +204,6 @@ services:
       # - qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
       - ./references/qp-deblur:/opt/conda/envs/qp-deblur/share/fragment-insertion/ref
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -223,7 +215,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       - TZ=Europe/Berlin  # this is important to avoid a local timezone error! See https://forum.qiime2.org/t/qiime2-timezone-error/17410
@@ -236,7 +227,6 @@ services:
     volumes:
       #- qiita-data:/qiita_data
       - ./references/qiita_server_certificates:/qiita_server_certificates
-      - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:
@@ -287,5 +277,4 @@ volumes:
   qiita-data:
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   qiita-logs:
-  test_tmp_dir: # many of plugin tests are written under the assumption that they are executed on same machine as qiita main and thus share /tmp - which is not the case in our docker compose scenario!
   
