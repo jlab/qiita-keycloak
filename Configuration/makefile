@@ -114,3 +114,17 @@ config_keycloak:
 	escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
 	sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
 	sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET =$$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
+
+	# set same password for the four default user
+	pp=$(RANDOMPWD); \
+	escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
+	sed -i "s|\"value\": \"password\",|\"value\": \"$$escpp\",|g" Configuration/realm-tinqiita.json; \
+
+	# append DNA entries to enable proper communication from host with services within docker compose containers
+	# you need sudo rights for this!
+	grep "^127.0.0.1\s*keycloak.local$$" /etc/hosts || echo "127.0.0.1\tkeycloak.local" >> /etc/hosts; \
+	grep "^127.0.0.1\s*tinqiita-nginx-1$$" /etc/hosts || echo "127.0.0.1\ttinqiita-nginx-1" >> /etc/hosts;
+
+clean_config:
+	git checkout compose.yaml Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Configuration/realm-tinqiita.json
+	rm -f Configuration/qiita_db.env Configuration/redis.env Configuration/keycloak.env
