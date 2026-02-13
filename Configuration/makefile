@@ -113,7 +113,7 @@ config_keycloak:
 	secret=$(RANDOMPWD); \
 	escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
 	sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
-	sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET =$$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
+	sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
 
 	# set same password for the four default user
 	pp=$(RANDOMPWD); \
