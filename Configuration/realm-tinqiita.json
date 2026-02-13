@@ -31,7 +31,7 @@
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
-      "secret": "SUPERSECRET",
+      "secret": "2OEgWwHvQP6JCmjKtqXmJ1LlUdI/9EM5puSr+g7Ovqg=",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
@@ -50,14 +50,70 @@
 
   "users": [
     {
-      "username": "testuser",
+      "username": "test@foo.bar",
       "enabled": true,
       "emailVerified": true,
-      "email": "test@example.com",
+      "email": "test@foo.bar",
+      "firstName": "test",
+      "lastName": "foo.bar",
       "credentials": [
         {
           "type": "password",
-          "value": "test123",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "shared@foo.bar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "shared@foo.bar",
+      "firstName": "shared",
+      "lastName": "foo.bar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "admin@foo.bar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@foo.bar",
+      "firstName": "admin",
+      "lastName": "foo.bar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "demo@microbio.me",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "demo@microbio.me",
+      "firstName": "demo",
+      "lastName": "microbio.me",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
           "temporary": false
         }
       ],
