@@ -23,10 +23,8 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
 	rm -rf $(DIR_REFERENCES)/tmp_sepp/
 
-make clean:
+clean: clean_config
 	rm -f .built_image_*
-	git checkout compose.yaml Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Configuration/realm-tinqiita.json
-	rm -f Configuration/qiita_db.env Configuration/redis.env Configuration/keycloak.env
 	rm -rf $(DIR_REFERENCES)
 	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
 	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
