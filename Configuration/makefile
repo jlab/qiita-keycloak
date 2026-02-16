@@ -100,7 +100,7 @@ propagate_configuration: config_keycloak
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =$$\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
 	if [ ! -f Configuration/redis.env ]; then echo "REDISPWD=$$pp" > Configuration/redis.env; fi
 
-config_keycloak:
+config_keycloak: $(DIR_REFERENCES)/Certificates/keycloak
 	# set up keycloak
 	pp=$(RANDOMPWD); \
 	echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \

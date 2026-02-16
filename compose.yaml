@@ -308,10 +308,15 @@ services:
     volumes:
       - ./logs:/opt/keycloak/logs/
       - ./Configuration/realm-tinqiita.json:/opt/keycloak/data/import/realm-qiita.json
+      - ./references/Certificates/keycloak_server.crt:/opt/keycloak/conf/tls.crt:ro
+      - ./references/Certificates/keycloak_server.key:/opt/keycloak/conf/tls.key:ro
     command:
-      - start-dev
-      - --http-port=9999
+      - start
+      - --https-port=9999
       - --import-realm
+      - --https-certificate-file=/opt/keycloak/conf/tls.crt
+      - --https-certificate-key-file=/opt/keycloak/conf/tls.key
+
     ports:
     #  - "19000:9000"  # admin port
       - "9999:9999"
