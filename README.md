@@ -47,3 +47,10 @@ Remember to:
    4. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, remove # from necessary oidc block, change SUPERSECRETSTRING.
 
 
+# qiita & keycloak
+As Qiita uses keycloak to authenticate users and keycloak is running as a separate service within docker compose, your machine needs to resolve the hostnames "auth.local" and "tinqiita-nginx-1" to 127.0.0.1 (aka "localhost"). Please register them in your /etc/hosts file, i.e. add the block
+```
+127.0.0.1 auth.local
+127.0.0.1 tinqiita-nginx-1
+```
+You also have to do the same to your bare metal machine IF you run qiita, i.e. docker compose within a virtual box. Also forward ports 8383 and 9999 to your bare metal machine!

@@ -11,7 +11,7 @@ SYSADMIN_EMAIL = jeff@tinqiita.com
 # whose password is "password" - also mentioned in qiita's code base.
 # Furthermore, API db reset is possibe. Both issues will be fixed if
 # SECURE_QIITA_DB = True, for testing SECURE_QIITA_DB = False is necessary.
-SECURE_QIITA_DB = True
+SECURE_QIITA_DB = False
 
 
 # Communication between qiita main (this is all services but the plugins) and
@@ -59,7 +59,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf 
 	# === end: create own certificates ===
 
 RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")
-propagate_configuration:
+propagate_configuration: config_keycloak
 	# if QIITA_BASE_URL is not "localhost" add it to the certificat configurations
 	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
 		lastNo=`grep "^DNS." Configuration/$(CERTNAME)_csr.conf | tail -n 1 | cut -d "=" -f 1 | cut -d "." -f 2 | tr -d " "`; \
@@ -100,3 +100,33 @@ propagate_configuration:
 	# set redis password
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =$$\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
 	if [ ! -f Configuration/redis.env ]; then echo "REDISPWD=$$pp" > Configuration/redis.env; fi
+
+config_keycloak:
+	# set up keycloak
+	pp=$(RANDOMPWD); \
+	echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \
+	echo "KC_DB_PASSWORD=$$pp" >> Configuration/keycloak.env; \
+	ppkk=$(RANDOMPWD); \
+	echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env;
+
+	# set true client secret
+	secret=$(RANDOMPWD); \
+	escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
+	sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
+	sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
+
+	# set same password for the four default user
+	pp=$(RANDOMPWD); \
+	escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
+	sed -i "s|\"value\": \"password\",|\"value\": \"$$escpp\",|g" Configuration/realm-tinqiita.json; \
+
+	# append DNA entries to enable proper communication from host with services within docker compose containers
+	# you need sudo rights for this!
+	if [[ -z "$GITHUB_WORKFLOW" ]]; then \
+		grep "^127.0.0.1\s*keycloak.local$$" /etc/hosts || echo "127.0.0.1\tkeycloak.local" >> /etc/hosts; \
+		grep "^127.0.0.1\s*tinqiita-nginx-1$$" /etc/hosts || echo "127.0.0.1\ttinqiita-nginx-1" >> /etc/hosts; \
+	fi;
+
+clean_config:
+	git checkout compose.yaml Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Configuration/realm-tinqiita.json
+	rm -f Configuration/qiita_db.env Configuration/redis.env Configuration/keycloak.env
