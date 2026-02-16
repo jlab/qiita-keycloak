@@ -122,8 +122,10 @@ config_keycloak:
 
 	# append DNA entries to enable proper communication from host with services within docker compose containers
 	# you need sudo rights for this!
-	grep "^127.0.0.1\s*keycloak.local$$" /etc/hosts || echo "127.0.0.1\tkeycloak.local" >> /etc/hosts; \
-	grep "^127.0.0.1\s*tinqiita-nginx-1$$" /etc/hosts || echo "127.0.0.1\ttinqiita-nginx-1" >> /etc/hosts;
+	if [[ -z "$GITHUB_WORKFLOW" ]]; then \
+		grep "^127.0.0.1\s*keycloak.local$$" /etc/hosts || echo "127.0.0.1\tkeycloak.local" >> /etc/hosts; \
+		grep "^127.0.0.1\s*tinqiita-nginx-1$$" /etc/hosts || echo "127.0.0.1\ttinqiita-nginx-1" >> /etc/hosts; \
+	fi;
 
 clean_config:
 	git checkout compose.yaml Configuration/config_qiita_oidc.cfg Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Configuration/realm-tinqiita.json
