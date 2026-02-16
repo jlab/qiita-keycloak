@@ -55,7 +55,7 @@ $(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf 
 	# Generate a new signed server.crt to use with your server.key
 	cd $@ && $(OPENSSL) x509 -req -in $(CERTNAME)_server.csr -CA $(CERTNAME)_rootca.crt -CAkey $(CERTNAME)_rootca.key -CAcreateserial -out $(CERTNAME)_server.crt -days 365 -sha256 -extfile $(CERTNAME)_cert.conf
 	# concat rootca and server certificates into one file
-	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
+	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > $(CERTNAME)_server_certificates.pem
 	# === end: create own certificates ===
 
 RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")
