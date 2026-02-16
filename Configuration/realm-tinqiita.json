@@ -36,6 +36,7 @@
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
       "redirectUris": [
+        "https://tinqiita-nginx-1:8383/",
         "https://tinqiita-nginx-1:8383/auth/login_OIDC/*"
       ],
       "webOrigins": [
@@ -44,7 +45,8 @@
       ],
       "attributes": {
         "post.logout.redirect.uris": "+"
-      }
+      },
+      "frontchannelLogout": true
     }
   ],
 
