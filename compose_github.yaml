@@ -60,7 +60,7 @@ services:
         - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
         - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
-        - ./references/qiita_server_certificates:/qiita_certificates
+        - ./references/Certificates/tinqiita:/qiita_certificates
         - test_tmp_dir:/tmp
       networks:
         - qiita-net
@@ -87,7 +87,7 @@ services:
         - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
         - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
         - server-plugin-configs:/qiita_plugins
-        - ./references/qiita_server_certificates:/qiita_certificates
+        - ./references/Certificates/tinqiita:/qiita_certificates
         - test_tmp_dir:/tmp
       networks:
         - qiita-net
@@ -124,7 +124,7 @@ services:
       - qiita-data:/qiita_data
       - qiita-logs:/logs
       - ./Configuration/nginx_qiita.conf:/qiita_configuration/nginx_qiita.conf
-      - ./references/qiita_server_certificates:/qiita_certificates
+      - ./references/Certificates/tinqiita:/qiita_certificates
     networks:
       - qiita-net
     # healthcheck:
@@ -142,7 +142,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -154,7 +154,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -172,7 +172,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
       - ./references/qp-target-gene:/databases/gg/13_8/rep_set
     environment:
@@ -185,7 +185,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -197,7 +197,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -209,7 +209,7 @@ services:
     restart: "no"
     volumes:
       # - qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - ./references/qp-deblur:/opt/conda/envs/qp-deblur/share/fragment-insertion/ref
       - test_tmp_dir:/tmp
     environment:
@@ -222,7 +222,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
@@ -235,7 +235,7 @@ services:
     restart: "no"
     volumes:
       #- qiita-data:/qiita_data
-      - ./references/qiita_server_certificates:/qiita_server_certificates
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG

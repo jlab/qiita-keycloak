@@ -36,26 +36,25 @@ SECURE_QIITA_DB = False
 #    registered). The plugin_collector service iterates over plugins and
 #    transfers these files to main, such that main can add the according values
 #    into the database.
-CERTNAME=tinqiita
 OPENSSL=/bin/openssl
-$(DIR_REFERENCES)/qiita_server_certificates: Configuration/$(CERTNAME)_csr.conf Configuration/$(CERTNAME)_cert.conf
+$(DIR_REFERENCES)/Certificates/%: Configuration/%_csr.conf Configuration/%_cert.conf
 	# === create own certificates ===
 	mkdir -p $@
 	# Generate a new root CA private key and certificate
-	cd $@ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=tinqiita-nginx-1/C=DE/L=Giessen" -keyout $(CERTNAME)_rootca.key -out $(CERTNAME)_rootca.crt
+	cd $@ && $(OPENSSL) req -x509 -sha256 -days 356 -nodes -newkey rsa:2048 -subj "/CN=tinqiita-nginx-1/C=DE/L=Giessen" -keyout $*_rootca.key -out $*_rootca.crt
 	# Generate a new server private key
-	cd $@ && $(OPENSSL) genrsa -out $(CERTNAME)_server.key 2048
+	cd $@ && $(OPENSSL) genrsa -out $*_server.key 2048
 	# Copy the following to a new file named csr.conf and modify to suit your needs
 	# Copy the following to a new file named cert.conf and modify to suit your needs
 	# Nils: alt_names is the important aspect. Make entries for all valid hostnames with which services shall be addressed
 	for f in `echo "$^"`; do cat $$f > $@/`basename $$f`; done
 	#cp $^ $@/
 	# Generate a certificate signing request
-	cd $@ && $(OPENSSL) req -new -key $(CERTNAME)_server.key -out $(CERTNAME)_server.csr -config $(CERTNAME)_csr.conf
+	cd $@ && $(OPENSSL) req -new -key $*_server.key -out $*_server.csr -config $*_csr.conf
 	# Generate a new signed server.crt to use with your server.key
-	cd $@ && $(OPENSSL) x509 -req -in $(CERTNAME)_server.csr -CA $(CERTNAME)_rootca.crt -CAkey $(CERTNAME)_rootca.key -CAcreateserial -out $(CERTNAME)_server.crt -days 365 -sha256 -extfile $(CERTNAME)_cert.conf
+	cd $@ && $(OPENSSL) x509 -req -in $*_server.csr -CA $*_rootca.crt -CAkey $*_rootca.key -CAcreateserial -out $*_server.crt -days 365 -sha256 -extfile $*_cert.conf
 	# concat rootca and server certificates into one file
-	cd $@ && cat $(CERTNAME)_rootca.crt $(CERTNAME)_server.crt > qiita_server_certificates.pem
+	cd $@ && cat $*_rootca.crt $*_server.crt > $*_server_certificates.pem
 	# === end: create own certificates ===
 
 RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")

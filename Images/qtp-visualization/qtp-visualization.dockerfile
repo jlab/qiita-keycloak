@@ -121,9 +121,9 @@ RUN pip install --no-cache-dir /wheels/* \
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
-ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
+COPY tinqiita/*_server* ${QIITA_CERT_DIR}/
+ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
+ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
 
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 # qiime2 expects to have a CONDA_PREFIX set, see https://github.com/qiime2/qiime2/blob/812fd09cf80b4ed76c1f39827ae2dba729448436/qiime2/sdk/parallel_config.py#L30

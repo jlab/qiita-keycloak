@@ -8,7 +8,7 @@ tmpdir = $(TMPDIR)
 endif
 
 # a general target, executed for each plugin
-plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/qiita_server_certificates Images/test_plugin.sh
+plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates/tinqiita Images/test_plugin.sh
 	cp -r $^ $(tmpdir)/
 
 .built_image_qtp-biom: Images/qtp-biom/qtp-biom.dockerfile src/qiita-files/ src/qtp-biom/ Images/qtp-biom/requirements.txt
