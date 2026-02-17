@@ -308,8 +308,8 @@ services:
     volumes:
       - ./logs:/opt/keycloak/logs/
       - ./Configuration/realm-tinqiita.json:/opt/keycloak/data/import/realm-qiita.json
-      - ./references/Certificates/keycloak_server.crt:/opt/keycloak/conf/tls.crt:ro
-      - ./references/Certificates/keycloak_server.key:/opt/keycloak/conf/tls.key:ro
+      - ./references/Certificates/keycloak/keycloak_server.crt:/opt/keycloak/conf/tls.crt:ro
+      - ./references/Certificates/keycloak/keycloak_server.key:/opt/keycloak/conf/tls.key:ro
     command:
       - start
       - --https-port=9999
