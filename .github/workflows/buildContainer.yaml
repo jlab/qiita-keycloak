@@ -19,18 +19,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create certificate
-        # second copy of "qiita_server_certificates" is necessary to match path for docker build, first copy for mounting into container
+        # second copy of "./Certificates" is necessary to match path for docker build, first copy for mounting into container
         run: |
           sed -i "s/^SECURE_QIITA_DB = True/SECURE_QIITA_DB = False/" ./Configuration/makefile
           make ./references/Certificates/tinqiita propagate_configuration
-          cp -r ./references/Certificates/tinqiita ./qiita_server_certificates
+          cp -r ./references/Certificates ./Certificates
 
       - name: Store certifactes for follow up jobs
         uses: actions/upload-artifact@v4
         with:
           name: certificates
           path: |
-            ./qiita_server_certificates
+            ./Certificates
             ./references/Certificates/tinqiita
             ./Configuration
 
