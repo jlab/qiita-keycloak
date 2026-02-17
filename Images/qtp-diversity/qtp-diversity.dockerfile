@@ -172,7 +172,7 @@ RUN cd /usr/local/lib/python3.8/site-packages/q2_diversity && tar xzvf q2_divers
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
+COPY Certificates/tinqiita/*_server* ${QIITA_CERT_DIR}/
 ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
 ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
 
