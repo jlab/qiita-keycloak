@@ -107,21 +107,21 @@ config_keycloak: $(DIR_REFERENCES)/Certificates/keycloak
 		echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \
 		echo "KC_DB_PASSWORD=$$pp" >> Configuration/keycloak.env; \
 		ppkk=$(RANDOMPWD); \
-		echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env;
-	fi; \
+		echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env; \
+	fi;
 
+	# set true client secret
+	# set same password for the four default user
 	if grep -q "^CLIENT_SECRET = $$" Configuration/config_qiita_oidc.cfg; then \
-		# set true client secret
 		secret=$(RANDOMPWD); \
 		escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
 		sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
 		sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
-
-		# set same password for the four default user
+		\
 		pp=$(RANDOMPWD); \
 		escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
 		sed -i "s|\"value\": \"password\",|\"value\": \"$$escpp\",|g" Configuration/realm-tinqiita.json; \
-	fi; \
+	fi;
 
 	# append DNA entries to enable proper communication from host with services within docker compose containers
 	# you need sudo rights for this!
