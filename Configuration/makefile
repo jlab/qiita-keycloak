@@ -58,7 +58,7 @@ $(DIR_REFERENCES)/Certificates/%: Configuration/%_csr.conf Configuration/%_cert.
 	# === end: create own certificates ===
 
 RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")
-propagate_configuration: config_keycloak
+propagate_configuration: config_keycloak references/Certificates/tinqiita
 	# if QIITA_BASE_URL is not "localhost" add it to the certificat configurations
 	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
 		lastNo=`grep "^DNS." Configuration/$(CERTNAME)_csr.conf | tail -n 1 | cut -d "=" -f 1 | cut -d "." -f 2 | tr -d " "`; \
