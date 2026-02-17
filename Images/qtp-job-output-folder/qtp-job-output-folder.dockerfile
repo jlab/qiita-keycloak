@@ -99,9 +99,9 @@ RUN pip install --no-cache-dir /wheels/* \
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
-COPY qiita_server_certificates/*_server* ${QIITA_CERT_DIR}/
-ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
-ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/qiita_server_certificates.pem
+COPY Certificates/tinqiita/*_server* ${QIITA_CERT_DIR}/
+ENV REQUESTS_CA_BUNDLE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
+ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
 
 # setup qiita plugin
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
