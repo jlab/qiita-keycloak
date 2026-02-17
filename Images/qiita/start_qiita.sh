@@ -8,8 +8,9 @@ if [ -n "${MASTER}" ] && [ ! -d /qiita/qiita_db/__pycache__ ]; then
 fi
 
 # register self signed certificate for keycloak
-cp /keycloak_certificates/keycloak_rootca.crt /keycloak_certificates/keycloak_server.crt /usr/local/share/ca-certificates/
-update-ca-certificates
+if [ -f /keycloak_certificates/keycloak_rootca.crt ] && [ -f /keycloak_certificates/keycloak_server.crt ]; then
+    update-ca-certificates;
+fi
 
 # proper listening and reacting to SIGTERM
 cleanup() {
