@@ -58,7 +58,7 @@ $(DIR_REFERENCES)/Certificates/%: Configuration/%_csr.conf Configuration/%_cert.
 	# === end: create own certificates ===
 
 RANDOMPWD = $(shell python -c "from base64 import b64encode; from uuid import uuid4; phrase=b64encode(uuid4().bytes + uuid4().bytes); print(phrase.decode())")
-propagate_configuration: config_keycloak references/Certificates/tinqiita
+propagate_configuration: config_keycloak $(DIR_REFERENCES)/Certificates/tinqiita $(DIR_REFERENCES)/Certificates/keycloak
 	# if QIITA_BASE_URL is not "localhost" add it to the certificat configurations
 	if ! grep -q $(QIITA_BASE_URL) Configuration/$(CERTNAME)_csr.conf && [ "$(QIITA_BASE_URL)" != "localhost" ]; then \
 		lastNo=`grep "^DNS." Configuration/$(CERTNAME)_csr.conf | tail -n 1 | cut -d "=" -f 1 | cut -d "." -f 2 | tr -d " "`; \
@@ -102,22 +102,26 @@ propagate_configuration: config_keycloak references/Certificates/tinqiita
 
 config_keycloak: $(DIR_REFERENCES)/Certificates/keycloak
 	# set up keycloak
-	pp=$(RANDOMPWD); \
-	echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \
-	echo "KC_DB_PASSWORD=$$pp" >> Configuration/keycloak.env; \
-	ppkk=$(RANDOMPWD); \
-	echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env;
+	if [ ! -f Configuration/keycloak.env ]; then \
+		pp=$(RANDOMPWD); \
+		echo "POSTGRES_PASSWORD=$$pp" > Configuration/keycloak.env; \
+		echo "KC_DB_PASSWORD=$$pp" >> Configuration/keycloak.env; \
+		ppkk=$(RANDOMPWD); \
+		echo "KC_BOOTSTRAP_ADMIN_PASSWORD=$$ppkk" >> Configuration/keycloak.env;
+	fi; \
 
-	# set true client secret
-	secret=$(RANDOMPWD); \
-	escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
-	sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
-	sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
+	if grep -q "^CLIENT_SECRET = $$" Configuration/config_qiita_oidc.cfg; then \
+		# set true client secret
+		secret=$(RANDOMPWD); \
+		escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
+		sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
+		sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
 
-	# set same password for the four default user
-	pp=$(RANDOMPWD); \
-	escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
-	sed -i "s|\"value\": \"password\",|\"value\": \"$$escpp\",|g" Configuration/realm-tinqiita.json; \
+		# set same password for the four default user
+		pp=$(RANDOMPWD); \
+		escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \
+		sed -i "s|\"value\": \"password\",|\"value\": \"$$escpp\",|g" Configuration/realm-tinqiita.json; \
+	fi; \
 
 	# append DNA entries to enable proper communication from host with services within docker compose containers
 	# you need sudo rights for this!
