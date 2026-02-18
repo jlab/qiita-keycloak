@@ -243,6 +243,7 @@ services:
     depends_on:
       qiita-initialize-db:
         condition: service_completed_successfully
+      # this comment is a start flag for github action, don't remove!
       qtp-biom:  # one of the plugins
         condition: service_started
       qtp-sequencing:
@@ -259,6 +260,7 @@ services:
         condition: service_started
       qtp-job-output-folder:
         condition: service_started
+      # this comment is a stop flag for github action, don't remove!
     environment:
       - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
       #- QIITA_PLUGINS="qp-target-gene:"
