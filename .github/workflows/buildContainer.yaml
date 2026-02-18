@@ -146,7 +146,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
@@ -224,7 +223,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
