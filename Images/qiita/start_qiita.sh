@@ -7,6 +7,11 @@ if [ -n "${MASTER}" ] && [ ! -d /qiita/qiita_db/__pycache__ ]; then
 	source $CONDA_DIR/etc/profile.d/conda.sh; conda activate $CONDA_DIR/envs/$ENV_NAME; cd /qiita; pip install -e . --no-binary redbiom;
 fi
 
+# register self signed certificate for keycloak
+if [ -f /keycloak_certificates/keycloak_rootca.crt ] && [ -f /keycloak_certificates/keycloak_server.crt ]; then
+    update-ca-certificates;
+fi
+
 # proper listening and reacting to SIGTERM
 cleanup() {
     echo "Received SIGTERM, stopping..."
