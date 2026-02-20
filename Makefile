@@ -26,7 +26,6 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 clean: clean_config
 	rm -f .built_image_*
 	rm -rf $(DIR_REFERENCES)
-	rm -rf /var/lib/docker/volumes/tinqiita_server-certificates/_data/*
 	rm -rf /var/lib/docker/volumes/tinqiita_server-plugin-configs/_data/*
 
 all: propagate_configuration images
