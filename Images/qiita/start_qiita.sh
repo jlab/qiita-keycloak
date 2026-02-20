@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euxo pipefail
 
 CONDA_DIR=/opt/conda
 ENV_NAME=qiita
@@ -24,6 +25,11 @@ trap cleanup SIGTERM SIGINT
 source $CONDA_DIR/etc/profile.d/conda.sh
 conda activate $CONDA_DIR/envs/$ENV_NAME
 cd /qiita
+
+if [ "${SECURE_QIITA_DB}" = "True" ]; then
+    python3 /secure_db.py
+fi;
+
 # start Qiita and safe PID in variable
 qiita pet webserver --no-build-docs start --port $PORT $MASTER 2> /logs/qiita_pet$MASTER.log 1>&2 &
 PY_PID=$!
