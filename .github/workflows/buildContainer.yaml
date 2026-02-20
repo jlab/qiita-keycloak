@@ -253,8 +253,12 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        run: |
-          docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:
