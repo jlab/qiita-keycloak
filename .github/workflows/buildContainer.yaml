@@ -305,5 +305,5 @@ jobs:
 
       - name: Push image to Docker Hub
         run: |
-          docker push --platform=linux/amd64 harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker push --platform=linux/amd64 harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
+          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
