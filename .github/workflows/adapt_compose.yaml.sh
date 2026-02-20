@@ -17,8 +17,6 @@ else
     sed -i "/this comment is a start flag for github action/,/this comment is a stop flag for github action/c\      ${PLUGIN}:\n        condition: service_started" $COMPOSE_FILE
     sed -i "s|\(      - QIITA_PLUGINS=\"\).*|\1${PLUGIN}:\"|" $COMPOSE_FILE
 fi;
-# remove references to environment files, which would only be generated when according makefile target is build, which is not the case for github action
-sed -i '/^    env_file:/ { N; d }' $COMPOSE_FILE
 # deactivaty any mounts from src directory into container
 sed -i "s|\(\s*- ./src.*\)|#\1|g" $COMPOSE_FILE
 # use docker volume for log files instead of local directory
