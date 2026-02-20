@@ -232,7 +232,7 @@ services:
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
-    image: local-plugin_collector
+    image: local-plugin_collector:latest
     restart: "no"
     networks:
       - qiita-net
@@ -336,6 +336,7 @@ volumes:
   postgres-data:
   keycloak-postgres-data:
   qiita-data:
+  qiita-logs: # a volume to store log files
   server-plugin-configs: # a shared directory on qiita server side (master and workers) to collect qiita plugin configuration files
   test_tmp_dir: # many of plugin tests are written under the assumption that they are executed on same machine as qiita main and thus share /tmp - which is not the case in our docker compose scenario!
   

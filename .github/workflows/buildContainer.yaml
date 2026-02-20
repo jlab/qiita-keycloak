@@ -154,14 +154,19 @@ jobs:
 
       - name: adapt compose file to select specific plugin
         run: |
-          sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
-          compose-file: "compose_github.yaml"
+          compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Show docker compose logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
 
       - name: Execute tests in the running services
         run: |
@@ -237,12 +242,12 @@ jobs:
 
       - name: adapt compose file to select specific plugin
         run: |
-          if [[ "${{ matrix.multiplugin }}" == "qp-qiime2" ]]; then sed -i 's|- QIITA_PLUGINS="MATRIXPLUGIN:"|- QIITA_PLUGINS="${{ matrix.multiplugin }}:qtp-diversity:qtp-visualization:"|' compose_github.yaml; sed -i 's|MATRIXPLUGIN:|${{ matrix.multiplugin }}:\n        condition: service_started\n      qtp-diversity:\n        condition: service_started\n      qtp-visualization:|' compose_github.yaml; fi;
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
-          compose-file: "compose_github.yaml"
+          compose-file: "compose.yaml"
           services: |
             nginx
 

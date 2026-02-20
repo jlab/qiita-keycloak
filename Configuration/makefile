@@ -100,6 +100,11 @@ propagate_configuration: config_keycloak $(DIR_REFERENCES)/Certificates/tinqiita
 	pp=$(RANDOMPWD); escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); sed -i "/^\[redis\]$$/,/^\[/ s|\(^PASSWORD =$$\)|\1 $$escpp|" Configuration/config_qiita_oidc.cfg; \
 	if [ ! -f Configuration/redis.env ]; then echo "REDISPWD=$$pp" > Configuration/redis.env; fi
 
+	# create an empty keycloak.env file, such that compose.yaml can reference it
+	if [ ! -f Configuration/keycloak.env ]; then \
+		touch Configuration/keycloak.env; \
+	fi;
+
 config_keycloak: $(DIR_REFERENCES)/Certificates/keycloak
 	# set up keycloak
 	if [ ! -f Configuration/keycloak.env ]; then \
