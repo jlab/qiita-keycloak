@@ -31,7 +31,7 @@
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
-      "secret": "2OEgWwHvQP6JCmjKtqXmJ1LlUdI/9EM5puSr+g7Ovqg=",
+      "secret": "SUPERSECRET",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,

@@ -115,7 +115,7 @@ config_keycloak: $(DIR_REFERENCES)/Certificates/keycloak
 		secret=$(RANDOMPWD); \
 		escsecret=$$(echo "$$secret" | sed 's/[\/&]/\\&/g'); \
 		sed -i "s|\"secret\": \"SUPERSECRET\"|\"secret\": \"$$secret\"|" Configuration/realm-tinqiita.json; \
-		sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1 $$escsecret|" Configuration/config_qiita_oidc.cfg; \
+		sed -i "/^\[oidc_docker\]$$/,/^\[/ s|\(^CLIENT_SECRET = $$\)|\1$$escsecret|" Configuration/config_qiita_oidc.cfg; \
 		\
 		pp=$(RANDOMPWD); \
 		escpp=$$(echo "$$pp" | sed 's/[\/&]/\\&/g'); \

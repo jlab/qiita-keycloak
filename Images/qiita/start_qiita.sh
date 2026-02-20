@@ -10,6 +10,7 @@ fi
 
 # register self signed certificate for keycloak
 if [ -f /keycloak_certificates/keycloak_rootca.crt ] && [ -f /keycloak_certificates/keycloak_server.crt ]; then
+    cp /keycloak_certificates/keycloak_*.crt /usr/local/share/ca-certificates/;
     update-ca-certificates;
 fi
 
