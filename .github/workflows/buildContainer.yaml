@@ -161,6 +161,11 @@ jobs:
           compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Show docker compose logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
 
       - name: Execute tests in the running services
         run: |
