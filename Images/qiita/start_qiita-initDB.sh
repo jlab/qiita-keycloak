@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euxo pipefail
 
 CONDA_DIR=/opt/conda
 ENV_NAME=qiita
