@@ -61,7 +61,7 @@ services:
       - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - ./references/Certificates/tinqiita:/qiita_certificates
-      # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
+      - ./references/Certificates/keycloak:/keycloak_certificates
       - test_tmp_dir:/tmp
     networks:
       - qiita-net
@@ -91,8 +91,8 @@ services:
       - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
       - server-plugin-configs:/qiita_plugins
       - ./references/Certificates/tinqiita:/qiita_certificates
+      - ./references/Certificates/keycloak:/keycloak_certificates
       - ./src/qiita:/qiita:U
-      # - ./Images/qiita/start_qiita.sh:/start_qiita.sh
       - test_tmp_dir:/tmp
     networks:
       - qiita-net
