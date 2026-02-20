@@ -242,7 +242,7 @@ jobs:
 
       - name: adapt compose file to select specific plugin
         run: |
-          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}:qtp-diversity:qtp-visualization:"
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.0.1
