@@ -84,10 +84,6 @@ propagate_configuration: config_keycloak $(DIR_REFERENCES)/Certificates/tinqiita
 		echo "POSTGRES_USER=$$user" > Configuration/qiita_db.env; \
 		echo "POSTGRES_PASSWORD=$$pp" >> Configuration/qiita_db.env; \
 		echo "POSTGRES_DATABASE=$$dbname" >> Configuration/qiita_db.env; \
-		echo "SECURE_QIITA_DB=$(SECURE_QIITA_DB)" >> Configuration/qiita_db.env; \
-		if [ "$(SECURE_QIITA_DB)" = "True" ]; then \
-			echo "QIITA_USER_DEFAULT_PWD=$$pwp_qiitauser" >> Configuration/qiita_db.env; \
-		fi; \
 	fi
 
 	# set redis password
