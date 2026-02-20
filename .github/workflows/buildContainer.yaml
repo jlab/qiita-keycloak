@@ -78,6 +78,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
 
   make_references:
     needs: build_main
@@ -145,11 +146,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
 
       - name: adapt compose file to select specific plugin
         run: |
@@ -227,11 +228,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
 
       - name: Prune build cache after build (saving disc space)
         run: |
@@ -257,8 +258,12 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        run: |
-          docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:
