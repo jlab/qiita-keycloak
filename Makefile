@@ -32,5 +32,12 @@ clean: clean_config
 all: propagate_configuration images
 
 run-harbor: propagate_configuration
+	# use harbor images instead of locally built ones
 	sed -i "s|image: local-\(.*\)\(:\?\)|image: harbor.computational.bio.uni-giessen.de/tinqiita/\1\2|" compose.yaml
-	docker compose -f compose.yaml up
+
+	# point qiita to the right certificate bundle of the self signed keycloak certificat
+	if ! grep -q REQUESTS_CA_BUNDLE Configuration/qiita_db.env; then \
+		echo "REQUESTS_CA_BUNDLE=/keycloak_certificates/keycloak_server_certificates.pem" >> Configuration/qiita_db.env; \
+		echo "SSL_CERT_FILE=/keycloak_certificates/keycloak_server_certificates.pem" >> Configuration/qiita_db.env; \
+	fi;
+	#docker compose -f compose.yaml up
