@@ -229,6 +229,20 @@ services:
     networks:
       - qiita-net
 
+  qp-woltka:
+    image: local-qp-woltka:latest
+    restart: "no"
+    volumes:
+      #- qiita-data:/qiita_data
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
+      - ./references/qp-woltka:/databases
+      #- ./src/qtp-biom:/qtp-biom:U
+      - test_tmp_dir:/tmp
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
+
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
@@ -260,9 +274,11 @@ services:
         condition: service_started
       qtp-job-output-folder:
         condition: service_started
+      qp-woltka:
+        condition: service_started
       # this comment is a stop flag for github action, don't remove!
     environment:
-      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:"
+      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qp-woltka:"
       #- QIITA_PLUGINS="qp-target-gene:"
     command: ['/start_plugin_collector.sh']
 
