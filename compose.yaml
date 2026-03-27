@@ -145,7 +145,7 @@ services:
     image: local-qtp-sequencing:latest
     restart: "no"
     volumes:
-      - qiita-data:/qiita_data
+      #- qiita-data:/qiita_data
       - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
     environment:

@@ -55,7 +55,7 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
+RUN git clone -b refactor_chunked_filepush_v2 https://github.com/jlab/qiita_client.git && \
 	sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
@@ -67,7 +67,7 @@ RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.3
 	pip install -U pip pip-system-certs
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b uncouple_clientpush https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN pip install .
 

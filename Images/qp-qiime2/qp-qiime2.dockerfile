@@ -78,7 +78,7 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 # Install qiita_client
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 RUN pip install -U pip && \
-	git clone --depth 1 -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
+	git clone --depth 1 -b refactor_chunked_filepush_v2 https://github.com/jlab/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -89,7 +89,7 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip \
 
 # Install qiita plugin
 #RUN git clone https://github.com/qiita-spots/qp-qiime2.git
-RUN git clone --depth 1 -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone --depth 1 -b uncouple_clientpush https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /${PLUGIN}/qp_qiime2/tests/test_qiime2.py && \
     sed -i "s|'gneiss', ||" /${PLUGIN}/qp_qiime2/qp_qiime2.py && \
