@@ -35,6 +35,7 @@ RUN apt-get -y update && \
 		python3-dev \
 # 		gcc \
 # 		build-essential \
+		parallel \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
@@ -57,7 +58,7 @@ RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom
 SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+RUN git clone -b refactor_chunked_filepush_v2 https://github.com/jlab/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -153,6 +154,8 @@ ENV ENVIRONMENT='dummy'
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	ln -s /opt/conda/envs/qp-woltka/bin/configure_woltka /opt/conda/envs/qp-woltka/bin/configure_${PLUGIN} && \
     ln -s /opt/conda/envs/qp-woltka/bin/start_woltka /opt/conda/envs/qp-woltka/bin/start_${PLUGIN} && \
+	ln -s /qp-woltka/scripts/configure_woltka /qp-woltka/scripts/configure_${PLUGIN} && \
+    ln -s /qp-woltka/scripts/start_woltka /qp-woltka/scripts/start_${PLUGIN} && \
 	configure_${PLUGIN} --env-script "true; export ENVIRONMENT=${ENVIRONMENT}" --ca-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` && \
  	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
@@ -167,5 +170,8 @@ COPY test_plugin.sh /test_plugin.sh
 
 # for reference, if user wants to inspect image
 COPY *.dockerfile /
+
+# add our little python script that simulates a SLURM cluster
+COPY sbatch /bin/sbatch
 
 CMD ["./start_plugin.sh"]
