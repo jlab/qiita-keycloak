@@ -1,4 +1,4 @@
-# VERSION: 2026.02.17
+# VERSION: 2026.04.01
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -70,7 +70,7 @@ ENV LANG=C.UTF-8
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
 RUN pip install -U pip && \
-	git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
+	git clone -b master https://github.com/qiita-spots/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 

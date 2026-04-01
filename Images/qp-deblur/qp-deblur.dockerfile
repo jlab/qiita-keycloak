@@ -1,4 +1,4 @@
-# VERSION: 2026.02.17
+# VERSION: 2026.04.01
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -55,8 +55,7 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
-	sed -i "s/f'Entered BaseQiitaPlugin._register_command({command.name})'/'Entered BaseQiitaPlugin._register_command(%s)' % command.name/"  qiita_client/qiita_client/plugin.py && \
+RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
