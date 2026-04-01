@@ -52,7 +52,7 @@ export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 # either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
 export QIITA_PLUGINCOUPLING=https
 
-echo "DEBUG STEFAN in tests" && set -x && md5sum `find / -name "qiita_client.py"` 2>&1
+echo "DEBUG STEFAN in tests" && set -x && md5sum `find / -name "qiita_client.py"` 1>&2
 
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
