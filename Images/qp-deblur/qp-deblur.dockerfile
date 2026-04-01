@@ -55,7 +55,7 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+RUN git clone -b refactor_chunked_filepush_v2 https://github.com/jlab/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
