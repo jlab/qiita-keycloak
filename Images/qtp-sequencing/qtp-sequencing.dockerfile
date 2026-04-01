@@ -99,7 +99,7 @@ RUN pip install --no-cache-dir /wheels/* \
 
 # "install" https://github.com/alastair-droop/fqtools
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/fqtools /usr/local/bin/fqtools
-COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libhts.so.1.22.1 /lib/x86_64-linux-gnu/libhts.so.3
+COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libhts.so.1.23.1 /lib/x86_64-linux-gnu/libhts.so.3
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libdeflate.so.0 /lib/x86_64-linux-gnu/
 
 # "install" pigz
