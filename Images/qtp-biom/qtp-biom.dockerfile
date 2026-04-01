@@ -166,6 +166,6 @@ COPY test_plugin.sh /test_plugin.sh
 # for reference, if user wants to inspect image
 COPY *.dockerfile /
 
-RUN echo "DEBUG STEFAN" && md5sum `find / -name "qiita_client.py"` 2>&1
+RUN echo "DEBUG STEFAN" && set -x && md5sum `find / -name "qiita_client.py"` 2>&1
 
 CMD ["./start_plugin.sh"]
