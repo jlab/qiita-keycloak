@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+import time
 import subprocess
 import argparse
 
@@ -86,6 +87,18 @@ def slurm2parallel(data):
 
     return pcmd
 
+def wait_for_pid(pid, pollinterval=1):
+    """Blocks until a job with given PID has exited."""
+    while True:
+        try:
+            # signal 0 doesn't change anything, just checks if process is alive
+            os.kill(pid, 0)
+            time.sleep(pollinterval)
+        except ProcessLookupError:
+            break
+        except PermissionError:
+            time.sleep(pollinterval)
+
 # parse command line arguments
 parser = argparse.ArgumentParser(
     description=("A hacky option to translate a slurm batch job into "
@@ -93,7 +106,7 @@ parser = argparse.ArgumentParser(
 # to be compatible to slurm
 parser.add_argument(
     "-d", "--dependency",
-    help="will be ignored at all!"
+    help="provides information IF job execution should be e.g. delayed until other PID is completed"
 )
 parser.add_argument(
     "-n", "--dryrun",
@@ -106,6 +119,13 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+# obtain dependent PID
+dependency_pid = None
+if args.dependency and args.dependency.startswith('afterok:'):
+    try:
+        dependency_pid = int(args.dependency.split(':')[1])
+    except ValueError:
+        print(f"[fake sbatch] invalid PID: {args.dependency}", file=sys.stderr)
 
 # main
 data = read_slurm_script(args.script)
@@ -114,10 +134,15 @@ pcmd = slurm2parallel(data)
 if args.dryrun:
     print(pcmd)
 else:
-    subprocess.run(pcmd, shell=True,
-                executable=data['meta'].get('shebang', "/bin/bash"))
-
-# return PID of this script to be compatible with slurm
-print(os.getpid())
-
-
+    pid = os.fork()
+    if pid == 0:
+        # child process
+        os.setsid()
+        if dependency_pid is not None:
+            wait_for_pid(dependency_pid)
+        subprocess.run(pcmd, shell=True,
+                       executable=data['meta'].get('shebang', "/bin/bash"))
+        sys.exit(0)
+    else:
+        # parent process
+        print(pid)
