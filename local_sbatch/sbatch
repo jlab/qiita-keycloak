@@ -138,6 +138,14 @@ else:
     if pid == 0:
         # child process
         os.setsid()
+
+        # redirect stdin/stdout/stderr to /dev/null
+        devnull = os.open(os.devnull, os.O_RDWR)
+        os.dup2(devnull, sys.stdin.fileno())
+        os.dup2(devnull, sys.stdout.fileno())
+        os.dup2(devnull, sys.stderr.fileno())
+        os.close(devnull)
+
         if dependency_pid is not None:
             wait_for_pid(dependency_pid)
         subprocess.run(pcmd, shell=True,

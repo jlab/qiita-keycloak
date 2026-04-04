@@ -239,7 +239,8 @@ services:
       #- ./src/qtp-biom:/qtp-biom:U
       - test_tmp_dir:/tmp
     environment:
-      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+      # DEBUG will lead non empty stderr and will fail job execution, see https://github.com/qiita-spots/qiita/issues/3512
+      - QIITA_CLIENT_DEBUG_LEVEL=ERROR
     networks:
       - qiita-net
 
