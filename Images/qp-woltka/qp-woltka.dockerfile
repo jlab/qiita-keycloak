@@ -1,4 +1,4 @@
-# VERSION: 2026.03.20
+# VERSION: 2026.04.08
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -31,13 +31,24 @@ RUN apt-get -y update && \
 	apt-get -y --fix-missing install \
 		git \
 		wget \
-# 		libpq-dev \
 		python3-dev \
-# 		gcc \
-# 		build-essential \
+ 		build-essential \
 		parallel \
+		cmake \
+		zlib1g-dev \
+        libtbb-dev \
+		zip unzip \
+		xz-utils \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
+
+ARG SEQKIT_VERSION=2.8.2
+RUN cd / \
+	&& wget https://github.com/BenLangmead/bowtie2/releases/download/v2.5.0/bowtie2-2.5.0-linux-x86_64.zip \
+    && unzip bowtie2-2.5.0-linux-x86_64.zip \
+    && wget -q https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz \
+    && tar -xzf seqkit_linux_amd64.tar.gz -C /usr/local/bin/ seqkit \
+    && rm seqkit_linux_amd64.tar.gz
 
 # install miniforge3 for "conda"
 # see https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
@@ -47,9 +58,6 @@ RUN wget --no-verbose https://github.com/conda-forge/miniforge/releases/download
 	echo ". ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate base" >> ~/.bashrc && \
 	conda init && \
 	rm -f /tmp/miniforge3.sh
-
-# install tornado in BASE environment <-- remove once conda is gone!
-RUN conda install tornado -y
 
 # Create conda env
 RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom-format bowtie2==2.5.0 seqkit
@@ -62,16 +70,37 @@ RUN git clone -b refactor_chunked_filepush_v2 https://github.com/jlab/qiita_clie
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
-# RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.310 SortMeRNA=2.0 fragment-insertion gcc && \
-# 	pip install -U pip && \
-# 	pip install numpy cython pandas && \
-# 	pip install scikit-bio==0.5.5 && \
-# 	pip install -U pip pip-system-certs
+RUN git clone https://github.com/wasade/mxdx.git /mxdx \
+	&& cd /mxdx \
+	&& pip install .
+
+RUN git clone https://github.com/AmandaBirmingham/pysyndna.git /pysyndna \
+	&& cd /pysyndna \
+	&& pip install .
+
+# Install woltka (not the plugin)
+RUN git clone --depth 1 -b v0.1.7 https://github.com/qiyunzhu/woltka.git /woltka \
+	&& cd /woltka \
+	&& rm -rf woltka/q2/tests woltka/tests \
+	&& pip install .
+
+RUN git clone https://github.com/biocore/micov.git /micov \
+	&& cd /micov \
+	&& pip install .
 
 # Install qiita plugin
-RUN git clone -b main https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
-WORKDIR /${PLUGIN}
-RUN pip install .
+RUN git clone -b main https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN} \
+	&& cd /${PLUGIN} \
+	&& sed "s|'pysyndna @ git+https://github.com/AmandaBirmingham/'||" -i setup.py \
+	&& sed "s|'pysyndna.git#egg=pysyndna',||" -i setup.py \
+	&& sed "s|'woltka @ git+https://github.com/qiyunzhu/'||" -i setup.py \
+    && sed "s|'woltka.git#egg=woltka',||" -i setup.py \
+	&& sed "s|'mxdx @ git+https://github.com/wasade/'||" -i setup.py \
+    && sed "s|'mxdx.git#egg=mxdx',||" -i setup.py \
+    && sed "s|'micov @ git+https://github.com/biocore/'||" -i setup.py \
+    && sed "s|'micov.git#egg=micov'||" -i setup.py \
+	&& rm -rf qp_woltka/support_files/*.fastq.gz qp_woltka/support_files/alignment.tar \
+ 	&& pip install .
 
 # test for correct version numbers
 RUN woltka_version=`woltka --version` && \
@@ -79,59 +108,57 @@ RUN woltka_version=`woltka --version` && \
 	if [[ $woltka_version != *"0.1.7"* ]]; then echo "wrong woltka version", $woltka_version; exit 1; fi && \
 	if [[ $bowtie2_version != *"2.5.0"* ]]; then echo "wrong bowtie2 version", $bowtie2_version; exit 1; fi
 
-# COPY requirements.txt ./requirements.txt
-# RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+COPY requirements.txt ./requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
-
-# # ==========================
-# # Stage 2: Runtime
-# # ==========================
-# FROM python:3.5-slim
-# ARG PLUGIN
-# ARG QIITA_PLUGINS_DIR
-# ARG QIITA_CERT_DIR
-# ARG CONDA_DIR
+# ==========================
+# Stage 2: Runtime
+# ==========================
+FROM python:3.9-slim
+ARG PLUGIN
+ARG QIITA_PLUGINS_DIR
+ARG QIITA_CERT_DIR
+ARG CONDA_DIR
 
 # let the container know it's plugin name
 ENV PLUGIN=${PLUGIN}
 
-# # deblur dependent binaries + necessary libraries: mafft, vsearch, sortmerna
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/mafft ${CONDA_DIR}/envs/${PLUGIN}/bin/vsearch ${CONDA_DIR}/envs/${PLUGIN}/bin/indexdb_rna ${CONDA_DIR}/envs/${PLUGIN}/bin/sortmerna /usr/local/bin/
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/libexec/mafft ${CONDA_DIR}/envs/${PLUGIN}/libexec/mafft/
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libgomp.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
+# copy bowtie2 binaries from build stage
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2 /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-align-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-align-s /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build-s /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-s /usr/bin/
+COPY --from=builder /usr/local/bin/seqkit /usr/local/bin/
 
-# # python package compile in build stage
-# COPY --from=builder /wheels /wheels
-# RUN pip install --no-cache-dir /wheels/* \
-# 	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/run-sepp.sh ${CONDA_DIR}/envs/${PLUGIN}/bin/seppJsonMerger.jar ${CONDA_DIR}/envs/${PLUGIN}/bin/hmm* ${CONDA_DIR}/envs/${PLUGIN}/bin/pplacer ${CONDA_DIR}/envs/${PLUGIN}/bin/guppy /usr/local/bin/
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    parallel \
+	seqkit \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# # minimal Java Runtime Environment for SEPP's seppJsonMerger.jar
-# RUN mkdir -p /usr/share/man/man1 && \
-#     echo "deb [trusted=yes] http://archive.debian.org/debian buster main" > /etc/apt/sources.list && \
-#     echo "deb [trusted=yes] http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list && \
-#     echo "deb [trusted=yes] http://archive.debian.org/debian buster-updates main" >> /etc/apt/sources.list && \
-#     apt-get update && \
-#     apt-get install -y --no-install-recommends openjdk-11-jre-headless && \
-#     rm -rf /var/lib/apt/lists/*
+# python package compile in build stage
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+	# install python packages (this is huge)
+	pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*.whl \
+	# clean up biom test files
+	&& rm -rf /usr/local/lib/python3.9/site-packages/biom/tests \
+	# strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.9/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-# # copy SEPP
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/run_sepp.py ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/run_sepp.py
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/sepp        ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/sepp
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/dendropy    ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/dendropy
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/home.path   ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/home.path
-# COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/main.config ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/main.config
-# RUN sed -i "s|${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/bundled-v4.3.5/|/usr/local/bin/|g" ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/sepp/.sepp/main.config
-
-# # following step increases image size from by 1.3 GB!! Better mount as volume and "make" these files during Makefile execution
-# # COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/ref/ ${CONDA_DIR}/envs/${PLUGIN}/share/fragment-insertion/ref/
 
 # install tornado based trigger layer in base environment
 RUN pip install -U --no-cache-dir tornado pip-system-certs
 
-# # use git branch instead of pypi version (stored via wheel)
-# COPY --from=builder /qiita_client /qiita_client
-# RUN cd /qiita_client && pip install .
+# use git branch instead of pypi version (stored via wheel)
+COPY --from=builder /qiita_client /qiita_client
+RUN cd /qiita_client && pip install .
 
 WORKDIR /
 
@@ -152,10 +179,8 @@ RUN mkdir -p ${QC_WOLTKA_DB_DP}/wol ${QC_WOLTKA_DB_DP}/rep82 && \
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
 ENV ENVIRONMENT='dummy'
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
-	ln -s /opt/conda/envs/qp-woltka/bin/configure_woltka /opt/conda/envs/qp-woltka/bin/configure_${PLUGIN} && \
-    ln -s /opt/conda/envs/qp-woltka/bin/start_woltka /opt/conda/envs/qp-woltka/bin/start_${PLUGIN} && \
-	ln -s /qp-woltka/scripts/configure_woltka /qp-woltka/scripts/configure_${PLUGIN} && \
-    ln -s /qp-woltka/scripts/start_woltka /qp-woltka/scripts/start_${PLUGIN} && \
+	ln -s /usr/local/bin/configure_woltka /usr/local/bin/configure_${PLUGIN} && \
+    ln -s /usr/local/bin/start_woltka /usr/local/bin/start_${PLUGIN} && \
 	configure_${PLUGIN} --env-script "true; export ENVIRONMENT=${ENVIRONMENT}" --ca-cert `find ${QIITA_CERT_DIR}/ -name "*_server.crt" -type f` && \
  	sed -i -E "s/^START_SCRIPT = .+/START_SCRIPT = python \/start_plugin.py ${PLUGIN}/" ${QIITA_PLUGINS_DIR}/*.conf
 
@@ -174,4 +199,23 @@ COPY *.dockerfile /
 # add our little python script that simulates a SLURM cluster
 COPY sbatch /bin/sbatch
 
+# integrated tests for presence of binaries
+# if this chain of commands fails, it is most likely that one of the binaries
+# is missing in the container!
+RUN grep --version | grep "GNU grep" \
+    && find --version | grep findutils \
+    && parallel --version | grep "GNU Parallel" \
+    && date --version | grep "GNU coreutils" \
+    && hostname --version | grep hostname \
+    && tar --version | grep "GNU tar" \
+    && cut --version | grep "GNU coreutils" \
+    && sed --version | grep "GNU sed" \
+    && gzip --version | grep "gzip " \
+    && awk --version | grep "mawk " \
+    && xz --version | grep "XZ Utils" \
+	&& mxdx --help | grep "multiplexing and demultiplexing" \
+	&& bowtie2 --version | grep "version 2.5.0" \
+	&& seqkit --help | grep "Version: 2." \
+	&& micov --help | grep "microbiome coverage"
+	
 CMD ["./start_plugin.sh"]
