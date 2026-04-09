@@ -111,6 +111,12 @@ RUN woltka_version=`woltka --version` && \
 COPY requirements.txt ./requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
+# install sam_filter
+RUN wget https://github.com/jianshu93/sam_filter/releases/download/v0.1.0/sam_filter_Linux_x86-64_v01.0.zip \
+	&& unzip sam_filter_Linux_x86-64_v01.0.zip \
+	&& chmod a+x ./sam_filter \
+	&& mv ./sam_filter /usr/local/bin/sam_filter
+
 # ==========================
 # Stage 2: Runtime
 # ==========================
@@ -134,6 +140,7 @@ COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect /usr/bin/
 COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-l /usr/bin/
 COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-s /usr/bin/
 COPY --from=builder /usr/local/bin/seqkit /usr/local/bin/
+COPY --from=builder /usr/local/bin/sam_filter /usr/local/bin/sam_filter
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     parallel \
