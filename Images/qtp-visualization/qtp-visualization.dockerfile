@@ -1,4 +1,4 @@
-# VERSION: 2026.04.01
+# VERSION: 2026.04.09
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -113,10 +113,8 @@ ARG CONDA_DIR
 # let the container know it's plugin name
 ENV PLUGIN=${PLUGIN}
 
-# python package compile in build stage
-COPY --from=builder /wheels /wheels
-
-RUN pip install --no-cache-dir /wheels/* \
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+	pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 
 # Handling of certificates, such that plugin can verify qiita main
