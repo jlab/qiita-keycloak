@@ -175,6 +175,11 @@ jobs:
           branch=`if [[ "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "uncouple_clientpush"; else echo "master"; fi`
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
 
+      - name: Show Debug Logfiles
+        if: failure()
+        run: |
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "cd /tmp; find .; for f in `find . -name '*.log'`; do echo "-START----------- $f ---------------"; cat $f; "-END----------- $f ---------------"; done"
+
       - name: Push image to ghcr (only if tests passed)
         if: success()
         uses: docker/build-push-action@v6
