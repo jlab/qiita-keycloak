@@ -178,7 +178,8 @@ jobs:
       - name: Show Debug Logfiles
         if: failure()
         run: |
-          docker compose exec ${{ matrix.plugin }} /bin/bash -c "cd /tmp; find .; for f in `find . -name '*.log'`; do echo "-START----------- $f ---------------"; cat $f; "-END----------- $f ---------------"; done"
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c bash 'find /tmp -type f -exec sh -c '\''for f; do echo "===start=== $f ==="; cat "$f";  echo "---end--- $f ---"; done'\'' sh {} +'
+
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
