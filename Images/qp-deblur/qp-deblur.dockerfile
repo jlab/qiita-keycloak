@@ -1,4 +1,4 @@
-# VERSION: 2026.04.01
+# VERSION: 2026.04.09
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -92,8 +92,8 @@ COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/libexec/mafft ${CONDA_DIR}/envs/
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libgomp.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
 # python package compile in build stage
-COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/* \
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+    pip install --no-cache-dir /wheels/* \
 	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/run-sepp.sh ${CONDA_DIR}/envs/${PLUGIN}/bin/seppJsonMerger.jar ${CONDA_DIR}/envs/${PLUGIN}/bin/hmm* ${CONDA_DIR}/envs/${PLUGIN}/bin/pplacer ${CONDA_DIR}/envs/${PLUGIN}/bin/guppy /usr/local/bin/
 
