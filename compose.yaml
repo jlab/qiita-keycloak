@@ -224,6 +224,7 @@ services:
       #- qiita-data:/qiita_data
       - ./references/Certificates/tinqiita:/qiita_server_certificates
       - test_tmp_dir:/tmp
+      - ./debug:/debug
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     networks:

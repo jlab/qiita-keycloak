@@ -123,6 +123,7 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
           cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger.py .
+          mkdir -p ./debug
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v4
@@ -170,10 +171,17 @@ jobs:
 
       - name: Execute tests in the running services
         run: |
-          sleep 5
+          sleep 50
           fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "jlab"; else echo "qiita-spots"; fi`
           branch=`if [[ "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "uncouple_clientpush"; else echo "master"; fi`
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
+
+      - name: Show Debug Logfiles
+        #if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug logs
+          path: ./debug
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
