@@ -19,8 +19,8 @@ fi;
 if [ "qp-qiime2" != "$PLUGIN" ]; then
     # clone plugin repository
     git clone -b ${branch} https://github.com/${fork}/${PLUGIN};
-    hash=$(cd ${PLUGIN} git rev-parse HEAD)
-    echo "Clone from '${fork}', branch '${branch}', commit '${hash}" 1>&2;
+    hash=$(cd ${PLUGIN} && git rev-parse HEAD);
+    echo "Clone from '${fork}', branch '${branch}', commit '${hash}'" 1>&2;
 fi;
 
 # NOTE: client api reset only works when communicating with Qitta Master,
