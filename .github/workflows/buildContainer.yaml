@@ -177,11 +177,11 @@ jobs:
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
 
       - name: Show Debug Logfiles
-        if: failure()
+        #if: failure()
         uses: actions/download-artifact@v4
         with:
           name: debug logs
-          path: /debug
+          path: ./debug
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
