@@ -122,7 +122,12 @@ RUN python3 get-pip3.7.py \
 # python package compile in build stage
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip2 install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python2.7/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python2.7/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libpython2.7.so.1.0 /usr/lib/x86_64-linux-gnu/libpython2.7.so.1.0
 # copy sortmerna binaries
 COPY --from=builder /sortmerna-2.0/sortmerna /usr/local/bin/sortmerna

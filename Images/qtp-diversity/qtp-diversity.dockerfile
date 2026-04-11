@@ -128,7 +128,12 @@ ENV PLUGIN=${PLUGIN}
 
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.8/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 

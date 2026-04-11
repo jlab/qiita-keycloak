@@ -93,7 +93,12 @@ ENV PLUGIN=${PLUGIN}
 
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.9/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python3.9/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.9/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 
 # "install" https://github.com/alastair-droop/fqtools
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/fqtools /usr/local/bin/fqtools

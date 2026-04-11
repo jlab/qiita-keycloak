@@ -94,7 +94,11 @@ COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libgomp.so.1.0.0 /lib/x86_64
 # python package compile in build stage
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
     pip install --no-cache-dir /wheels/* \
-	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests
+	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.5/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/run-sepp.sh ${CONDA_DIR}/envs/${PLUGIN}/bin/seppJsonMerger.jar ${CONDA_DIR}/envs/${PLUGIN}/bin/hmm* ${CONDA_DIR}/envs/${PLUGIN}/bin/pplacer ${CONDA_DIR}/envs/${PLUGIN}/bin/guppy /usr/local/bin/
 
 # minimal Java Runtime Environment for SEPP's seppJsonMerger.jar

@@ -91,7 +91,12 @@ ENV PLUGIN=${PLUGIN}
 
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.6/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python3.6/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.6/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 
 # Handling of certificates, such that plugin can verify qiita main
 RUN mkdir -p ${QIITA_CERT_DIR}/
