@@ -1,4 +1,4 @@
-# VERSION: 2026.04.12
+# VERSION: 2026.04.09
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -94,13 +94,7 @@ COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libgomp.so.1.0.0 /lib/x86_64
 # python package compile in build stage
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
     pip install --no-cache-dir /wheels/* \
-	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests \
-	# debian version is EoL
-	&& sed -i "s/\(deb\|security\)\.debian\.org/archive.debian.org/g" /etc/apt/sources.list \
-	# for smaller docker container: strip *.so libraries
-	&& apt-get update -o Acquire::Check-Valid-Until=false && apt-get install binutils -y --no-install-recommends \
-	&& find /usr/local/lib/python3.5/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
-	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+	&& rm -rf /usr/local/lib/python3.5/site-packages/biom/tests
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/run-sepp.sh ${CONDA_DIR}/envs/${PLUGIN}/bin/seppJsonMerger.jar ${CONDA_DIR}/envs/${PLUGIN}/bin/hmm* ${CONDA_DIR}/envs/${PLUGIN}/bin/pplacer ${CONDA_DIR}/envs/${PLUGIN}/bin/guppy /usr/local/bin/
 
 # minimal Java Runtime Environment for SEPP's seppJsonMerger.jar
