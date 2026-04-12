@@ -1,4 +1,4 @@
-# VERSION: 2026.04.09
+# VERSION: 2026.04.12
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -128,7 +128,12 @@ ENV PLUGIN=${PLUGIN}
 
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
+	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.8/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 
 COPY --from=builder ${CONDA_DIR}/envs/qtp-biom/lib/python3.8/site-packages/bp /usr/local/lib/python3.8/site-packages/bp
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
