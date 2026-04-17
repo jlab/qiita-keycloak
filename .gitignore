@@ -2,3 +2,10 @@ environments/*.env
 logs/*
 .built_image_*
 Certificates/*
+src/multiqc/
+src/multiqc/*
+src/qp-multiqc/
+src/qp-multiqc/*
+src/qtp-multiqc-report/
+src/qtp-multiqc-report/*
+src/*

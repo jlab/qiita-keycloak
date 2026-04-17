@@ -353,10 +353,31 @@ services:
     volumes:
       - qiita-data:/qiita_data
       - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
+      - ./src/qp-multiqc:/qp-multiqc
     environment:
       # TODO: is there a more elegant way to obtain this path?
       - REQUESTS_CA_BUNDLE=/opt/conda/envs/multiqc/lib/python3.9/site-packages/certifi/cacert.pem
       - SSL_CERT_FILE=/opt/conda/envs/multiqc/lib/python3.9/site-packages/certifi/cacert.pem
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+      - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
+    networks:
+      - qiita-net
+
+  qtp-multiqc-report:
+    image: local-qtp-multiqc-report:latest
+    command: ['./start_qtp-multiqc-report.sh']
+    # network_mode: host
+    # stdin_open: true
+    # tty: true
+    restart: no
+    volumes:
+      - qiita-data:/qiita_data
+      - ./Images/qiita/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:r  # TODO: do we really want to expose server settings to the plugin?
+      #- ./src/qtp-multiqc-report:/qtp-multiqc-report
+    environment:
+      # TODO: is there a more elegant way to obtain this path?
+      - REQUESTS_CA_BUNDLE=/opt/conda/envs/multiqc_report/lib/python3.9/site-packages/certifi/cacert.pem
+      - SSL_CERT_FILE=/opt/conda/envs/multiqc_report/lib/python3.9/site-packages/certifi/cacert.pem
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
       - QIITA_CONFIG_FP=/qiita_configurations/qiita_server.cfg
     networks:
@@ -393,10 +414,12 @@ services:
         condition: service_started
       qtp-job-output-folder:
         condition: service_started
+      qtp-multiqc-report:
+        condition: service_started
       qp-multiqc:
         condition: service_started
     environment:
-      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qp-multiqc:"
+      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qtp-multiqc-report:qp-multiqc:"
     command: ['/startup_plugin_collector.sh']
 
 networks:
