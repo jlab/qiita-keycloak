@@ -83,7 +83,7 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 	pip install -e . -v
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN sed -i "s|'qiita-files @ https://github.com/qiita-spots/'||" setup.py && \
 	sed -i "s|'qiita-files/archive/master.zip',||" setup.py && \

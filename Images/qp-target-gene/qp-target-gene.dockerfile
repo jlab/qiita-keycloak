@@ -68,7 +68,7 @@ RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN pip install biom-format && \
 	pip install -e . && \

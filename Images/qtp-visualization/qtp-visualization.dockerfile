@@ -81,9 +81,11 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 	pip install -e . -v
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
-RUN sed -i "s|'qiita_client', 'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py && \
+RUN sed -i "s|'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py && \
+	sed -i "s|'qiita_client @ https://github.com/'||" setup.py && \
+	sed -i "s|'qiita-spots/qiita_client/archive/master.zip'||" setup.py && \
 	pip install -e . && \
 	pip install --upgrade certifi && \
 	pip install pip-system-certs

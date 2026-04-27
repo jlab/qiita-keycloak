@@ -89,7 +89,7 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip \
 
 # Install qiita plugin
 #RUN git clone https://github.com/qiita-spots/qp-qiime2.git
-RUN git clone --depth 1 -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone --depth 1 -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /${PLUGIN}/qp_qiime2/tests/test_qiime2.py && \
     sed -i "s|'gneiss', ||" /${PLUGIN}/qp_qiime2/qp_qiime2.py && \

@@ -66,7 +66,7 @@ RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.3
 	pip install -U pip pip-system-certs
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
 WORKDIR /${PLUGIN}
 RUN pip install .
 
