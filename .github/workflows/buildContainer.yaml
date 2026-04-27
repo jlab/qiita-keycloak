@@ -76,10 +76,8 @@ jobs:
           push: true
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
-        #  cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}-main
-        #  cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }}-main,mode=max
+          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
   make_references:
     needs: build_main
@@ -150,8 +148,8 @@ jobs:
           context: .
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          cache-from: type=gha,scope=tinqiita-plugin-${{ matrix.plugin }}-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-plugin-${{ matrix.plugin }}-${{ github.ref_name }},mode=max
           platforms: linux/amd64
 
       - name: adapt compose file to select specific plugin
@@ -164,8 +162,10 @@ jobs:
           compose-file: "compose.yaml"
           services: |
             nginx
-      - name: Check which qiita image is actually running
-        run: docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
+      - name: Check which qiita and plugin image is actually running
+        run: |
+          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate --format '{{.Id}}'
       - name: Show docker compose logs
         if: failure()
         run: |
@@ -241,8 +241,8 @@ jobs:
           context: .
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          cache-from: type=gha,scope=tinqiita-plugin-${{ matrix.multiplugin }}-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-plugin-${{ matrix.multiplugin }}-${{ github.ref_name }},mode=max
           platforms: linux/amd64
 
       - name: Prune build cache after build (saving disc space)
