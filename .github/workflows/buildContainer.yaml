@@ -60,7 +60,7 @@ jobs:
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Images/plugin_collector/start_plugin_collector.sh .
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./          
@@ -77,7 +77,7 @@ jobs:
           echo "CACHEBURST_QIITA=$(git ls-remote https://github.com/$GIT_QIITA_FORK/qiita.git refs/heads/$GIT_QIITA_BRANCH | cut -f1)" >> $GITHUB_ENV
 
       - name: Build main qiita images and push to github's own registry
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -141,12 +141,12 @@ jobs:
           mkdir -p ./debug
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./
       - name: Download fake references
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fake_references
           path: ./references
@@ -166,20 +166,20 @@ jobs:
           echo "CACHEBURST_QIITACLIENT=$(git ls-remote https://github.com/$GIT_QIITACLIENT_FORK/qiita_client.git refs/heads/$GIT_QIITACLIENT_BRANCH | cut -f1)" >> $GITHUB_ENV
 
       - name: Build plugin images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           build-args: |
             CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
             CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
-            GIT_PLUGIN_FORK=$GIT_PLUGIN_FORK
+            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
             GIT_PLUGIN_BRANCH=${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
-            GIT_QIITACLIENT_FORK=$GIT_QIITACLIENT_FORK
-            GIT_QIITACLIENT_BRANCH=$GIT_QIITACLIENT_BRANCH
+            GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
+            GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-plugin-${{ matrix.plugin }}-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-plugin-${{ matrix.plugin }}-${{ github.ref_name }},mode=max
+          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
 
       - name: adapt compose file to select specific plugin
@@ -208,11 +208,11 @@ jobs:
           docker compose exec qiita-db psql -U postgres -d qiita_test -c "SELECT * FROM qiita.software;" || true
 
       - name: Execute tests in the running services
+        env:
+          GIT_PLUGIN_BRANCH: ${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
         run: |
           sleep 10
-          fork=`if [[ "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" || "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "qiita-spots"; else echo "jlab"; fi`
-          branch=`if [[ "${{ matrix.plugin }}" == "qp-target-gene" || "${{ matrix.plugin }}" == "qp-deblur" || "${{ matrix.plugin }}" == "qtp-sequencing" || "${{ matrix.plugin }}" == "qtp-biom" || "${{ matrix.plugin }}" == "qtp-visualization" || "${{ matrix.plugin }}" == "qtp-diversity" ]]; then echo "master"; elif [[ "${{ matrix.plugin }}" == "qtp-job-output-folder" ]]; then echo "main"; else echo "master"; fi`
-          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=$fork PLUGIN_BRANCH=$branch bash /test_plugin.sh"
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }} PLUGIN_BRANCH=${{ env.GIT_PLUGIN_BRANCH }} bash /test_plugin.sh"
 
       - name: Show Debug Logfiles
         #if: failure()
@@ -223,7 +223,7 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -253,12 +253,12 @@ jobs:
           cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./
       - name: Download fake references
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fake_references
           path: ./
@@ -271,13 +271,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build plugin images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-plugin-${{ matrix.multiplugin }}-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-plugin-${{ matrix.multiplugin }}-${{ github.ref_name }},mode=max
+          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
+          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
 
       - name: Prune build cache after build (saving disc space)
@@ -304,7 +304,7 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
