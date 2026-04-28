@@ -3,6 +3,10 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qtp-visualization
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -69,8 +73,9 @@ ENV LANG=C.UTF-8
 # Install qiita_client
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+ARG CACHEBURST_QIITACLIENT=1
 RUN pip install -U pip && \
-	git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -81,7 +86,9 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 	pip install -e . -v
 
 # Install qiita plugin
-RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN sed -i "s|'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py && \
 	sed -i "s|'qiita_client @ https://github.com/'||" setup.py && \

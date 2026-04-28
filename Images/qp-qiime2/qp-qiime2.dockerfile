@@ -3,6 +3,10 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qp-qiime2
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -77,8 +81,9 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+ARG CACHEBURST_QIITACLIENT=1
 RUN pip install -U pip && \
-	git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -89,7 +94,9 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip \
 
 # Install qiita plugin
 #RUN git clone https://github.com/qiita-spots/qp-qiime2.git
-RUN git clone --depth 1 -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+RUN git clone --depth 1 -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN sed -i "s|self.basedir, '..', '..', '|'/|g" /${PLUGIN}/qp_qiime2/tests/test_qiime2.py && \
     sed -i "s|'gneiss', ||" /${PLUGIN}/qp_qiime2/qp_qiime2.py && \

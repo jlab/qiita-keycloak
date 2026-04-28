@@ -5,6 +5,8 @@ FROM ubuntu:24.04
 ARG MINIFORGE_VERSION=24.1.2-0
 ARG MODZIP_VERSION=1.3.0
 ARG NGINX_VERSION=1.26.0
+ARG GIT_QIITA_BRANCH=auth_oidc
+ARG GIT_QIITA_FORK=jlab
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -49,7 +51,8 @@ RUN pip install \
 
 # Clone the Qiita Repo: currently we need the oidc changes from our jlab fork + changes in the tornado_FetchFileFromCentralHandler branch, which send files if requested directly from tornado instead of nginx (happens in testing)
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
-RUN git clone -b auth_oidc https://github.com/jlab/qiita.git \
+ARG CACHEBURST_QIITA=1
+RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.git \
 	&& cd qiita \
 	&& git config pull.rebase false \
 	&& git config --global user.email "jlab@uni-giessen.de" \

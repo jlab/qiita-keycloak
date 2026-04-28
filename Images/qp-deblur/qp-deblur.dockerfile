@@ -3,6 +3,10 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qp-deblur
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -55,7 +59,8 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+ARG CACHEBURST_QIITACLIENT=1
+RUN git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -66,7 +71,9 @@ RUN conda install --quiet --yes -c bioconda -c biocore "VSEARCH=2.7.0" MAFFT=7.3
 	pip install -U pip pip-system-certs
 
 # Install qiita plugin
-RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN pip install .
 
