@@ -52,6 +52,8 @@ RUN pip install \
 # Clone the Qiita Repo: currently we need the oidc changes from our jlab fork + changes in the tornado_FetchFileFromCentralHandler branch, which send files if requested directly from tornado instead of nginx (happens in testing)
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
 ARG CACHEBURST_QIITA=1
+ENV GIT_QIITA_BRANCH=${GIT_QIITA_BRANCH}
+ENV GIT_QIITA_FORK=${GIT_QIITA_FORK}
 RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.git \
 	&& cd qiita \
 	&& git config pull.rebase false \

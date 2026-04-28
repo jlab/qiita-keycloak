@@ -24,6 +24,10 @@ ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
 ARG CONDA_DIR
 ARG QIIME2RELEASE=2022.11
+ARG GIT_PLUGIN_BRANCH
+ARG GIT_PLUGIN_FORK
+ARG GIT_QIITACLIENT_BRANCH
+ARG GIT_QIITACLIENT_FORK
 
 ARG MINIFORGE_VERSION=24.1.2-0
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -73,6 +77,8 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 # Install qiita_client
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 ARG CACHEBURST_QIITACLIENT=1
+ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
+ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
 RUN pip install -U pip && \
 	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
@@ -87,6 +93,8 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 # Install qiita plugin
 #RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
 ARG CACHEBURST_PLUGIN=1
+ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
+ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
 RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
 	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}

@@ -23,6 +23,10 @@ ARG PLUGIN
 ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
 ARG CONDA_DIR
+ARG GIT_PLUGIN_BRANCH
+ARG GIT_PLUGIN_FORK
+ARG GIT_QIITACLIENT_BRANCH
+ARG GIT_QIITACLIENT_FORK
 
 # let the container know it's plugin name
 ENV PLUGIN=${PLUGIN}
@@ -82,6 +86,8 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 # Install qiita_client
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 ARG CACHEBURST_QIITACLIENT=1
+ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
+ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
 RUN pip install -U pip && \
 	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
@@ -95,6 +101,8 @@ RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip \
 # Install qiita plugin
 #RUN git clone https://github.com/qiita-spots/qp-qiime2.git
 ARG CACHEBURST_PLUGIN=1
+ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
+ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
 RUN git clone --depth 1 -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
 	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
