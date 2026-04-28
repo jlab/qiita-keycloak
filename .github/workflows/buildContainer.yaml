@@ -181,6 +181,8 @@ jobs:
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
+          load: true
+          push: false
 
       - name: adapt compose file to select specific plugin
         run: |
@@ -223,12 +225,7 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: true
-          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
+        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
 
   # the qp-qiime2 plugin cannot be tested in isolation, it also needs qtp-diversity and qtp-visualization to be active in qiita
   build_mulit_plugins:
@@ -279,6 +276,8 @@ jobs:
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
+          load: true
+          push: false
 
       - name: Prune build cache after build (saving disc space)
         run: |
@@ -304,12 +303,7 @@ jobs:
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: true
-          file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:
