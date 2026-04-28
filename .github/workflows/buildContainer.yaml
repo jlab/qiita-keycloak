@@ -83,8 +83,8 @@ jobs:
           push: true
           build-args: |
             CACHEBURST_QIITA=${{ env.CACHEBURST_QIITA }}
-            GIT_QIITA_FORK=$GIT_QIITA_FORK
-            GIT_QIITA_BRANCH=$GIT_QIITA_BRANCH
+            GIT_QIITA_FORK=${{ env.GIT_QIITA_FORK }}
+            GIT_QIITA_BRANCH=${{ env.GIT_QIITA_BRANCH }}
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
