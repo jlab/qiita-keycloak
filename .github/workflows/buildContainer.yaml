@@ -235,6 +235,11 @@ jobs:
       matrix:
         multiplugin: ["qp-qiime2"]
     runs-on: ubuntu-latest
+    env:
+      GIT_PLUGIN_FORK: "qiita-spots"
+      GIT_PLUGIN_BRANCH: "master"
+      GIT_QIITACLIENT_FORK: "qiita-spots"
+      GIT_QIITACLIENT_BRANCH: "master"
     steps:
       - name: Checkout tinqiita repo
         uses: actions/checkout@v6
@@ -267,10 +272,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get commit-hash of qiita_client and plugin
+        run: |
+          echo "CACHEBURST_PLUGIN=$(git ls-remote https://github.com/$GIT_PLUGIN_FORK/${{ matrix.multiplugin }}.git refs/heads/$GIT_PLUGIN_BRANCH | cut -f1)" >> $GITHUB_ENV
+          echo "CACHEBURST_QIITACLIENT=$(git ls-remote https://github.com/$GIT_QIITACLIENT_FORK/qiita_client.git refs/heads/$GIT_QIITACLIENT_BRANCH | cut -f1)" >> $GITHUB_ENV
+
       - name: Build plugin images
         uses: docker/build-push-action@v7
         with:
           context: .
+          build-args: |
+            CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
+            CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
+            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{  env.GIT_PLUGIN_BRANCH }}
+            GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
+            GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
@@ -295,6 +312,16 @@ jobs:
           compose-file: "compose.yaml"
           services: |
             nginx
+
+      - name: Check which qiita and plugin image is actually running
+        run: |
+          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate --format '{{.Id}}'
+      - name: Show docker compose logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
 
       - name: Execute tests in the running services
         run: |
