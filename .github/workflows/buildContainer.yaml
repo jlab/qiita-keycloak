@@ -172,6 +172,13 @@ jobs:
           docker compose ps
           docker compose logs
 
+      - name: debug
+        run: |
+          ls -la /
+          ls -la /unshared_plugins/
+          cat /unshared_plugins/*
+          docker compose exec qiita-db psql -U postgres -d qiita_test -c "SELECT * FROM qiita.software;"
+
       - name: Execute tests in the running services
         run: |
           sleep 10
