@@ -68,7 +68,8 @@ RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 
 # Install qiita plugin
-RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN}
+RUN git clone -b master https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN} \
+	&& git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN pip install biom-format && \
 	pip install -e . && \
