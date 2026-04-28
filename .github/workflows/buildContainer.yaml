@@ -204,7 +204,7 @@ jobs:
           docker compose ps
           docker compose logs
 
-      - name: debug
+      - name: Inspect plugin container and qiita DB for debugging
         run: |
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "ls -la /; ls -la /unshared_plugins/; cat /unshared_plugins/*;" || true
           docker compose exec qiita-db psql -U postgres -d qiita_test -c "SELECT * FROM qiita.software;" || true
@@ -217,7 +217,7 @@ jobs:
           docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }} PLUGIN_BRANCH=${{ env.GIT_PLUGIN_BRANCH }} bash /test_plugin.sh"
 
       - name: Show Debug Logfiles
-        #if: failure()
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: debug logs
@@ -290,7 +290,7 @@ jobs:
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
 
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
+        uses: hoverkraft-tech/compose-action@v2.6.0
         with:
           compose-file: "compose.yaml"
           services: |
