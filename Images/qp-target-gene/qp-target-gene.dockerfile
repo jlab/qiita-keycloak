@@ -72,6 +72,7 @@ ARG CACHEBURST_QIITACLIENT=1
 ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
 ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
 RUN git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
+	git -C qiita_client rev-parse HEAD && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
