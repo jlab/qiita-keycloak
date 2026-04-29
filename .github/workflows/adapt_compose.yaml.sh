@@ -6,6 +6,9 @@ PLUGIN="$2"
 
 echo "INFO: adapt file >$COMPOSE_FILE< for plugin: >$PLUGIN<" 1>&2
 
+# for github workflow: enforce using the image built within the action, not a cached version
+sed -i "/^ *image: local-/a\    pull_policy: never" $COMPOSE_FILE
+
 # change images to be used from local to github internal builds
 sed -i "s|image: local-\([^:]*\):latest|image: ghcr.io/jlab/qiita-keycloak/\1:testcandidate|" $COMPOSE_FILE
 if [ "$PLUGIN" == "qp-qiime2" ]; then
@@ -21,8 +24,6 @@ fi;
 sed -i "s|\(\s*- ./src.*\)|#\1|g" $COMPOSE_FILE
 # use docker volume for log files instead of local directory
 sed -i "s|\(\s*- \)./logs:|\1qiita-logs:|g" $COMPOSE_FILE
-
-sed -i "/^ *image:/a\    pull_policy: never" $COMPOSE_FILE
 
 # for debugging, print the changes compose file
 cat $COMPOSE_FILE 1>&2
