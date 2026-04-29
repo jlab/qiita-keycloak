@@ -3,6 +3,10 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qp-target-gene
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -19,6 +23,10 @@ ARG PLUGIN
 ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
 ARG CONDA_DIR
+ARG GIT_PLUGIN_BRANCH
+ARG GIT_PLUGIN_FORK
+ARG GIT_QIITACLIENT_BRANCH
+ARG GIT_QIITACLIENT_FORK
 
 ARG MINIFORGE_VERSION=24.1.2-0
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -60,7 +68,11 @@ RUN pip install -U pip
 # Install qiita_client
 #RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 #RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
-RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+ARG CACHEBURST_QIITACLIENT=1
+ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
+ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
+RUN git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
+	git -C qiita_client rev-parse HEAD && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -68,7 +80,12 @@ RUN git clone -b master https://github.com/qiita-spots/qiita_client.git && \
 RUN pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+ENV PLUGIN=${PLUGIN}
+ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
+ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
+RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN pip install biom-format && \
 	pip install -e . && \

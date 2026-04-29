@@ -3,6 +3,10 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qtp-visualization
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -20,6 +24,10 @@ ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
 ARG CONDA_DIR
 ARG QIIME2RELEASE=2023.5
+ARG GIT_PLUGIN_BRANCH
+ARG GIT_PLUGIN_FORK
+ARG GIT_QIITACLIENT_BRANCH
+ARG GIT_QIITACLIENT_FORK
 
 ARG MINIFORGE_VERSION=24.1.2-0
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -69,8 +77,11 @@ ENV LANG=C.UTF-8
 # Install qiita_client
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
 # RUN git clone -b master https://github.com/qiita-spots/qiita_client.git
+ARG CACHEBURST_QIITACLIENT=1
+ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
+ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
 RUN pip install -U pip && \
-	git clone -b master https://github.com/qiita-spots/qiita_client.git && \
+	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -81,9 +92,15 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 	pip install -e . -v
 
 # Install qiita plugin
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
+ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
+RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
-RUN sed -i "s|'qiita_client', 'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py && \
+RUN sed -i "s|'click >= 3.3', 'qiime2'|'click >= 3.3'|" setup.py && \
+	sed -i "s|'qiita_client @ https://github.com/'||" setup.py && \
+	sed -i "s|'qiita-spots/qiita_client/archive/master.zip'||" setup.py && \
 	pip install -e . && \
 	pip install --upgrade certifi && \
 	pip install pip-system-certs
