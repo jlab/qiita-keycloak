@@ -196,7 +196,7 @@ jobs:
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
 
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
+        uses: hoverkraft-tech/compose-action@v2.6.0
         with:
           compose-file: "compose.yaml"
           services: |
