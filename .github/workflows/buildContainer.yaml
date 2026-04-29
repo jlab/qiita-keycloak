@@ -123,8 +123,8 @@ jobs:
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
       GIT_PLUGIN_BRANCH: "master"
-      GIT_QIITACLIENT_FORK: "qiita-spots"
-      GIT_QIITACLIENT_BRANCH: "master"
+      GIT_QIITACLIENT_FORK: "jlab"
+      GIT_QIITACLIENT_BRANCH: "refactor_chunked_filepush_v2"
     steps:
       - name: Checkout tinqiita repo
         uses: actions/checkout@v6
@@ -238,8 +238,8 @@ jobs:
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
       GIT_PLUGIN_BRANCH: "master"
-      GIT_QIITACLIENT_FORK: "qiita-spots"
-      GIT_QIITACLIENT_BRANCH: "master"
+      GIT_QIITACLIENT_FORK: "jlab"
+      GIT_QIITACLIENT_BRANCH: "refactor_chunked_filepush_v2"
     steps:
       - name: Checkout tinqiita repo
         uses: actions/checkout@v6
