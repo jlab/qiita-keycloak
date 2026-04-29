@@ -22,5 +22,7 @@ sed -i "s|\(\s*- ./src.*\)|#\1|g" $COMPOSE_FILE
 # use docker volume for log files instead of local directory
 sed -i "s|\(\s*- \)./logs:|\1qiita-logs:|g" $COMPOSE_FILE
 
+sed -i "/^ *image:/a\    pull_policy: never" $COMPOSE_FILE
+
 # for debugging, print the changes compose file
 cat $COMPOSE_FILE 1>&2
