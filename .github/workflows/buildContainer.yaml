@@ -183,7 +183,7 @@ jobs:
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
           load: true
-          push: false
+          push: true
 
       - name: Pull qiita testcandidate image from GHCR
         run: |
@@ -195,8 +195,15 @@ jobs:
         run: |
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
 
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
+        uses: hoverkraft-tech/compose-action@v2.6.0
         with:
           compose-file: "compose.yaml"
           services: |
@@ -300,8 +307,8 @@ jobs:
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
-          load: true
-          push: false
+          load: false
+          push: true
 
       - name: Prune build cache after build (saving disc space)
         run: |
@@ -315,9 +322,21 @@ jobs:
 
       - name: Pull qiita testcandidate image from GHCR
         run: |
+          docker pull postgres:15
+          docker pull redis:latest
           docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
           docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
           docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qtp-diversity:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qtp-visualization:testcandidate
+
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.6.0
@@ -325,6 +344,10 @@ jobs:
           compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Show disk space
+        if: failure()
+        run: |
+          df -h /
 
       - name: Check which qiita and plugin image is actually running
         run: |
