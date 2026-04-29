@@ -322,6 +322,8 @@ jobs:
 
       - name: Pull qiita testcandidate image from GHCR
         run: |
+          docker pull postgres:15
+          docker pull redis:latest
           docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
           docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
           docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
@@ -340,6 +342,10 @@ jobs:
           compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Show disk space
+        if: failure()
+        run: |
+          df -h /
 
       - name: Check which qiita and plugin image is actually running
         run: |
