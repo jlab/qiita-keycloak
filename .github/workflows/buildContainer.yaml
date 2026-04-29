@@ -90,6 +90,7 @@ jobs:
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
           platforms: linux/amd64
+
   make_references:
     needs: build_main
     runs-on: ubuntu-latest
@@ -183,6 +184,12 @@ jobs:
           platforms: linux/amd64
           load: true
           push: false
+
+      - name: Pull qiita testcandidate image from GHCR
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
 
       - name: adapt compose file to select specific plugin
         run: |
@@ -305,6 +312,12 @@ jobs:
       - name: adapt compose file to select specific plugin
         run: |
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
+
+      - name: Pull qiita testcandidate image from GHCR
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.6.0
