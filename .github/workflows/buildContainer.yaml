@@ -195,6 +195,13 @@ jobs:
         run: |
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
 
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.6.0
         with:
@@ -318,6 +325,13 @@ jobs:
           docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
           docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
           docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
+
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run docker compose
         uses: hoverkraft-tech/compose-action@v2.6.0
