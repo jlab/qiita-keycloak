@@ -194,6 +194,7 @@ jobs:
       - name: adapt compose file to select specific plugin
         run: |
           bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
+          mkdir -p ./debug/tmp ./debug/qiita_data/main ./debug/qiita_data/client
 
       - name: Log in to DockerHub Container Registry
         # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
@@ -212,11 +213,13 @@ jobs:
         run: |
           docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
           docker inspect ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate --format '{{.Id}}'
-      - name: Show docker compose logs
+      - name: for debugging
         if: failure()
-        run: |
-          docker compose ps
-          docker compose logs
+        uses: actions/upload-artifact@v7
+        with:
+          name: qiitadata
+          path: |
+            ./debug
 
       - name: Inspect plugin container and qiita DB for debugging
         run: |
