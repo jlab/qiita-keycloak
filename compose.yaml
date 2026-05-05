@@ -62,7 +62,7 @@ services:
       - server-plugin-configs:/qiita_plugins
       - ./references/Certificates/tinqiita:/qiita_certificates
       - ./references/Certificates/keycloak:/keycloak_certificates
-      - test_tmp_dir/tmp:/tmp
+      - test_tmp_dir:/tmp
     networks:
       - qiita-net
     ports:
