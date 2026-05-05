@@ -54,7 +54,7 @@ services:
       - MASTER=--master
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     volumes:
-      - ./debug/qiita_data/main:/qiita_data
+      - qiita-data:/qiita_data
       - ./src/qiita:/qiita:U
       - ./logs:/logs
       - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
@@ -62,7 +62,7 @@ services:
       - server-plugin-configs:/qiita_plugins
       - ./references/Certificates/tinqiita:/qiita_certificates
       - ./references/Certificates/keycloak:/keycloak_certificates
-      - ./debug/tmp:/tmp
+      - test_tmp_dir/tmp:/tmp
     networks:
       - qiita-net
     ports:
@@ -85,7 +85,7 @@ services:
       - MASTER=
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
     volumes:
-      - ./debug/qiita_data/main:/qiita_data
+      - qiita-data:/qiita_data
       - ./logs:/logs
       - ./Configuration/config_qiita_oidc.cfg:/qiita_configurations/qiita_server.cfg:ro
       - ./Configuration/config_portal.cfg:/qiita_configurations/config_portal.cfg:ro
@@ -93,7 +93,7 @@ services:
       - ./references/Certificates/tinqiita:/qiita_certificates
       - ./references/Certificates/keycloak:/keycloak_certificates
       - ./src/qiita:/qiita:U
-      - ./debug/tmp:/tmp
+      - test_tmp_dir:/tmp
     networks:
       - qiita-net
     deploy:
@@ -159,8 +159,7 @@ services:
     volumes:
       # - qiita-data:/qiita_data
       - ./references/Certificates/tinqiita:/qiita_server_certificates
-      - ./debug/tmp:/tmp
-      - ./debug/qiita_data/client:/qiita_data
+      - test_tmp_dir:/tmp
       - ./references/qp-target-gene:/databases/gg/13_8/rep_set
     environment:
       - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
