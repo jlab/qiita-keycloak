@@ -3,9 +3,9 @@
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qtp-job-output-folder
-ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_BRANCH=main
 ARG GIT_PLUGIN_FORK=qiita-spots
-ARG GIT_QIITACLIENT_BRANCH=main
+ARG GIT_QIITACLIENT_BRANCH=master
 ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
