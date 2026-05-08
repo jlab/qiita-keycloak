@@ -1,4 +1,4 @@
-# VERSION: 2026.04.01
+# VERSION: 2026.05.08
 
 FROM ubuntu:24.04
 
@@ -58,7 +58,7 @@ RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.
 	&& cd qiita \
 	&& git config pull.rebase false \
 	&& git config --global user.email "jlab@uni-giessen.de" \
-	&& git config --global user.name "Stefan"
+	&& git config --global user.name "Stefan" 
 
 # should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
 RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
