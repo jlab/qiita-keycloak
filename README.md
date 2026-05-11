@@ -1,5 +1,5 @@
-## Howto start-up qiita through docker compose
-Note: this does currently **not** work with podman :-( So strictly stick to docker here. 
+## Howto start-up qiita through docker compose  
+Note: this does currently **not** work with podman :-( So strictly stick to docker here.
 
 1. We assume you operate on your local computer, i.e. not within the BCF cluster as you won't have docker, on a Ubuntu/Mint like OS. You will need approx. 55 GB free disk space.
 2. Install necessary software (git, docker.io, postgresql-client): `sudo apt-get install git docker.io postgresql-client`
@@ -47,3 +47,10 @@ Remember to:
    4. Edit `config_qiita_oidc.cfg` to fit your local Keycloak configuration, remove # from necessary oidc block, change SUPERSECRETSTRING.
 
 
+# qiita & keycloak
+As Qiita uses keycloak to authenticate users and keycloak is running as a separate service within docker compose, your machine needs to resolve the hostnames "auth.local" and "tinqiita-nginx-1" to 127.0.0.1 (aka "localhost"). Please register them in your /etc/hosts file, i.e. add the block
+```
+127.0.0.1 auth.local
+127.0.0.1 tinqiita-nginx-1
+```
+You also have to do the same to your bare metal machine IF you run qiita, i.e. docker compose within a virtual box. Also forward ports 8383 and 9999 to your bare metal machine!

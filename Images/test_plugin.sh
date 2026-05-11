@@ -2,6 +2,11 @@
 
 echo "plugin to be tested is: '$PLUGIN'"
 
+# by default, clone from master. But can also clone different branches
+branch="${PLUGIN_BRANCH:-master}"
+# by default, clone from qiita-spots branch. But can also use alternative forks
+fork="${PLUGIN_FORK:-qiita-spots}"
+
 # install dependencies
 apt-get update
 apt-get -y --fix-missing install git
@@ -13,7 +18,9 @@ fi;
 
 if [ "qp-qiime2" != "$PLUGIN" ]; then
     # clone plugin repository
-    git clone https://github.com/qiita-spots/${PLUGIN}
+    git clone -b ${branch} https://github.com/${fork}/${PLUGIN};
+    hash=$(git -C "${PLUGIN}" rev-parse HEAD);
+    echo "Clone from '${fork}', branch '${branch}', commit '${hash}'" 1>&2;
 fi;
 
 # NOTE: client api reset only works when communicating with Qitta Master,
@@ -21,7 +28,7 @@ fi;
 # go through nginx!
 
 # fix qiita base url in client
-for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
+for f in `find /usr/local/lib/python*/site-packages/qiita_client/ /usr/local/lib/python*/dist-packages/qiita_client/ /opt/conda/envs/qp-qiime2/lib/python3.8/site-packages/qiita_client/ -name "testing.py"`; do
     sed -i 's|URL = "https://localhost:8383"|URL = "https://tinqiita-qiita-1:21174"|' $f;
 done
 
@@ -43,9 +50,12 @@ done
 export QIITA_PORT=21174
 export QIITA_ROOTCA_CERT=$SSL_CERT_FILE
 
+# either (old) plugins ignore this at all OR adapted plugins switch to https file transfer
+export QIITA_PLUGINCOUPLING=https
+
 # change into plugin source directory and execute actual tests
 if [ "qp-qiime2" == "$PLUGIN" ]; then
-    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiime2; cd ${PLUGIN} && pytest;
+    source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/${PLUGIN}; cd ${PLUGIN} && pytest;
 else
     cd ${PLUGIN} && pytest;
 fi;

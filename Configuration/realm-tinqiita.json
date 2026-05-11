@@ -1,0 +1,127 @@
+{
+  "realm": "tinqiita",
+  "enabled": true,
+  "displayName": "tinqiita realm",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "qiita-user",
+        "description": "Default role for Qiita users"
+      }
+    ]
+  },
+
+  "defaultRoles": [
+    "qiita-user"
+  ],
+
+  "clients": [
+    {
+      "clientId": "tinqiita",
+      "name": "tinqiita Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "SUPERSECRET",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://tinqiita-nginx-1:8383/",
+        "https://tinqiita-nginx-1:8383/auth/login_OIDC/*"
+      ],
+      "webOrigins": [
+        "https://qiita.local:8383",
+        "https://localhost:8383"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "frontchannelLogout": true
+    }
+  ],
+
+  "users": [
+    {
+      "username": "test@foo.bar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "test@foo.bar",
+      "firstName": "test",
+      "lastName": "foo.bar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "shared@foo.bar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "shared@foo.bar",
+      "firstName": "shared",
+      "lastName": "foo.bar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "admin@foo.bar",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@foo.bar",
+      "firstName": "admin",
+      "lastName": "foo.bar",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    },
+    {
+      "username": "demo@microbio.me",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "demo@microbio.me",
+      "firstName": "demo",
+      "lastName": "microbio.me",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "qiita-user"
+      ]
+    }
+  ]
+}

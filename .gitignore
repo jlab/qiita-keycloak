@@ -3,3 +3,6 @@ logs/*
 .built_image_*
 Certificates/*
 references/*
+Configuration/keycloak.env
+Configuration/qiita_db.env
+Configuration/redis.env

@@ -16,28 +16,28 @@ if [ -z "$PLUGIN" ]; then
 fi
 case "$PLUGIN" in
     qp-deblur)
-        STARTSCRIPT=start_deblur
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qp-qiime2)
-        STARTSCRIPT=start_qiime2
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qp-target-gene)
-        STARTSCRIPT=start_target_gene
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-biom)
-        STARTSCRIPT=start_biom
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-diversity)
-        STARTSCRIPT=start_diversity_types
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-job-output-folder)
-        STARTSCRIPT=start_qtp_job_output_folder
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-sequencing)
-        STARTSCRIPT=start_qtp_sequencing
+        STARTSCRIPT=start_$PLUGIN
         ;;
     qtp-visualization)
-        STARTSCRIPT=start_visualization_types
+        STARTSCRIPT=start_$PLUGIN
         ;;
     *)
         echo "unknown qiita plugin $PLUGIN"
@@ -49,7 +49,7 @@ esac
 cd /
 if [ "$PLUGIN" = "qp-qiime2" ]; then
     # as this plugin still uses a conda environment
-    python trigger.py qiime2 $STARTSCRIPT /qp-qiime2 &
+    python trigger.py $PLUGIN $STARTSCRIPT /$PLUGIN &
 elif [ "$PLUGIN" = "qp-target-gene" ]; then
     # as this plugin uses old py27
     python3 trigger.py $STARTSCRIPT &

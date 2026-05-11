@@ -1,10 +1,12 @@
-# VERSION: 2025.09.09
+# VERSION: 2026.05.08
 
 FROM ubuntu:24.04
 
 ARG MINIFORGE_VERSION=24.1.2-0
 ARG MODZIP_VERSION=1.3.0
 ARG NGINX_VERSION=1.26.0
+ARG GIT_QIITA_BRANCH=auth_oidc
+ARG GIT_QIITA_FORK=jlab
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -47,17 +49,21 @@ RUN pip install \
 	psycopg2-binary
 
 
-# Clone the Qiita Repo
+# Clone the Qiita Repo: currently we need the oidc changes from our jlab fork + changes in the tornado_FetchFileFromCentralHandler branch, which send files if requested directly from tornado instead of nginx (happens in testing)
 # RUN git clone -b master https://github.com/qiita-spots/qiita.git
-RUN git clone -b auth_oidc https://github.com/jlab/qiita.git
+ARG CACHEBURST_QIITA=1
+ENV GIT_QIITA_BRANCH=${GIT_QIITA_BRANCH}
+ENV GIT_QIITA_FORK=${GIT_QIITA_FORK}
+RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.git \
+	&& cd qiita \
+	&& git config pull.rebase false \
+	&& git config --global user.email "jlab@uni-giessen.de" \
+	&& git config --global user.name "Stefan" 
 
 # should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
 RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
 RUN sed -i "s|'source ~/virtualenv/python2.7/bin/activate; export PATH=\$HOME/miniconda3/bin/:\$PATH; . activate qtp-biom'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
 RUN sed -i "s|'source activate qiita'|'true'|" /qiita/qiita_db/support_files/populate_test_db.sql
-
-# there seems to be a conflict with parameter names für qp-target-gene. See: https://github.com/qiita-spots/qp-target-gene/issues/24
-RUN sed -i "s|'1.9.1',|'1.9.hide',|" /qiita/qiita_db/support_files/populate_test_db.sql
 
 # We need to install necessary dependencies
 # as well as some extra dependencies for psycopg2 to work
@@ -86,11 +92,15 @@ RUN rm -rf /qiita/qiita_core/support_files
 RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_example.conf /qiita/qiita_pet/support_files/config_portal.cfg
 
 COPY drop_workflows.py /drop_workflows.py
+COPY secure_db.py /secure_db.py
 
 # install aspera client for ENA submission
 RUN conda install hcc::aspera-cli
 
 # something is wired with permissions of the git repo?!
 RUN git config --global --add safe.directory /qiita
+
+# for reference, if user wants to inspect image
+COPY *.dockerfile /
 
 CMD ["/start_qiita.sh"]

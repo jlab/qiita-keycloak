@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - tinqiita
+      - uncouple_clientpush
   push:
     branches:
       - tinqiita
@@ -15,21 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create certificate
-        # second copy of "qiita_server_certificates" is necessary to match path for docker build, first copy for mounting into container
+        # second copy of "./Certificates" is necessary to match path for docker build, first copy for mounting into container
         run: |
-          make ./references/qiita_server_certificates ./environments/qiita_db.env ./environments/qiita.env config
-          cp -r ./references/qiita_server_certificates ./qiita_server_certificates
+          sed -i "s/^SECURE_QIITA_DB = True/SECURE_QIITA_DB = False/" ./Configuration/makefile
+          make ./references/Certificates/tinqiita propagate_configuration
+          cp -r ./references/Certificates ./Certificates
 
       - name: Store certifactes for follow up jobs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: certificates
           path: |
-            ./qiita_server_certificates
-            ./references/qiita_server_certificates
+            ./Certificates
+            ./references/Certificates/tinqiita
+            ./Configuration
 
   build_main:
     needs: make_certificates
@@ -37,66 +40,77 @@ jobs:
       matrix:
         container: ["nginx", "qiita", "plugin_collector"]
     runs-on: ubuntu-latest
+    env:
+      GIT_QIITA_FORK: "jlab"
+      GIT_QIITA_BRANCH: "auth_oidc"
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Read image version from dockerfile
         id: vars
         run: |
           VERSION=$(head -n 1 Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
-          cp Images/start_plugin.sh Images/test_plugin.sh Images/nginx/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
-          cp Images/qiita/config_portal.cfg Images/qiita/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
-          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Images/plugin_collector/stefan_cert.conf Images/plugin_collector/stefan_csr.conf Images/plugin_collector/start_plugin_collector.sh .
+          cp Images/start_plugin.sh Images/test_plugin.sh Configuration/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
+          cp Configuration/config_portal.cfg Configuration/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
+          cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Images/plugin_collector/start_plugin_collector.sh .
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./          
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get commit-hash of qiita
+        run: |
+          echo "CACHEBURST_QIITA=$(git ls-remote https://github.com/$GIT_QIITA_FORK/qiita.git refs/heads/$GIT_QIITA_BRANCH | cut -f1)" >> $GITHUB_ENV
+
       - name: Build main qiita images and push to github's own registry
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
+          build-args: |
+            CACHEBURST_QIITA=${{ env.CACHEBURST_QIITA }}
+            GIT_QIITA_FORK=${{ env.GIT_QIITA_FORK }}
+            GIT_QIITA_BRANCH=${{ env.GIT_QIITA_BRANCH }}
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
 
   make_references:
     needs: build_main
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create partially fake reference databases
         run: |
           mkdir -p ./references/qp-deblur/ ./references/qp-target-gene
-          make ./environments/qiita_db.env ./environments/qiita.env config ./references/qp-deblur/reference-gg-raxml-bl.tre
+          make ./references/qp-deblur/reference-gg-raxml-bl.tre
           for f in `echo "references/qp-target-gene/97_otus.fasta references/qp-target-gene/97_otus.tree references/qp-target-gene/97_otu_taxonomy.txt"`; do echo "fake" > $f; done
 
       - name: Store fake references for follow up jobs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fake_references
           path: |
             ./references/qp-deblur
             ./references/qp-target-gene
-            ./environments
 
   build_plugins:
     needs:
@@ -107,12 +121,17 @@ jobs:
       matrix:
         plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
     runs-on: ubuntu-latest
+    env:
+      GIT_PLUGIN_FORK: "qiita-spots"
+      GIT_PLUGIN_BRANCH: "master"
+      GIT_QIITACLIENT_FORK: "qiita-spots"
+      GIT_QIITACLIENT_BRANCH: "master"
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Read image version from dockerfile
         id: vars
@@ -120,59 +139,107 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
           cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger.py .
+          mkdir -p ./debug
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./
       - name: Download fake references
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fake_references
-          path: ./
+          path: ./references
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get commit-hash of qiita_client and plugin
+        env:
+          GIT_PLUGIN_BRANCH: ${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
+        run: |
+          echo "CACHEBURST_PLUGIN=$(git ls-remote https://github.com/$GIT_PLUGIN_FORK/${{ matrix.plugin }}.git refs/heads/$GIT_PLUGIN_BRANCH | cut -f1)" >> $GITHUB_ENV
+          echo "CACHEBURST_QIITACLIENT=$(git ls-remote https://github.com/$GIT_QIITACLIENT_FORK/qiita_client.git refs/heads/$GIT_QIITACLIENT_BRANCH | cut -f1)" >> $GITHUB_ENV
+
       - name: Build plugin images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
-          load: true
+          build-args: |
+            CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
+            CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
+            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
+            GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
+            GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
+          load: true
+          push: true
+
+      - name: Pull qiita testcandidate image from GHCR
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
 
       - name: adapt compose file to select specific plugin
         run: |
-          sed -i "s/MATRIXPLUGIN/${{ matrix.plugin }}/g" compose_github.yaml
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
+
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
+        uses: hoverkraft-tech/compose-action@v2.6.0
         with:
-          compose-file: "compose_github.yaml"
+          compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Check which qiita and plugin image is actually running
+        run: |
+          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate --format '{{.Id}}'
+      - name: Show docker compose logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
+
+      - name: Inspect plugin container and qiita DB for debugging
+        run: |
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "ls -la /; ls -la /unshared_plugins/; cat /unshared_plugins/*;" || true
+          docker compose exec qiita-db psql -U postgres -d qiita_test -c "SELECT * FROM qiita.software;" || true
 
       - name: Execute tests in the running services
+        env:
+          GIT_PLUGIN_BRANCH: ${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
         run: |
-          sleep 5
-          docker compose exec ${{ matrix.plugin }} /bin/bash -c "bash /test_plugin.sh"
+          sleep 10
+          docker compose exec ${{ matrix.plugin }} /bin/bash -c "PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }} PLUGIN_BRANCH=${{ env.GIT_PLUGIN_BRANCH }} bash /test_plugin.sh"
+
+      - name: Show Debug Logfiles
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug logs
+          path: ./debug
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
+        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
 
   # the qp-qiime2 plugin cannot be tested in isolation, it also needs qtp-diversity and qtp-visualization to be active in qiita
   build_mulit_plugins:
@@ -182,12 +249,17 @@ jobs:
       matrix:
         multiplugin: ["qp-qiime2"]
     runs-on: ubuntu-latest
+    env:
+      GIT_PLUGIN_FORK: "qiita-spots"
+      GIT_PLUGIN_BRANCH: "master"
+      GIT_QIITACLIENT_FORK: "qiita-spots"
+      GIT_QIITACLIENT_BRANCH: "master"
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Read image version from dockerfile
         id: vars
@@ -197,32 +269,46 @@ jobs:
           cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.multiplugin }}/requirements.txt Images/trigger.py .
 
       - name: Download certificates from job build_main
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: certificates
           path: ./
       - name: Download fake references
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fake_references
           path: ./
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get commit-hash of qiita_client and plugin
+        run: |
+          echo "CACHEBURST_PLUGIN=$(git ls-remote https://github.com/$GIT_PLUGIN_FORK/${{ matrix.multiplugin }}.git refs/heads/$GIT_PLUGIN_BRANCH | cut -f1)" >> $GITHUB_ENV
+          echo "CACHEBURST_QIITACLIENT=$(git ls-remote https://github.com/$GIT_QIITACLIENT_FORK/qiita_client.git refs/heads/$GIT_QIITACLIENT_BRANCH | cut -f1)" >> $GITHUB_ENV
+
       - name: Build plugin images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
-          load: true
+          build-args: |
+            CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
+            CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
+            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{  env.GIT_PLUGIN_BRANCH }}
+            GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
+            GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
           tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
           cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
           cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          platforms: linux/amd64
+          load: false
+          push: true
 
       - name: Prune build cache after build (saving disc space)
         run: |
@@ -232,24 +318,55 @@ jobs:
 
       - name: adapt compose file to select specific plugin
         run: |
-          if [[ "${{ matrix.multiplugin }}" == "qp-qiime2" ]]; then sed -i 's|- QIITA_PLUGINS="MATRIXPLUGIN:"|- QIITA_PLUGINS="${{ matrix.multiplugin }}:qtp-diversity:qtp-visualization:"|' compose_github.yaml; sed -i 's|MATRIXPLUGIN:|${{ matrix.multiplugin }}:\n        condition: service_started\n      qtp-diversity:\n        condition: service_started\n      qtp-visualization:|' compose_github.yaml; fi;
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
+
+      - name: Pull qiita testcandidate image from GHCR
+        run: |
+          docker pull postgres:15
+          docker pull redis:latest
+          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qtp-diversity:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qtp-visualization:testcandidate
+
+      - name: Log in to DockerHub Container Registry
+        # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run docker compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
+        uses: hoverkraft-tech/compose-action@v2.6.0
         with:
-          compose-file: "compose_github.yaml"
+          compose-file: "compose.yaml"
           services: |
             nginx
+      - name: Show disk space
+        if: failure()
+        run: |
+          df -h /
+
+      - name: Check which qiita and plugin image is actually running
+        run: |
+          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate --format '{{.Id}}'
+      - name: Show docker compose logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
 
       - name: Execute tests in the running services
         run: |
           sleep 5
-          docker compose exec ${{ matrix.multiplugin }} /bin/bash -c "bash /test_plugin.sh"
+          docker compose exec ${{ matrix.multiplugin }} /bin/bash -c "PLUGIN_FORK=jlab PLUGIN_BRANCH=uncouple_clientpush bash /test_plugin.sh"
 
       - name: Push image to ghcr (only if tests passed)
         if: success()
-        run: |
-          docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
+        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:
@@ -264,17 +381,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to computational.bio registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: harbor.computational.bio.uni-giessen.de
           username: ${{ vars.HARBOR_CB_USERNAME }}
