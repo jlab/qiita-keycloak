@@ -52,8 +52,9 @@ def start_plugin_k8s(pluginname, qiita_server_url, job_id, output_dir):
         name=podname, 
         image=f"harbor.computational.bio.uni-giessen.de/tinqiita/{pluginname}:{k8s_config.tag}",
         image_pull_policy=k8s_config.image_pull_policy,
-        args=[f"./run_{pluginname}.sh", f"{qiita_server_url}", f"{job_id}", f"{output_dir}"],
-        volume_mounts=[client.V1VolumeMount(mount_path=k8s_config.volume_mount_path, name=k8s_config.volume_name)])
+        args=[f"start_{pluginname}", f"{qiita_server_url}", f"{job_id}", f"{output_dir}"],
+        volume_mounts=[client.V1VolumeMount(mount_path=k8s_config.volume_mount_path, name=k8s_config.volume_name)],
+        env=[client.V1EnvVar(name='QIITA_PLUGINCOUPLING', value='filesystem')])
     pod = client.V1PodTemplateSpec(
         metadata=client.V1ObjectMeta(name=podname, labels={"app": f"{pluginname}"}),
         spec=client.V1PodSpec(
