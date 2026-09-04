@@ -1,4 +1,4 @@
-# VERSION: 2026.05.08
+# VERSION: 2026.09.04
 
 FROM ubuntu:24.04
 
@@ -10,6 +10,11 @@ ARG GIT_QIITA_FORK=jlab
 
 ENV CONDA_DIR=/opt/conda
 ENV PATH=${CONDA_DIR}/bin:${PATH}
+
+# no creation of *.pyc within container
+ENV PYTHONDONTWRITEBYTECODE=1
+# no buffering to capture STDERR/STDOUT via kubernetes
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get -y update
 # install following packages for nginx compilation: libpcre2-dev, libxslt-dev and libgd-dev
@@ -46,7 +51,8 @@ RUN pip install \
 	nose-timer \
 	Click \
 	coverage \
-	psycopg2-binary
+	psycopg2-binary \
+	kubernetes
 
 
 # Clone the Qiita Repo: currently we need the oidc changes from our jlab fork + changes in the tornado_FetchFileFromCentralHandler branch, which send files if requested directly from tornado instead of nginx (happens in testing)
@@ -93,6 +99,13 @@ RUN rm -f /qiita/qiita_pet/nginx_example.conf /qiita/qiita_pet/supervisor_exampl
 
 COPY drop_workflows.py /drop_workflows.py
 COPY secure_db.py /secure_db.py
+
+# config manager + default values for k8s parameters
+COPY k8sconfig_manager.py /k8sconfig_manager.py
+COPY k8s_config.cfg /k8s_config.cfg
+# branding for Giessen University
+COPY n4mqiitalogo.png /qiita/qiita_pet/static/img/logo-clear.png
+COPY termsofservice.html /qiita/qiita_pet/static/qiita_data_terms_of_use.html
 
 # install aspera client for ENA submission
 RUN conda install hcc::aspera-cli
