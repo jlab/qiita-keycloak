@@ -57,6 +57,7 @@ jobs:
           cp Images/start_plugin.sh Images/test_plugin.sh Configuration/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
           cp Configuration/config_portal.cfg Configuration/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Images/plugin_collector/start_plugin_collector.sh .
+          cp Images/qiita/k8sconfig_manager.py Configuration/k8s_config.cfg Configuration/n4mqiitalogo.png Configuration/termsofservice.html .
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v8
