@@ -7,12 +7,6 @@ HELP_EMAIL = foo@tinqiita.com
 # The email address, Qiita sends internal notifications to a sys admin
 SYSADMIN_EMAIL = jeff@tinqiita.com
 
-# Secure DB: by default, qiita's postgres DB is initialized with some users
-# whose password is "password" - also mentioned in qiita's code base.
-# Furthermore, API db reset is possibe. Both issues will be fixed if
-# SECURE_QIITA_DB = True, for testing SECURE_QIITA_DB = False is necessary.
-SECURE_QIITA_DB = False
-
 
 # Communication between qiita main (this is all services but the plugins) and
 # the multiple qiita plugins need verification for both directions:
@@ -90,10 +84,6 @@ propagate_configuration: config_keycloak $(DIR_REFERENCES)/Certificates/tinqiita
 		echo "POSTGRES_USER=$$user" > Configuration/qiita_db.env; \
 		echo "POSTGRES_PASSWORD=$$pp" >> Configuration/qiita_db.env; \
 		echo "POSTGRES_DATABASE=$$dbname" >> Configuration/qiita_db.env; \
-		echo "SECURE_QIITA_DB=$(SECURE_QIITA_DB)" >> Configuration/qiita_db.env; \
-		if [ "$(SECURE_QIITA_DB)" = "True" ]; then \
-			echo "QIITA_USER_DEFAULT_PWD=$$pwp_qiitauser" >> Configuration/qiita_db.env; \
-		fi; \
 	fi
 
 	# set redis password

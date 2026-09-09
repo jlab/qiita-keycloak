@@ -5,11 +5,10 @@ name: docker
 on:
   pull_request:
     branches:
-      - tinqiita
-      - uncouple_clientpush
+      - main
   push:
     branches:
-      - tinqiita
+      - main
 
 jobs:
   make_certificates:
