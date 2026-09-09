@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+
+import re
+import os
+import sys
+import time
+import subprocess
+import argparse
+
+
+def read_slurm_script(fp_slurm_script):
+    # read information from slurm script
+    meta = {}
+    cmds = []
+    shebang = None
+    with open(fp_slurm_script, 'r') as f:
+        for line in f.readlines():
+            if line.startswith('#SBATCH'):
+                parts = re.split(r"\s+|=", line.strip())
+                if parts[1] in ['--output', '--error', '--array', 
+                                '--job-name', '-n']:
+                    key = parts[1][2:]
+                    key = {'n': 'num_cores'}.get(key, key)
+                    meta[key] = parts[-1]
+            elif not line.startswith('#'):
+                cmds.append(line.strip())
+            elif line.startswith('#!'):
+                shebang = line.strip()
+    return {'shebang': shebang, 'meta': meta, 'commands': cmds}
+
+
+def slurm2parallel(data):
+    num_tasks = 1
+    if 'array' in data['meta'].keys():
+        num_tasks = int(data['meta']['array'].split('%')[0].split('-')[-1]) + 1
+    num_allowed_cores = len(os.sched_getaffinity(0))
+    num_parallel_jobs = max(
+        1, num_allowed_cores // data["meta"].get('num_cores', 999))
+
+    pcmd = "parallel -j %i '\n" % num_parallel_jobs
+
+    # map parallels task array ID to slurm's
+    pcmd += 'export SLURM_ARRAY_TASK_ID={}\n'
+
+    # redirect STDOUT and STDERR
+    if 'output' in data["meta"].keys():
+        pcmd += 'exec 1>%s\n' % data["meta"]['output'].replace(
+            '%a', '${SLURM_ARRAY_TASK_ID}')
+    if 'error' in data["meta"].keys():
+        pcmd += 'exec 2>%s\n' % data["meta"]['error'].replace(
+            '%a', '${SLURM_ARRAY_TASK_ID}')
+
+    for cmd in data['commands']:
+        # plugin fails if conda environment name is empty, but in local
+        # execution, there is also no cmd called "dummy"
+        if cmd == 'dummy':
+            continue
+
+        cmd = cmd.replace('${SLURM_JOBID}', data["meta"]['job-name'])
+
+        # cap number of threads for bowtie2 to max the allowed ones
+        if cmd.startswith('bt2_cores='):
+            try:
+                parts = cmd.split('=')
+                num_btcores = int(parts[-1])
+                if num_btcores > num_allowed_cores:
+                    num_btcores = num_allowed_cores
+                cmd = '='.join([parts[0], str(num_btcores)])
+            except:
+                pass
+
+        # cap number if script internal parallels -j use to max allowed cores
+        if 'parallel' in cmd:
+            def replace_jobs(match):
+                num_jobs = int(match.group(3))
+                if num_jobs > num_allowed_cores:
+                    num_jobs = num_allowed_cores
+                return f"{match.group(1)}{match.group(2) or ' '}{num_jobs}"
+            cmd = re.sub(r"(-j|--jobs)(\s+|=)?(\d+)", replace_jobs, cmd)
+
+        # fix sed escaping
+        cmd = cmd.replace("'s/$/\t*\t*/'", '"s/$/\\t*\\t*/"')
+
+        pcmd += cmd + "\n"
+
+    pcmd += "' ::: {1..%i}" % num_tasks
+
+    return pcmd
+
+def wait_for_pid(pid, pollinterval=1):
+    """Blocks until a job with given PID has exited."""
+    while True:
+        try:
+            # signal 0 doesn't change anything, just checks if process is alive
+            os.kill(pid, 0)
+            time.sleep(pollinterval)
+        except ProcessLookupError:
+            break
+        except PermissionError:
+            time.sleep(pollinterval)
+
+# parse command line arguments
+parser = argparse.ArgumentParser(
+    description=("A hacky option to translate a slurm batch job into "
+                 "something executed locally via 'parallel'"))
+# to be compatible to slurm
+parser.add_argument(
+    "-d", "--dependency",
+    help="provides information IF job execution should be e.g. delayed until other PID is completed"
+)
+parser.add_argument(
+    "-n", "--dryrun",
+    action="store_true",
+    help="Print commands to be executed, but don't execute."
+)
+parser.add_argument(
+    "script",
+    help="Slurm sbatch script to be execute locally"
+)
+args = parser.parse_args()
+
+# obtain dependent PID
+dependency_pid = None
+if args.dependency and args.dependency.startswith('afterok:'):
+    try:
+        dependency_pid = int(args.dependency.split(':')[1])
+    except ValueError:
+        print(f"[fake sbatch] invalid PID: {args.dependency}", file=sys.stderr)
+
+# main
+data = read_slurm_script(args.script)
+pcmd = slurm2parallel(data)
+
+if args.dryrun:
+    print(pcmd)
+else:
+    pid = os.fork()
+    if pid == 0:
+        # child process
+        os.setsid()
+
+        # redirect stdin/stdout/stderr to /dev/null
+        devnull = os.open(os.devnull, os.O_RDWR)
+        os.dup2(devnull, sys.stdin.fileno())
+        os.dup2(devnull, sys.stdout.fileno())
+        os.dup2(devnull, sys.stderr.fileno())
+        os.close(devnull)
+
+        if dependency_pid is not None:
+            wait_for_pid(dependency_pid)
+        subprocess.run(pcmd, shell=True,
+                       executable=data['meta'].get('shebang', "/bin/bash"))
+        sys.exit(0)
+    else:
+        # parent process
+        print(pid)

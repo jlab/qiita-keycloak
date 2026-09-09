@@ -80,4 +80,10 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder
+.built_image_qp-woltka: Images/qp-woltka/qp-woltka.dockerfile Images/qp-woltka/requirements.txt local_sbatch/sbatch
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+	touch .built_image_`basename $< | cut -d "." -f 1`
+
+images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder .built_image_qp-woltka

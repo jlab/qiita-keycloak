@@ -23,6 +23,67 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
 	rm -rf $(DIR_REFERENCES)/tmp_sepp/
 
+$(DIR_REFERENCES)/qp-woltka/wol:
+	mkdir -p `dirname $@`
+	wget -q -O - https://github.com/qiita-spots/qp-woltka/raw/refs/heads/main/qp_woltka/databases/woltka/rep82.tar.gz | tar xvz -C `dirname $@`
+	wget -q -O - https://github.com/qiita-spots/qp-woltka/raw/refs/heads/main/qp_woltka/databases/woltka/wol.tar.gz | tar xvz -C `dirname $@`
+
+$(DIR_REFERENCES)/qp-woltka/wol_107:
+	mkdir -p $@/tmp
+	# cd $@/tmp && wget https://raw.githubusercontent.com/qiyunzhu/woltka/refs/heads/main/woltka/tests/data/taxonomy/nucl/nucl2g.txt
+	cd $@/tmp && while IFS= read -r entry; do \
+		acc=`echo "$$entry" | cut -f 1`; \
+		gid=`echo "$$entry" | cut -f 2`; \
+		if [ ! -f $${acc}.fasta ]; then \
+			wget -O $${acc}.fasta "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=$${acc}&db=nuccore&report=fasta&retmode=text"; \
+		fi; \
+		if [ ! -f $${acc}.fasta.mapped ]; then \
+			echo ">$$gid" > $${acc}.fasta.mapped; \
+			tail -n +2 $${acc}.fasta >> $${acc}.fasta.mapped; \
+ 		fi; \
+	done < nucl2g.txt;
+	cd $@/tmp && \
+		if [ ! -f all107.fasta ]; then \
+			cat *.fasta.mapped > all107.fasta; \
+		fi;
+	cd $@ && \
+		if [ ! -f wol_107.4.bt2 ]; then \
+			bowtie2-build -f --threads `nproc --ignore 1` tmp/all107.fasta ./wol_107; \
+		fi;
+	cd $@/tmp && \
+		if [ ! -d woltka ]; then \
+			git clone https://github.com/qiyunzhu/woltka.git; \
+			git clone https://github.com/qiyunzhu/utils.git; \
+		fi;
+	cd $@ && \
+		cp -vfr tmp/woltka/woltka/tests/data/taxonomy/lineages.txt $(notdir $@).tax; \
+		mkdir -p genomes; \
+		cp -vfr tmp/woltka/woltka/tests/data/taxonomy/length.map genomes/length.map; \
+		xz -dc tmp/woltka/woltka/tests/data/function/coords.txt.xz > $(notdir $@).coords; \
+		mkdir -p function/kegg/raw; \
+		for file in `echo "compound_name.txt disease_name.txt ko-to-cog.map ko-to-disease.map ko-to-ec.map ko-to-go.map ko-to-module.map ko-to-pathway.map ko-to-reaction.map ko_name.txt module-to-class.map module-to-compound.map module-to-ko.map module-to-pathway.map module-to-reaction.map module_name.txt orf-to-ko.map.md5 orf-to-ko.map.xz pathway-to-class.map pathway-to-compound.map pathway-to-disease.map pathway-to-ko.map pathway-to-module.map pathway_name.txt rclass_name.txt reaction-to-ko.map reaction-to-left_compound.map reaction-to-module.map reaction-to-pathway.map reaction-to-rclass.map reaction-to-right_compound.map reaction_enzyme.txt reaction_equation.txt reaction_name.txt raw/kofamscan.tsv.md5 raw/kofamscan.tsv.xz"`; do \
+			if [ ! -f function/kegg/$$file ]; then \
+				wget -O function/kegg/$$file https://ftp.microbio.me/pub/wol2/function/kegg/$$file; \
+			fi; \
+		done; \
+		echo "ende"
+		
+
+stefan:
+		cp -vf tmp/woltka/woltka/tests/data/tree.nwk; \
+		cp -vfr tmp/woltka/woltka/tests/data/taxonomy/*; \
+		cp -vfr tmp/woltka/woltka/tests/data/function; \
+
+# WARNING: this DB is huge ~90GB!
+$(DIR_REFERENCES)/qp-woltka/WoLr2:
+	mkdir -p $@
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.1.bt2l
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.2.bt2l
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.3.bt2l
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.4.bt2l
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.rev.1.bt2l
+	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.rev.2.bt2l
+
 clean: clean_config
 	rm -f .built_image_*
 	rm -rf $(DIR_REFERENCES)
