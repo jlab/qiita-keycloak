@@ -1,8 +1,12 @@
-# VERSION: 2026.02.17
+# VERSION: 2026.05.08
 
 # variables, specifically for this plugin
 # qiita plugin name
 ARG PLUGIN=qtp-diversity
+ARG GIT_PLUGIN_BRANCH=master
+ARG GIT_PLUGIN_FORK=qiita-spots
+ARG GIT_QIITACLIENT_BRANCH=master
+ARG GIT_QIITACLIENT_FORK=qiita-spots
 
 # variables, identical for whole qiita setup
 ARG QIITA_PLUGINS_DIR=/unshared_plugins
@@ -20,6 +24,10 @@ ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
 ARG CONDA_DIR
 ARG QIIME2RELEASE=2022.11
+ARG GIT_PLUGIN_BRANCH
+ARG GIT_PLUGIN_FORK
+ARG GIT_QIITACLIENT_BRANCH
+ARG GIT_QIITACLIENT_FORK
 
 ARG MINIFORGE_VERSION=24.1.2-0
 ENV PATH=${CONDA_DIR}/bin:${PATH}
@@ -68,8 +76,11 @@ SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
 
 # Install qiita_client
 # RUN pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+ARG CACHEBURST_QIITACLIENT=1
+ENV GIT_QIITACLIENT_BRANCH=${GIT_QIITACLIENT_BRANCH}
+ENV GIT_QIITACLIENT_FORK=${GIT_QIITACLIENT_FORK}
 RUN pip install -U pip && \
-	git clone -b refactor_exposeBaseDataDir https://github.com/jlab/qiita_client.git && \
+	git clone -b ${GIT_QIITACLIENT_BRANCH} https://github.com/${GIT_QIITACLIENT_FORK}/qiita_client.git && \
 	cd qiita_client && \
 	pip install --no-cache-dir .
 
@@ -81,7 +92,11 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 
 # Install qiita plugin
 #RUN pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
-RUN git clone -b uncouple_clientpush  https://github.com/jlab/${PLUGIN}.git /${PLUGIN}
+ARG CACHEBURST_PLUGIN=1
+ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
+ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
+RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py && \
 	sed -i "s|'qiita-spots/qiita-files/archive/master.zip',||" setup.py && \
@@ -126,11 +141,14 @@ ARG CONDA_DIR
 # let the container know it's plugin name
 ENV PLUGIN=${PLUGIN}
 
-# python package compile in build stage
-COPY --from=builder /wheels /wheels
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+	pip install --no-cache-dir /wheels/* \
+	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy` \
+	# for smaller docker container: strip *.so libraries
+	&& apt-get update && apt-get install binutils -y --no-install-recommends \
+	&& find /usr/local/lib/python3.8/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
+	&& apt-get purge -y binutils && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir /wheels/* \
-	&& rm -rf rm -rf `find /usr/local/lib/python3.8/site-packages -type d -name "tests" | grep -v numpy`
 
 RUN ln -s /usr/local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0 /lib/x86_64-linux-gnu/libgomp.so.1
 
