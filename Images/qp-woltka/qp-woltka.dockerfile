@@ -161,7 +161,7 @@ RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 
 
 # install tornado based trigger layer in base environment
-RUN pip install -U --no-cache-dir tornado pip-system-certs
+RUN pip install -U --no-cache-dir tornado pip-system-certs ruamel.yaml kubernetes
 
 # use git branch instead of pypi version (stored via wheel)
 COPY --from=builder /qiita_client /qiita_client
@@ -193,6 +193,9 @@ RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 
 # copy http listener
 COPY trigger.py /trigger.py
+# config manager + default values for k8s parameters
+COPY k8sconfig_manager.py /k8sconfig_manager.py
+COPY k8s_config.cfg /k8s_config.cfg
 
 # for job execution
 COPY start_plugin.sh .
