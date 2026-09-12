@@ -52,7 +52,7 @@ def slurm2parallel(data):
         num_tasks = int(data['meta']['array'].split('%')[0].split('-')[-1]) + 1
     num_allowed_cores = len(os.sched_getaffinity(0))
     num_parallel_jobs = max(
-        1, num_allowed_cores // data["meta"].get('num_cores', 999))
+        1, num_allowed_cores // int(data["meta"].get('num_cores', 999)))
 
     pcmd = "parallel -j %i '\n" % num_parallel_jobs
 
@@ -137,6 +137,14 @@ def argo_job2template(jobname, data, image, k8s_config):
     inline_liste = CommentedSeq(["/bin/bash", "-c"])
     inline_liste.fa.set_flow_style()
 
+    # redirect STDOUT and STDERR
+    if 'output' in data["meta"].keys():
+        data['commands'].insert(0, 'exec 1>%s' % data["meta"]['output'].replace(
+            '%a', '{{inputs.parameters.batch}}'))
+    if 'error' in data["meta"].keys():
+        data['commands'].insert(0, 'exec 2>%s' % data["meta"]['error'].replace(
+            '%a', '{{inputs.parameters.batch}}'))
+
     def _replace_variables(text, data):
         text = text.replace(data['meta']['job-name'], '{{workflow.parameters.job-id}}')
         text = text.replace('${SLURM_JOBID}', '{{workflow.name}}')
@@ -159,7 +167,7 @@ def argo_job2template(jobname, data, image, k8s_config):
         ]}
     if os.environ['PLUGIN'] == 'qp-woltka':
         tpl['container']['volumeMounts'].append(
-            {'name': k8s_config.volume_name, 'mountPath': '/databases', 'subPath': 'reference/qp-woltka'})
+            {'name': k8s_config.volume_name, 'mountPath': '/databases', 'subPath': 'references/qp-woltka'})
 
     resources = dict()
     for resource in ['num_cores', 'mem']:
@@ -225,7 +233,8 @@ def argo_slurm2workflow(jobs:List[Tuple[str, Dict]], image:str, k8s_config):
     argo['apiVersion'] = "argoproj.io/v1alpha1"
     argo['kind'] = "Workflow"
     argo['metadata'] = {'generateName': os.path.basename(image).split(':')[0]}
-    argo['spec'] = {'entrypoint': 'qiita-pipeline', 
+    argo['spec'] = {'entrypoint': 'qiita-pipeline',
+                    'serviceAccountName': 'qiita-plugin-starter-svc',
                     'arguments': {'parameters': [{'name': 'job-id', 'value': jobs[0][1]['meta']['job-name']}]},
                     'volumes': [{'name': k8s_config.volume_name, 'persistentVolumeClaim': {'claimName': k8s_config.pvc_name}}],
                     'templates': [{'name': 'qiita-pipeline', 'dag': {'tasks': []}}]}
@@ -296,11 +305,11 @@ def main_argo():
     # load existing jobs
     for fp_job in sorted(glob(os.path.join(FP_STACK, '*.sbatch'))):
         data = read_slurm_script(fp_job)
-        jobs.append((data['meta']['job-name'], data))
+        jobs.append(('job-' + data['meta']['job-name'], data))
 
     # load current job
     data = read_slurm_script(args.script)
-    jobs.append((data['meta']['job-name'], data))
+    jobs.append(('job-' + data['meta']['job-name'], data))
 
     # stack current to existing job for future calls
     if args.dryrun is not True:
