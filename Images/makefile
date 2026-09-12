@@ -80,7 +80,7 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-.built_image_qp-woltka: Images/qp-woltka/qp-woltka.dockerfile Images/qp-woltka/requirements.txt local_sbatch/sbatch
+.built_image_qp-woltka: Images/qp-woltka/qp-woltka.dockerfile Images/qp-woltka/requirements.txt local_sbatch/sbatch Configuration/k8s_config.cfg Images/qiita/k8sconfig_manager.py
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
