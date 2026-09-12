@@ -184,7 +184,7 @@ RUN mkdir -p ${QC_WOLTKA_DB_DP}/wol ${QC_WOLTKA_DB_DP}/rep82 && \
 
 # setup qiita plugin
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
-ENV ENVIRONMENT='dummy'
+ENV ENVIRONMENT='true'
 RUN mkdir -p ${QIITA_PLUGINS_DIR}/ && \
 	ln -s /usr/local/bin/configure_woltka /usr/local/bin/configure_${PLUGIN} && \
     ln -s /usr/local/bin/start_woltka /usr/local/bin/start_${PLUGIN} && \
