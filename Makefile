@@ -74,15 +74,27 @@ stefan:
 		cp -vfr tmp/woltka/woltka/tests/data/taxonomy/*; \
 		cp -vfr tmp/woltka/woltka/tests/data/function; \
 
-# WARNING: this DB is huge ~90GB!
+# WARNING: this DB is huge ~90GB! KEGG is same as above wol_107
 $(DIR_REFERENCES)/qp-woltka/WoLr2:
 	mkdir -p $@
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.1.bt2l
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.2.bt2l
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.3.bt2l
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.4.bt2l
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.rev.1.bt2l
-	wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/WoLr2.rev.2.bt2l
+	for file in `echo "WoLr2.1.bt2l WoLr2.2.bt2l WoLr2.3.bt2l WoLr2.4.bt2l WoLr2.rev.1.bt2l WoLr2.rev.2.bt2l"`; do \
+		if [ ! -f $@/$$file ]; then \
+			wget -q -P $@/ https://ftp.microbio.me/pub/wol2/databases/bowtie2/$$file; \
+		fi; \
+	done; \
+	file=$(notdir $@).tax; if [ ! -f $$file ]; then \
+		wget -q -O $$file https://ftp.microbio.me/pub/wol2/taxonomy/lineages.txt; \
+	fi; \
+	file=$@/genomes/length.map; if [ ! -f $$file ]; then \
+		mkdir -p `dirname $$file`; \
+		cat $(notdir $@).tax | cut -f 1 > gids.txt.tmp; \
+		wget -q https://biocore.github.io/wol/data/genomes/metadata.ext.tsv.xz -O - | xz -dc | cut -f 1,37 | grep -f gids.txt.tmp > $$file; \
+		rm gids.txt.tmp; \
+	fi; \
+	file=$(notdir $@).coords; if [ ! -f $$file ]; then \
+		wget -q https://ftp.microbio.me/pub/wol2/proteins/coords.txt.xz -O - | xz -dc > $$file; \
+	fi;
+
 
 clean: clean_config
 	rm -f .built_image_*
