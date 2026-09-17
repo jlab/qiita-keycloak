@@ -112,6 +112,24 @@ $(DIR_REFERENCES)/qp-woltka/RS225:
 		wget -q https://ftp.microbio.me/pub/RS225/length.map -O - > $$file; \
 	fi;
 
+
+syndna:
+	cd $(DIR_REFERENCES)/qp-woltka; \
+	tmp=`mktemp -d`; \
+	if [ ! -f pUC57.1.bt2 ]; then \
+		wget -O $$tmp/pUC57.fasta "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=Y14837.1&db=nuccore&report=fasta&retmode=text"; \
+		bowtie2-build -f --threads `nproc --ignore 1` $$tmp/pUC57.fasta $(DIR_REFERENCES)/qp-woltka/pUC57; \
+	fi; \
+	if [ ! -f CP026085.1.bt2 ]; then \
+		wget -O $$tmp/CP026085.fasta "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=CP026085&db=nuccore&report=fasta&retmode=text"; \
+		bowtie2-build -f --threads `nproc --ignore 1` $$tmp/CP026085.fasta $(DIR_REFERENCES)/qp-woltka/CP026085; \
+	fi; \
+	if [ ! -f synDNA.1.bt2 ]; then \
+		bowtie2-build -f --threads `nproc --ignore 1` /syndna.fasta $(DIR_REFERENCES)/qp-woltka/synDNA; \
+	fi; \
+	rm -rf $$tmp
+
 	
 # a target to make all databases
-$(DIR_REFERENCES)/qp-woltka: $(DIR_REFERENCES)/qp-woltka/wol $(DIR_REFERENCES)/qp-woltka/rep82 $(DIR_REFERENCES)/qp-woltka/wol_107 $(DIR_REFERENCES)/qp-woltka/WoLr2 $(DIR_REFERENCES)/qp-woltka/RS225
+$(DIR_REFERENCES)/qp-woltka: $(DIR_REFERENCES)/qp-woltka/wol $(DIR_REFERENCES)/qp-woltka/rep82 $(DIR_REFERENCES)/qp-woltka/wol_107 $(DIR_REFERENCES)/qp-woltka/WoLr2 $(DIR_REFERENCES)/qp-woltka/RS225 syndna
+

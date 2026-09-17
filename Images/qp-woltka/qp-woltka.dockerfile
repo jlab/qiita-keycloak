@@ -224,6 +224,9 @@ COPY *.dockerfile /
 # add our little python script that simulates a SLURM cluster
 COPY sbatch /bin/sbatch
 
+# for synDNA mapping, see https://journals.asm.org/doi/10.1128/msystems.00447-22
+COPY syndna.fasta /syndna.fasta
+
 # integrated tests for presence of binaries
 # if this chain of commands fails, it is most likely that one of the binaries
 # is missing in the container!
