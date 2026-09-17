@@ -44,8 +44,8 @@ RUN apt-get -y update && \
 
 ARG SEQKIT_VERSION=2.8.2
 RUN cd / \
-	&& wget https://github.com/BenLangmead/bowtie2/releases/download/v2.5.0/bowtie2-2.5.0-linux-x86_64.zip \
-    && unzip bowtie2-2.5.0-linux-x86_64.zip \
+	&& wget https://github.com/BenLangmead/bowtie2/releases/download/v2.5.4/bowtie2-2.5.4-linux-x86_64.zip \
+    && unzip bowtie2-2.5.4-linux-x86_64.zip \
     && wget -q https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz \
     && tar -xzf seqkit_linux_amd64.tar.gz -C /usr/local/bin/ seqkit \
     && rm seqkit_linux_amd64.tar.gz
@@ -60,7 +60,7 @@ RUN wget --no-verbose https://github.com/conda-forge/miniforge/releases/download
 	rm -f /tmp/miniforge3.sh
 
 # Create conda env
-RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom-format bowtie2==2.5.0 seqkit
+RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom-format bowtie2==2.5.4 seqkit
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
@@ -106,7 +106,7 @@ RUN git clone -b main https://github.com/qiita-spots/${PLUGIN}.git /${PLUGIN} \
 RUN woltka_version=`woltka --version` && \
 	bowtie2_version=`bowtie2 --version` && \
 	if [[ $woltka_version != *"0.1.7"* ]]; then echo "wrong woltka version", $woltka_version; exit 1; fi && \
-	if [[ $bowtie2_version != *"2.5.0"* ]]; then echo "wrong bowtie2 version", $bowtie2_version; exit 1; fi
+	if [[ $bowtie2_version != *"2.5.4"* ]]; then echo "wrong bowtie2 version", $bowtie2_version; exit 1; fi
 
 COPY requirements.txt ./requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
@@ -130,21 +130,24 @@ ARG CONDA_DIR
 ENV PLUGIN=${PLUGIN}
 
 # copy bowtie2 binaries from build stage
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2 /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-align-l /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-align-s /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build-l /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-build-s /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-l /usr/bin/
-COPY --from=builder /bowtie2-2.5.0-linux-x86_64/bowtie2-inspect-s /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2 /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-align-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-align-s /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-build /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-build-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-build-s /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-inspect /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-inspect-l /usr/bin/
+COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-inspect-s /usr/bin/
 COPY --from=builder /usr/local/bin/seqkit /usr/local/bin/
 COPY --from=builder /usr/local/bin/sam_filter /usr/local/bin/sam_filter
 
+# unzip and wget are necessary for creation of reference DBs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     parallel \
 	seqkit \
+	unzip \
+	wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -178,9 +181,21 @@ ENV SSL_CERT_FILE=${QIITA_CERT_DIR}/tinqiita_server_certificates.pem
 ENV QC_WOLTKA_DB_DP=/databases/
 ENV QC_WOLTKA_SYNDNA_DB_DP=/databases/synDNA
 # fake presence of databases, which get later mounted to the container
-RUN mkdir -p ${QC_WOLTKA_DB_DP}/wol ${QC_WOLTKA_DB_DP}/rep82 && \
+# Otherwise, you need to update qiita's postgres DB such that plugin parameters recognize
+# additional databases, by
+# a) determine the software_id of qp-woltka: (12 in the example)
+#     SELECT software_id FROM qiita.software WHERE name='qp-woltka';
+# b) determine command_id of the mapping step:  (101 in the example)
+#     SELECT command_id FROM qiita.software_command WHERE software_id=12 AND description='Functional and Taxonomic Predictions';
+# c) add another filepath to the according parameter set of the command:
+#     INSERT INTO qiita.default_parameter_set (command_id, parameter_set_name, parameter_set) VALUES (101, 'WoLr2', '{"Database": "/databases/WoLr2/WoLr2"}');
+# d) add this new filepath to the available values to select from:
+#    UPDATE qiita.command_parameter SET parameter_type = 'choice:' || (substring(parameter_type from 8)::jsonb || '["/databases/WoLr2/WoLr2"]'::jsonb)::text WHERE command_id = 101 AND parameter_name = 'Database';
+RUN mkdir -p ${QC_WOLTKA_DB_DP}/wol ${QC_WOLTKA_DB_DP}/rep82 ${QC_WOLTKA_DB_DP}/WoLr2 ${QC_WOLTKA_DB_DP}/RS225 && \
 	touch ${QC_WOLTKA_DB_DP}/wol/WoLmin.1.bt2 && \
-	touch ${QC_WOLTKA_DB_DP}/rep82/5min.1.bt2
+	touch ${QC_WOLTKA_DB_DP}/rep82/5min.1.bt2 && \
+	touch ${QC_WOLTKA_DB_DP}/WoLr2/WoLr2.1.bt2l && \
+	touch ${QC_WOLTKA_DB_DP}/RS225/RS225.1.bt2l
 
 # setup qiita plugin
 ENV QIITA_PLUGINS_DIR=${QIITA_PLUGINS_DIR}
@@ -224,7 +239,7 @@ RUN grep --version | grep "GNU grep" \
     && awk --version | grep "mawk " \
     && xz --version | grep "XZ Utils" \
 	&& mxdx --help | grep "multiplexing and demultiplexing" \
-	&& bowtie2 --version | grep "version 2.5.0" \
+	&& bowtie2 --version | grep "version 2.5.4" \
 	&& seqkit --help | grep "Version: 2." \
 	&& micov --help | grep "microbiome coverage"
 	
