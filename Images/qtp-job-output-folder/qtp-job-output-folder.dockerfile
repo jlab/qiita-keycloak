@@ -108,6 +108,9 @@ ENV PLUGIN=${PLUGIN}
 RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 	pip install --no-cache-dir /wheels/* \
 	&& rm -rf rm -rf `find /usr/local/lib/python3.6/site-packages -type d -name "tests" | grep -v numpy` \
+	# debian 11 is outdated by now
+	&& rm -f /etc/apt/sources.list.d/* \
+	&& sed -i '/bullseye-security/d' /etc/apt/sources.list \
 	# for smaller docker container: strip *.so libraries
 	&& apt-get update && apt-get install binutils -y --no-install-recommends \
 	&& find /usr/local/lib/python3.6/site-packages -name "*.so" -exec strip --strip-unneeded {} + || true \
