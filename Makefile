@@ -24,7 +24,6 @@ $(DIR_REFERENCES)/qp-deblur/reference-gg-raxml-bl.tre:
 	cp $(DIR_REFERENCES)/tmp_sepp/share/fragment-insertion/ref/* $(DIR_REFERENCES)/qp-deblur/
 	rm -rf $(DIR_REFERENCES)/tmp_sepp/
 
-
 clean: clean_config
 	rm -f .built_image_*
 	rm -rf $(DIR_REFERENCES)
@@ -35,10 +34,5 @@ all: propagate_configuration images
 run-harbor: propagate_configuration
 	# use harbor images instead of locally built ones
 	sed -i "s|image: local-\(.*\)\(:\?\)|image: harbor.computational.bio.uni-giessen.de/tinqiita/\1\2|" compose.yaml
-
-	# let plugin_collector know that it should also set postgres qiita DB test to False
-	if ! grep -q SECURE_QIITA_DB Configuration/qiita_db.env; then \
-		echo "SECURE_QIITA_DB=True" >> Configuration/qiita_db.env; \
-	fi;
 
 	#docker compose -f compose.yaml up
