@@ -50,7 +50,7 @@ esac
     
 # start tornado server and safe PID in variable
 cd /
-if [ "$PLUGIN" = "qp-qiime2" ] || [ "$PLUGIN" = "qp-woltka" ]; then
+if [ "$PLUGIN" = "qp-qiime2" ]; then
     # as this plugin still uses a conda environment
     python trigger.py $PLUGIN $STARTSCRIPT /$PLUGIN &
 elif [ "$PLUGIN" = "qp-target-gene" ]; then

@@ -7,8 +7,23 @@ import time
 import subprocess
 import argparse
 
+from glob import glob
+from typing import List, Tuple, Dict
+import shutil
+
+import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedSeq
+from ruamel.yaml.scalarstring import LiteralScalarString
+from kubernetes import client, config
+
+import sys
+sys.path.insert(0, "/")
+from k8sconfig_manager import K8SConfigurationManager
+
 
 def read_slurm_script(fp_slurm_script):
+    print("reading slurm script '%s'" % os.path.abspath(fp_slurm_script), file=sys.stderr)
     # read information from slurm script
     meta = {}
     cmds = []
@@ -18,8 +33,10 @@ def read_slurm_script(fp_slurm_script):
             if line.startswith('#SBATCH'):
                 parts = re.split(r"\s+|=", line.strip())
                 if parts[1] in ['--output', '--error', '--array', 
-                                '--job-name', '-n']:
-                    key = parts[1][2:]
+                                '--job-name', '-n', '--time', '--mem']:
+                    key = parts[1]
+                    while key[0] == '-' and len(key) > 0:
+                        key = key[1:]
                     key = {'n': 'num_cores'}.get(key, key)
                     meta[key] = parts[-1]
             elif not line.startswith('#'):
@@ -35,7 +52,7 @@ def slurm2parallel(data):
         num_tasks = int(data['meta']['array'].split('%')[0].split('-')[-1]) + 1
     num_allowed_cores = len(os.sched_getaffinity(0))
     num_parallel_jobs = max(
-        1, num_allowed_cores // data["meta"].get('num_cores', 999))
+        1, num_allowed_cores // int(data["meta"].get('num_cores', 999)))
 
     pcmd = "parallel -j %i '\n" % num_parallel_jobs
 
@@ -87,6 +104,7 @@ def slurm2parallel(data):
 
     return pcmd
 
+
 def wait_for_pid(pid, pollinterval=1):
     """Blocks until a job with given PID has exited."""
     while True:
@@ -98,6 +116,160 @@ def wait_for_pid(pid, pollinterval=1):
             break
         except PermissionError:
             time.sleep(pollinterval)
+
+
+def argo_job2template(jobname, data, image, k8s_config):
+    """Converts a slurm script into an Argo workflow step.
+
+    Parameters
+    ==========
+    jobname : str
+        An identifier for this step within the workflow.
+    data : dict
+        Slurm script information as read via read_slurm_script().
+    image : str
+        Docker image to pull from.
+
+    Returns
+    =======
+    dict with ruamel annotations to become part of a k8s/argo yaml file.
+    """
+    inline_liste = CommentedSeq(["/bin/bash", "-c"])
+    inline_liste.fa.set_flow_style()
+
+    # redirect STDOUT and STDERR
+    if 'output' in data["meta"].keys():
+        data['commands'].insert(0, 'exec 1>%s' % data["meta"]['output'].replace(
+            '%a', '{{inputs.parameters.batch}}'))
+    if 'error' in data["meta"].keys():
+        data['commands'].insert(0, 'exec 2>%s' % data["meta"]['error'].replace(
+            '%a', '{{inputs.parameters.batch}}'))
+
+    def _replace_variables(text, data):
+        text = text.replace(data['meta']['job-name'], '{{workflow.parameters.job-id}}')
+        text = text.replace('${SLURM_JOBID}', '{{workflow.name}}')
+        text = text.replace('${SLURM_ARRAY_TASK_ID}', '{{inputs.parameters.batch}}')
+        return text
+    skript_text = _replace_variables("\n".join(data['commands']), data)
+    argumente_liste = [LiteralScalarString(skript_text)]
+
+    tpl = {'name': jobname}
+    
+    if 'array' in data['meta'].keys():
+        tpl['inputs'] = {'parameters': [{'name': 'batch'}]}
+
+    tpl['container'] = {
+        'image': image,
+        'command': inline_liste,
+        'args': argumente_liste,
+        'volumeMounts': [
+            {'name': k8s_config.volume_name, 'mountPath': k8s_config.volume_mount_path},
+        ]}
+    if os.environ['PLUGIN'] == 'qp-woltka':
+        tpl['container']['volumeMounts'].append(
+            {'name': k8s_config.volume_name, 'mountPath': '/databases', 'subPath': 'references/qp-woltka'})
+
+    resources = dict()
+    for resource in ['num_cores', 'mem']:
+        if resource in data['meta'].keys():
+            for req in ['requests', 'limits']:
+                if req not in resources.keys():
+                    resources[req] = dict()
+                key = {'num_cores': 'cpu',
+                       'mem': 'memory'}[resource]
+                value = data['meta'][resource]
+                if resource == 'mem':
+                    # TODO: this is capping the max memory request, as current VMs
+                    # in the kubernetes hosting deNBI cloud project have "only"
+                    # 64 GB each
+                    value = '%ig' % min(int(value.replace('g','')), 55)
+
+                    value = value.replace('g', 'Gi')
+                resources[req][key] = value
+    if len(resources) > 0:
+        tpl['container']['resources'] = resources
+
+    return tpl
+
+
+def argo_job2dag(jobname, data, dependencies=[]):
+    """Converts a slurm script into a step in the argo DAG.
+
+    Parameters
+    ==========
+    jobname : str
+        An identifier for this step within the workflow.
+    data : dict
+        Slurm script information as read via read_slurm_script().
+    dependencies : [str]
+        previous steps to wait for
+
+    Returns
+    =======
+    dict to become part of a k8s/argo yaml file.
+    """
+    
+    tpl = {
+        'name': jobname,
+        'template': jobname,
+    }
+    if 'array' in data['meta'].keys():
+        tpl['withSequence'] = {
+            'start': str(data['meta']['array'].split('%')[0].split('-')[0]), 
+            'end': str(data['meta']['array'].split('%')[0].split('-')[1])
+        }
+        tpl['arguments'] = {'parameters': [{'name': 'batch', 'value': '"{{item}}"'}]}
+    if len(dependencies) > 0:
+        tpl['dependencies'] = dependencies
+        
+    return tpl
+
+
+def argo_slurm2workflow(jobs:List[Tuple[str, Dict]], image:str, k8s_config):
+    yaml = YAML(typ='rt')
+    yaml.default_flow_style = False
+
+    argo = dict()
+    argo['apiVersion'] = "argoproj.io/v1alpha1"
+    argo['kind'] = "Workflow"
+    argo['metadata'] = {'generateName': os.path.basename(image).split(':')[0]}
+    argo['spec'] = {'entrypoint': 'qiita-pipeline',
+                    'serviceAccountName': 'qiita-plugin-starter-svc',
+                    'arguments': {'parameters': [{'name': 'job-id', 'value': jobs[0][1]['meta']['job-name']}]},
+                    'volumes': [{'name': k8s_config.volume_name, 'persistentVolumeClaim': {'claimName': k8s_config.pvc_name}}],
+                    'templates': [{'name': 'qiita-pipeline', 'dag': {'tasks': []}}]}
+    depJob = []
+    for (jobname, data) in jobs:
+        argo['spec']['templates'][0]['dag']['tasks'].append(argo_job2dag(jobname, data, depJob))
+        depJob = [jobname]
+        
+    for (jobname, data) in jobs:
+        argo['spec']['templates'].append(argo_job2template(jobname, data, image, k8s_config))
+
+    return yaml, argo
+
+
+def argo_submit_workflow(fp_worklow, k8s_config):
+    # Authentifizierung über den ServiceAccount des Backend-Pods
+    config.load_incluster_config()
+
+    # YAML laden
+    with open(fp_worklow, "r") as f:
+        workflow = yaml.safe_load(f)
+
+    # Kubernetes API für Custom Resources
+    api = client.CustomObjectsApi()
+
+    result = api.create_namespaced_custom_object(
+        group="argoproj.io",
+        version="v1alpha1",
+        namespace=k8s_config.namespace,
+        plural="workflows",
+        body=workflow,
+    )
+
+    return result
+
 
 # parse command line arguments
 parser = argparse.ArgumentParser(
@@ -119,38 +291,96 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-# obtain dependent PID
-dependency_pid = None
-if args.dependency and args.dependency.startswith('afterok:'):
-    try:
-        dependency_pid = int(args.dependency.split(':')[1])
-    except ValueError:
-        print(f"[fake sbatch] invalid PID: {args.dependency}", file=sys.stderr)
 
-# main
-data = read_slurm_script(args.script)
-pcmd = slurm2parallel(data)
+def main_argo():
+    # qiita plugins might submit multiple jobs via sbatch which depend on each other
+    # it is hard to determine when the last job in such a chain gets submitted, I 
+    # therefore hard encode the number of jobs (2 for qp-woltka) and store them
+    # in one directory. Such that the correct number of files will predict if
+    # further files need to be collected OR the actual execution can happen. I will
+    # store the job files in directory FP_STACK
+    FP_STACK = os.environ.get('PLUGIN_JOB_STACK', '/job_stack')
+    os.makedirs(FP_STACK, exist_ok=True)
+    jobs = []
+    # load existing jobs
+    for fp_job in sorted(glob(os.path.join(FP_STACK, '*.sbatch'))):
+        data = read_slurm_script(fp_job)
+        jobs.append(('job-' + data['meta']['job-name'], data))
 
-if args.dryrun:
-    print(pcmd)
-else:
-    pid = os.fork()
-    if pid == 0:
-        # child process
-        os.setsid()
+    # load current job
+    data = read_slurm_script(args.script)
+    jobs.append(('job-' + data['meta']['job-name'], data))
 
-        # redirect stdin/stdout/stderr to /dev/null
-        devnull = os.open(os.devnull, os.O_RDWR)
-        os.dup2(devnull, sys.stdin.fileno())
-        os.dup2(devnull, sys.stdout.fileno())
-        os.dup2(devnull, sys.stderr.fileno())
-        os.close(devnull)
+    # stack current to existing job for future calls
+    if args.dryrun is not True:
+        shutil.copy(args.script, os.path.join(FP_STACK, 'job_%03i.sbatch' % len(jobs)))
+        print("stored slurm script '%s' in stack '%s' as %i-th script." % (os.path.abspath(args.script), FP_STACK, len(jobs)), file=sys.stderr)
 
-        if dependency_pid is not None:
-            wait_for_pid(dependency_pid)
-        subprocess.run(pcmd, shell=True,
-                       executable=data['meta'].get('shebang', "/bin/bash"))
+    # load k8s qiita specific setting from file /k8s_config.cfg
+    k8s_config = K8SConfigurationManager()
+    yml, argo = argo_slurm2workflow(jobs, 'harbor.computational.bio.uni-giessen.de/tinqiita/%s:dev' % os.environ['PLUGIN'], k8s_config)
+
+    if args.dryrun:
+        print(yml.dump(argo, sys.stdout))
         sys.exit(0)
+
+    if (os.environ['PLUGIN'] == 'qp-woltka') and (len(jobs) == 2):
+        # now collected the expected amount of jobs in the stack -> execute
+        
+        # write yaml to file
+        fp_yaml = os.path.join(FP_STACK, 'argo-workflow.yaml')
+        with open(fp_yaml, 'w') as f:
+            yml.dump(argo, f)
+
+        result = argo_submit_workflow(fp_yaml, k8s_config)
+        workflow_name = result["metadata"]["name"]
+        print(f"Workflow gestartet: {workflow_name}", file=sys.stderr)
+        print(workflow_name)
+        sys.exit(0)
+
+    # return a job ID for start_woltka to be picked up
+    print('fake-job-id_%03i' % len(jobs))
+
+
+def main_parallel():
+    # obtain dependent PID
+    dependency_pid = None
+    if args.dependency and args.dependency.startswith('afterok:'):
+        try:
+            dependency_pid = int(args.dependency.split(':')[1])
+        except ValueError:
+            print(f"[fake sbatch] invalid PID: {args.dependency}", file=sys.stderr)
+
+    # main
+    data = read_slurm_script(args.script)
+    pcmd = slurm2parallel(data)
+
+    if args.dryrun:
+        print(pcmd)
     else:
-        # parent process
-        print(pid)
+        pid = os.fork()
+        if pid == 0:
+            # child process
+            os.setsid()
+
+            # redirect stdin/stdout/stderr to /dev/null
+            devnull = os.open(os.devnull, os.O_RDWR)
+            os.dup2(devnull, sys.stdin.fileno())
+            os.dup2(devnull, sys.stdout.fileno())
+            os.dup2(devnull, sys.stderr.fileno())
+            os.close(devnull)
+
+            if dependency_pid is not None:
+                wait_for_pid(dependency_pid)
+            subprocess.run(pcmd, shell=True,
+                        executable=data['meta'].get('shebang', "/bin/bash"))
+            sys.exit(0)
+        else:
+            # parent process
+            print(pid)
+
+
+if os.getenv('KUBERNETES_SERVICE_HOST', None) is not None:
+    main_argo()
+else:
+    main_parallel()
