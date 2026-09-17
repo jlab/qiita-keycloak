@@ -138,7 +138,7 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
           cp Images/start_plugin.sh Images/test_plugin.sh Images/${{ matrix.plugin }}/requirements.txt Images/trigger.py .
-          if [ ${{ matrix.plugin }}" == "qp-woltka"]; then cp Images/qp-woltka/syndna.fasta .; fi
+          if [ "${{ matrix.plugin }}" == "qp-woltka"]; then cp Images/qp-woltka/syndna.fasta .; fi
           mkdir -p ./debug
 
       - name: Download certificates from job build_main
