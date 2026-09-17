@@ -60,7 +60,7 @@ RUN wget --no-verbose https://github.com/conda-forge/miniforge/releases/download
 	rm -f /tmp/miniforge3.sh
 
 # Create conda env
-RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom-format bowtie2==2.5.4 seqkit
+RUN conda create --quiet -n ${PLUGIN} -c conda-forge -c bioconda python=3.9 biom-format bowtie2==2.5.4 seqkit fastq-pair
 # Make RUN commands use the new environment:
 # append --format docker to the build command, see https://github.com/containers/podman/issues/8477
 SHELL ["conda", "run", "-p", "${CONDA_DIR}/envs/${PLUGIN}", "/bin/bash", "-c"]
@@ -141,6 +141,7 @@ COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-inspect-l /usr/bin/
 COPY --from=builder /bowtie2-2.5.4-linux-x86_64/bowtie2-inspect-s /usr/bin/
 COPY --from=builder /usr/local/bin/seqkit /usr/local/bin/
 COPY --from=builder /usr/local/bin/sam_filter /usr/local/bin/sam_filter
+COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/fastq_pair /usr/bin/fastq_pair
 
 # unzip and wget are necessary for creation of reference DBs
 RUN apt-get update && apt-get install -y --no-install-recommends \
