@@ -67,7 +67,8 @@ RUN sed -i "s|'source activate qiita'|'true'|" /qiita/qiita_db/support_files/pop
 
 # We need to install necessary dependencies
 # as well as some extra dependencies for psycopg2 to work
-RUN git clone https://github.com/psycopg/psycopg2.git
+# smj: 2026-09-17: latest version of psycopg2 dropped support for python 3.9
+RUN git clone --branch 2.9.12 https://github.com/psycopg/psycopg2.git
 RUN export PATH=/usr/lib/postgresql/14.11/bin/:$PATH
 RUN pip install -e psycopg2/.
 
