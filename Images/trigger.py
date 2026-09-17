@@ -42,9 +42,6 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 stderr=asyncio.subprocess.PIPE,
                 executable='/bin/bash'
             )
-            # capture child PID
-            pid = proc.pid
-
             stdout, stderr = await proc.communicate()
             #result = subprocess.run(cmd, shell=True, universal_newlines=True, executable='/bin/bash', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -53,11 +50,10 @@ class RunCommandHandler(tornado.web.RequestHandler):
 
             # Antwort zurueckgeben
             self.write({
-                "stdout": stdout.decode().strip(),
-                "stderr": stderr.decode().strip(),
+                "stdout": stdout.decode(),
+                "stderr": stderr.decode(),
                 "returncode": proc.returncode,
                 "cmd": cmd,
-                "child_pid": pid,
             })
 
         except Exception as e:
