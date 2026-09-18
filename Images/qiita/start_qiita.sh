@@ -25,8 +25,13 @@ trap cleanup SIGTERM SIGINT
 source $CONDA_DIR/etc/profile.d/conda.sh
 conda activate $CONDA_DIR/envs/$ENV_NAME
 cd /qiita
+
+# determine log directory from qiita configuration file
+LOGDIR=readlink -f `grep "^LOG_DIR =" $QIITA_CONFIG_FP | cut -d "=" -f 2-`
+mkdir -p $LOGDIR
+
 # start Qiita and safe PID in variable
-qiita pet webserver --no-build-docs start --port $PORT $MASTER 2> /logs/qiita_pet$MASTER.log 1>&2 &
+qiita pet webserver --no-build-docs start --port $PORT $MASTER 2> $LOGDIR/qiita_pet$MASTER.log 1>&2 &
 PY_PID=$!
 
 # wait till Qiita process is terminated
