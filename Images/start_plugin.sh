@@ -39,6 +39,9 @@ case "$PLUGIN" in
     qtp-visualization)
         STARTSCRIPT=start_$PLUGIN
         ;;
+    qp-meta)
+        STARTSCRIPT=start_$PLUGIN
+        ;;
     *)
         echo "unknown qiita plugin $PLUGIN"
         exit 1
