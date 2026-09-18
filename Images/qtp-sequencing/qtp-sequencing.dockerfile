@@ -93,6 +93,8 @@ RUN sed -i "s|'qiita-files @ https://github.com/'||" setup.py && \
 COPY requirements.txt ./requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
+# a bit of an ugly hack to tolerate frequent update of version numbers of this lib
+RUN cp `find ${CONDA_DIR}/envs/${PLUGIN}/lib/ -type f -name libhts.so.*` /libhts.so.copy
 
 # ==========================
 # Stage 2: Runtime
@@ -117,7 +119,7 @@ RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 
 # "install" https://github.com/alastair-droop/fqtools
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/fqtools /usr/local/bin/fqtools
-COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libhts.so.1.24 /lib/x86_64-linux-gnu/libhts.so.3
+COPY --from=builder libhts.so.copy /lib/x86_64-linux-gnu/libhts.so.3
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libdeflate.so.0 /lib/x86_64-linux-gnu/
 
 # "install" pigz
