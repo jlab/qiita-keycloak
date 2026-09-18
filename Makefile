@@ -3,6 +3,7 @@ DIR_REFERENCES=references
 
 include Configuration/makefile
 include Images/makefile
+include Images/qp-woltka/qp-woltka.make
 
 # download GG13.8 reference sets from ftp://ftp.microbio.me/greengenes_release/gg_13_8_otus, instead of storing these large files within the qp-target-gene image 149 MB
 $(DIR_REFERENCES)/qp-target-gene:
