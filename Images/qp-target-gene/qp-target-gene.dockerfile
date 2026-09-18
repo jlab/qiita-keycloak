@@ -1,4 +1,4 @@
-# VERSION: 2026.05.08
+# VERSION: 2026.09.08
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -124,7 +124,7 @@ ENV PLUGIN=${PLUGIN}
 # py2 and py3
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python2 python3 curl python-tk && \
+    apt-get install -y --no-install-recommends python2 python3 curl python-tk ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # install pip2
