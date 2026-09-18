@@ -117,7 +117,7 @@ RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
 
 # "install" https://github.com/alastair-droop/fqtools
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/bin/fqtools /usr/local/bin/fqtools
-COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libhts.so.1.23.1 /lib/x86_64-linux-gnu/libhts.so.3
+COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libhts.so.1.24 /lib/x86_64-linux-gnu/libhts.so.3
 COPY --from=builder ${CONDA_DIR}/envs/${PLUGIN}/lib/libdeflate.so.0 /lib/x86_64-linux-gnu/
 
 # "install" pigz
