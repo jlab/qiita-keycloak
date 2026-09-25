@@ -60,6 +60,12 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
 	touch .built_image_`basename $< | cut -d "." -f 1`
 
+.built_image_qtp-genome: Images/qtp-genome/qtp-genome.dockerfile Images/qtp-genome/requirements.txt
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-`basename $< | cut -d "." -f 1`
+	touch .built_image_`basename $< | cut -d "." -f 1`
+
 .built_image_nginx: Images/nginx/nginx.dockerfile Images/nginx/start_nginx.sh Configuration/nginx_qiita.conf
 	cd Images/nginx && cp ../../Configuration/nginx_qiita.conf . && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-nginx
 	mkdir -p ./logs
@@ -69,6 +75,7 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 
 .built_image_qiita: Images/qiita/qiita.dockerfile Configuration/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Configuration/config_portal.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
+	cat `find Images/ -name "patch.sql" | xargs` > 96.sql
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
 	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita
@@ -80,4 +87,4 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-plugin_collector
 	touch .built_image_plugin_collector
 
-images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder
+images: .built_image_qtp-biom .built_image_nginx .built_image_qiita .built_image_plugin_collector .built_image_qtp-sequencing .built_image_qp-target-gene .built_image_qtp-visualization .built_image_qtp-diversity .built_image_qp-deblur .built_image_qp-qiime2 .built_image_qp-qiime2 .built_image_qtp-job-output-folder .built_image_qtp-genome
