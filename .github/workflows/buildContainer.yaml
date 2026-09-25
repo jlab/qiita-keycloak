@@ -119,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome"]
     runs-on: ubuntu-latest
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
@@ -375,7 +375,7 @@ jobs:
       - build_mulit_plugins
     strategy:
       matrix:
-        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
+        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome",
                  "nginx", "qiita", "plugin_collector",
                  "qp-qiime2"]
     runs-on: ubuntu-latest
