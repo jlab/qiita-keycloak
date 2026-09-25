@@ -61,6 +61,7 @@ RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.
 	&& git config --global user.name "Stefan"
 # the makefile collapsed all potential existing patches in the Image/qxp sub-dirs into this single patch
 COPY 96.sql /qiita/qiita/qiita_db/support_files/patches/96.sql
+COPY 96.sql /qiita/qiita/qiita_db/support_files/patches/test_db_sql/96.sql
 
 # should tests re-populate the DB, ensure private plugin, qtp-biom and qp-target-gene use the correct conda env
 RUN sed -i "s|'source /home/runner/.profile; conda activate qiita'|'source /opt/conda/etc/profile.d/conda.sh; conda activate /opt/conda/envs/qiita'|" /qiita/qiita_db/support_files/populate_test_db.sql
