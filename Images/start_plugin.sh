@@ -42,6 +42,9 @@ case "$PLUGIN" in
     qtp-genome)
         STARTSCRIPT=start_$PLUGIN
         ;;
+    qp-cofanpi)
+        STARTSCRIPT=start_$PLUGIN
+        ;;
     *)
         echo "unknown qiita plugin $PLUGIN"
         exit 1
