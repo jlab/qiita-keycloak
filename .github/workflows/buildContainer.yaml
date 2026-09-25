@@ -173,8 +173,8 @@ jobs:
           build-args: |
             CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
             CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
-            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
-            GIT_PLUGIN_BRANCH=${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
+            GIT_PLUGIN_FORK=${{ (matrix.plugin == 'qtp-genome') && 'jlab' || env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{ ((env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') || (matrix.plugin == 'qtp-genome')) && 'main' || env.GIT_PLUGIN_BRANCH }}
             GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
             GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
