@@ -374,6 +374,7 @@ jobs:
       - build_main
       - build_mulit_plugins
     strategy:
+      max-parallel: 3  # to avoid too many pushes at the very same time, which results in harbor time-outs
       matrix:
         image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome",
                  "nginx", "qiita", "plugin_collector",
@@ -413,5 +414,10 @@ jobs:
 
       - name: Push image to Docker Hub
         run: |
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+          for TAG in "${{ env.IMAGE_TAG }}" "latest"; do
+            for i in 1 2 3; do
+              docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:$TAG && break
+              echo "Pushing image ${{ matrix.image }}:$TAG failed, retry $i starts in 90 sec..."
+              sleep 90
+            done
+          done
