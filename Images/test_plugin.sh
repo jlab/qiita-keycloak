@@ -16,6 +16,12 @@ else
     REQUESTS_CA_BUNDLE="" pip install pytest;
 fi;
 
+# qtp-genome uses the jlab fork and main branch
+if [ "qtp-genome" == "$PLUGIN" ]; then
+    fork="jlab"
+    branch="main"
+fi
+
 if [ "qp-qiime2" != "$PLUGIN" ]; then
     # clone plugin repository
     git clone -b ${branch} https://github.com/${fork}/${PLUGIN};
