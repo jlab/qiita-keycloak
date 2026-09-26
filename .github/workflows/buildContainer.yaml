@@ -417,7 +417,7 @@ jobs:
           for TAG in "${{ env.IMAGE_TAG }}" "latest"; do
             for i in 1 2 3; do
               docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:$TAG && break
-              echo "Pushing image ${{ matrix.image }}:$TAG failed, retry $i starts in 90 sec..."
-              sleep 90
+              echo "Pushing image ${{ matrix.image }}:$TAG failed, retry $i starts in $(( (${{ strategy.job-index }} + 1) * 30 )) sec..."
+              sleep $(( (${{ strategy.job-index }} + 1) * 30 ))
             done
           done
