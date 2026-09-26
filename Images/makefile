@@ -75,10 +75,14 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 
 .built_image_qiita: Images/qiita/qiita.dockerfile Configuration/config_qiita_oidc.cfg Images/qiita/start_qiita.sh Images/qiita/start_qiita-initDB.sh Images/qiita/supervisor_foreground.conf Images/qiita/start_plugin.py Configuration/config_portal.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py
 	test -d src/qiita || git clone -b auth_oidc https://github.com/jlab/qiita.git src/qiita
-	cat `find Images/ -name "patch.sql" | xargs` > 96.sql
+	tmpdir=$(TMPDIR) $(MAKE) plugin
+	cp $^ $(TMPDIR)
+	# collect "patches" from all plugin and collapse in file 96.sql
+	cat `find Images/ -name "patch.sql" | xargs` > $(TMPDIR)/96.sql
+	cp $(TMPDIR)/96.sql src/qiita/qiita_db/support_files/patches/96.sql
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
-	cd Images/qiita && $(PODMAN_BIN) build . -f `basename $<` $(PODMAN_FLAGS) -t local-qiita
+	$(PODMAN_BIN) build $(TMPDIR)/ -f $(TMPDIR)/`basename $<` $(PODMAN_FLAGS) -t local-qiita
 	touch .built_image_qiita
 
 .built_image_plugin_collector: Images/plugin_collector/plugin_collector.dockerfile Images/plugin_collector/fix_test_db.py Images/plugin_collector/collect_configs.py Images/plugin_collector/start_plugin_collector.sh
