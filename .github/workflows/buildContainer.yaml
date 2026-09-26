@@ -57,6 +57,7 @@ jobs:
           cp Images/start_plugin.sh Images/test_plugin.sh Configuration/nginx_qiita.conf Images/${{ matrix.container }}/requirements.txt Images/nginx/start_nginx.sh .
           cp Configuration/config_portal.cfg Configuration/config_qiita_oidc.cfg Images/qiita/drop_workflows.py Images/qiita/secure_db.py Images/qiita/start_plugin.py Images/qiita/start_qiita-initDB.sh Images/qiita/start_qiita.sh .
           cp Images/plugin_collector/collect_configs.py Images/plugin_collector/fix_test_db.py Configuration/tinqiita_cert.conf Configuration/tinqiita_csr.conf Images/plugin_collector/start_plugin_collector.sh .
+          cat `find Images/ -name "patch.sql" | xargs` > 96.sql
 
       - name: Download certificates from job build_main
         uses: actions/download-artifact@v8
@@ -118,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder"]
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome"]
     runs-on: ubuntu-latest
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
@@ -172,8 +173,8 @@ jobs:
           build-args: |
             CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
             CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
-            GIT_PLUGIN_FORK=${{ env.GIT_PLUGIN_FORK }}
-            GIT_PLUGIN_BRANCH=${{ (env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') && 'main' || env.GIT_PLUGIN_BRANCH }}
+            GIT_PLUGIN_FORK=${{ (matrix.plugin == 'qtp-genome') && 'jlab' || env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{ ((env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') || (matrix.plugin == 'qtp-genome')) && 'main' || env.GIT_PLUGIN_BRANCH }}
             GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
             GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
@@ -373,8 +374,9 @@ jobs:
       - build_main
       - build_mulit_plugins
     strategy:
+      max-parallel: 3  # to avoid too many pushes at the very same time, which results in harbor time-outs
       matrix:
-        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder",
+        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome",
                  "nginx", "qiita", "plugin_collector",
                  "qp-qiime2"]
     runs-on: ubuntu-latest
@@ -412,5 +414,10 @@ jobs:
 
       - name: Push image to Docker Hub
         run: |
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+          for TAG in "${{ env.IMAGE_TAG }}" "latest"; do
+            for i in 1 2 3; do
+              docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:$TAG && break
+              echo "Pushing image ${{ matrix.image }}:$TAG failed, retry $i starts in $(( (${{ strategy.job-index }} + 1) * 30 )) sec..."
+              sleep $(( (${{ strategy.job-index }} + 1) * 30 ))
+            done
+          done
