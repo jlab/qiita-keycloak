@@ -243,6 +243,19 @@ services:
     networks:
       - qiita-net
 
+  qp-cofanpi:
+    image: local-qp-cofanpi:latest
+    restart: "no"
+    volumes:
+      - qiita-data:/qiita_data
+      - ./references/Certificates/tinqiita:/qiita_server_certificates
+      - test_tmp_dir:/tmp
+      - ./references/qp-cofanpi:/databases
+    environment:
+      - QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+    networks:
+      - qiita-net
+
   plugin-collector:
     # prior to qiita (master and worker) start up, iterates through the QIITA_PLUGINS : separated list of plugin containers
     # to compile all q*.conf files from plugin containers in the server-plugin-configs volume
@@ -276,9 +289,11 @@ services:
         condition: service_started
       qtp-genome:
         condition: service_started
+      qp-cofanpi:
+        condition: service_started
       # this comment is a stop flag for github action, don't remove!
     environment:
-      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qtp-genome:"
+      - QIITA_PLUGINS="qtp-biom:qtp-sequencing:qp-target-gene:qtp-visualization:qtp-diversity:qp-deblur:qp-qiime2:qtp-job-output-folder:qtp-genome:qp-cofanpi:"
       #- QIITA_PLUGINS="qp-target-gene:"
     command: ['/start_plugin_collector.sh']
 
