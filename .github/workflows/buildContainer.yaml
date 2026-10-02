@@ -119,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome"]
+        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome", "qp-cofanpi"]
     runs-on: ubuntu-latest
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
@@ -376,7 +376,7 @@ jobs:
     strategy:
       max-parallel: 3  # to avoid too many pushes at the very same time, which results in harbor time-outs
       matrix:
-        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome",
+        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome", "qp-cofanpi",
                  "nginx", "qiita", "plugin_collector",
                  "qp-qiime2"]
     runs-on: ubuntu-latest
