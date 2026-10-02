@@ -1,4 +1,4 @@
-# VERSION: 2026.09.08
+# VERSION: 2026.10.02
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -87,7 +87,8 @@ ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
 RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
 	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
-RUN pip install biom-format && \
+RUN pip install https://github.com/biocore/pyqi/archive/refs/tags/v0.1.1.zip && \
+    pip install biom-format && \
 	pip install -e . && \
 	pip install --upgrade certifi && \
 	pip install pip-system-certs

@@ -2,5 +2,6 @@
 pip-system-certs
 
 https://github.com/qiita-spots/qiita-files/archive/master.zip
+https://github.com/biocore/pyqi/archive/refs/tags/v0.1.1.zip
 -e /qiita_client
 -e /qp-target-gene
