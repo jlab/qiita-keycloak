@@ -1,4 +1,4 @@
-# VERSION: 2026.09.25
+# VERSION: 2026.10.02
 
 FROM ubuntu:24.04
 
@@ -58,7 +58,8 @@ RUN git clone -b ${GIT_QIITA_BRANCH} https://github.com/${GIT_QIITA_FORK}/qiita.
 	&& cd qiita \
 	&& git config pull.rebase false \
 	&& git config --global user.email "jlab@uni-giessen.de" \
-	&& git config --global user.name "Stefan"
+	&& git config --global user.name "Stefan" \
+	&& git pull origin multiple_input_artifacts
 # the makefile collapsed all potential existing patches in the Image/qxp sub-dirs into this single patch
 COPY 96.sql /qiita/qiita_db/support_files/patches/96.sql
 COPY 96.sql /qiita/qiita_db/support_files/patches/test_db_sql/96.sql

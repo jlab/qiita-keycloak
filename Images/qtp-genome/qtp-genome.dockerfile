@@ -1,4 +1,4 @@
-# VERSION: 2026.05.08
+# VERSION: 2026.10.02
 
 # variables, specifically for this plugin
 # qiita plugin name
@@ -83,7 +83,7 @@ RUN git clone -b master https://github.com/qiita-spots/qiita-files.git && \
 ARG CACHEBURST_PLUGIN=1
 ENV GIT_PLUGIN_BRANCH=${GIT_PLUGIN_BRANCH}
 ENV GIT_PLUGIN_FORK=${GIT_PLUGIN_FORK}
-RUN git clone -b ${GIT_PLUGIN_BRANCH} https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
+RUN git clone -b ${GIT_PLUGIN_BRANCH}     https://github.com/${GIT_PLUGIN_FORK}/${PLUGIN}.git /${PLUGIN} && \
 	git -C /${PLUGIN} rev-parse HEAD
 WORKDIR /${PLUGIN}
 RUN sed -i 's|"qiita-client @ https://github.com/qiita-spots/qiita_client/archive/master.zip",||' pyproject.toml && \
