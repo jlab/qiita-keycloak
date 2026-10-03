@@ -84,7 +84,7 @@ plugin: Images/trigger.py Images/start_plugin.sh $(DIR_REFERENCES)/Certificates 
 	tmpdir=$(TMPDIR) $(MAKE) plugin
 	cp $^ $(TMPDIR)
 	# collect "patches" from all plugin and collapse in file 96.sql
-	cat `find Images/ -name "patch.sql" | xargs` > $(TMPDIR)/96.sql
+	for f in $(find Images/ -name patch.sql | sort); do cat "$f"; echo; done > $(TMPDIR)/96.sql
 	cp $(TMPDIR)/96.sql src/qiita/qiita_db/support_files/patches/96.sql
 	# remove configuration and certificate files from upstream qiita repo
 	rm -rf src/qiita/qiita_core/support_files
