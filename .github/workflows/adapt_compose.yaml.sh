@@ -3,6 +3,7 @@ set -euo pipefail
 
 COMPOSE_FILE="$1"
 PLUGIN="$2"
+TAG="${3:-testcandidate}"
 
 echo "INFO: adapt file >$COMPOSE_FILE< for plugin: >$PLUGIN<" 1>&2
 
@@ -10,7 +11,7 @@ echo "INFO: adapt file >$COMPOSE_FILE< for plugin: >$PLUGIN<" 1>&2
 sed -i "/^ *image: local-/a\    pull_policy: never" $COMPOSE_FILE
 
 # change images to be used from local to github internal builds
-sed -i "s|image: local-\([^:]*\):latest|image: ghcr.io/jlab/qiita-keycloak/\1:testcandidate|" $COMPOSE_FILE
+sed -i "s|image: local-\([^:]*\):latest|image: ghcr.io/jlab/qiita-keycloak/\1:${TAG}|" $COMPOSE_FILE
 if [ "$PLUGIN" == "qp-qiime2" ]; then
     # the qp-qiime2 plugin needs qtp-visualization and qtp-diversity to be active as well
     sed -i "/this comment is a start flag for github action/,/this comment is a stop flag for github action/c\      ${PLUGIN}:\n        condition: service_started\n      qtp-diversity:\n        condition: service_started\n      qtp-visualization:\n        condition: service_started" $COMPOSE_FILE;
