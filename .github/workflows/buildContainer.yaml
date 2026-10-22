@@ -57,7 +57,9 @@ jobs:
             ./Configuration
 
   build_main:
-    needs: make_certificates
+    needs:
+      - make_certificates
+      - define_images
     strategy:
       matrix:
         container: ${{ fromJSON(needs.define_images.outputs.main) }}
