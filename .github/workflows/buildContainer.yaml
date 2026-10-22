@@ -140,6 +140,7 @@ jobs:
     needs:
       - build_main
       - make_references
+      - define_images
     strategy:
       fail-fast: false
       matrix:
@@ -265,6 +266,7 @@ jobs:
   build_mulit_plugins:
     needs:
       - build_plugins
+      - define_images
     strategy:
       matrix:
         multiplugin: ${{ fromJSON(needs.define_images.outputs.multi) }}
@@ -388,6 +390,7 @@ jobs:
       - build_plugins
       - build_main
       - build_mulit_plugins
+      - define_images
     strategy:
       max-parallel: 3  # to avoid too many pushes at the very same time, which results in harbor time-outs
       matrix:
@@ -448,7 +451,9 @@ jobs:
   # remove the temporary run-specific images from GHCR once everything has been published.
   # Only on success: if a run fails, its images stay available so that "re-run failed jobs" keeps working.
   cleanup_ghcr:
-    needs: publish_images
+    needs:
+      - publish_images
+      - define_images
     if: success()
     runs-on: ubuntu-latest
     permissions:
