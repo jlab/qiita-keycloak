@@ -10,7 +10,29 @@ on:
     branches:
       - main
 
+env:
+  # one tag per workflow run: parallel runs (PR vs. main) cannot overwrite each other's images
+  CI_TAG: ci-${{ github.run_id }}
+
 jobs:
+  define_images:
+    runs-on: ubuntu-latest
+    outputs:
+      main:    ${{ steps.def.outputs.main }}    # images for qiita main, i.e. nginx, qiita, plugin_collector
+      plugins: ${{ steps.def.outputs.plugins }} # single image plugins, currently: qp-deblur, qtp-biom, qtp-sequencing, qtp-visualization, qtp-diversity, qp-target-gene, qtp-job-output-folder, qtp-genome but should be easily extendable
+      multi:   ${{ steps.def.outputs.multi }}   # plugins that require other plugins to be present too, currently only qp-qiime2
+      all:     ${{ steps.def.outputs.all }}     # all of the above
+    steps:
+      - id: def
+        run: |
+          MAIN='["nginx","qiita","plugin_collector"]'
+          PLUGINS='["qp-deblur","qtp-biom","qtp-sequencing","qtp-visualization","qtp-diversity","qp-target-gene","qtp-job-output-folder","qtp-genome"]'
+          MULTI='["qp-qiime2"]'
+          echo "main=$MAIN"       >> $GITHUB_OUTPUT
+          echo "plugins=$PLUGINS" >> $GITHUB_OUTPUT
+          echo "multi=$MULTI"     >> $GITHUB_OUTPUT
+          echo "all=$(jq -nc --argjson a "$MAIN" --argjson b "$PLUGINS" --argjson c "$MULTI" '$a+$b+$c')" >> $GITHUB_OUTPUT
+
   make_certificates:
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +49,7 @@ jobs:
       - name: Store certifactes for follow up jobs
         uses: actions/upload-artifact@v7
         with:
+          retention-days: 1
           name: certificates
           path: |
             ./Certificates
@@ -34,10 +57,12 @@ jobs:
             ./Configuration
 
   build_main:
-    needs: make_certificates
+    needs:
+      - make_certificates
+      - define_images
     strategy:
       matrix:
-        container: ["nginx", "qiita", "plugin_collector"]
+        container: ${{ fromJSON(needs.define_images.outputs.main) }}
     runs-on: ubuntu-latest
     env:
       GIT_QIITA_FORK: "jlab"
@@ -86,9 +111,7 @@ jobs:
             GIT_QIITA_FORK=${{ env.GIT_QIITA_FORK }}
             GIT_QIITA_BRANCH=${{ env.GIT_QIITA_BRANCH }}
           file: Images/${{ matrix.container }}/${{ matrix.container }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.container }}:${{ env.CI_TAG }}
           platforms: linux/amd64
 
   make_references:
@@ -107,6 +130,7 @@ jobs:
       - name: Store fake references for follow up jobs
         uses: actions/upload-artifact@v7
         with:
+          retention-days: 1
           name: fake_references
           path: |
             ./references/qp-deblur
@@ -116,10 +140,11 @@ jobs:
     needs:
       - build_main
       - make_references
+      - define_images
     strategy:
       fail-fast: false
       matrix:
-        plugin: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome"]
+        plugin: ${{ fromJSON(needs.define_images.outputs.plugins) }}
     runs-on: ubuntu-latest
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
@@ -178,22 +203,20 @@ jobs:
             GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
             GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:${{ env.CI_TAG }}
           platforms: linux/amd64
           load: true
           push: true
 
-      - name: Pull qiita testcandidate image from GHCR
+      - name: Pull images of this run from GHCR
         run: |
-          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qiita:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/nginx:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:${{ env.CI_TAG }}
 
       - name: adapt compose file to select specific plugin
         run: |
-          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }}
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml ${{ matrix.plugin }} ${{ env.CI_TAG }}
 
       - name: Log in to DockerHub Container Registry
         # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
@@ -210,8 +233,8 @@ jobs:
             nginx
       - name: Check which qiita and plugin image is actually running
         run: |
-          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
-          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/qiita:${{ env.CI_TAG }} --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:${{ env.CI_TAG }} --format '{{.Id}}'
       - name: Show docker compose logs
         if: failure()
         run: |
@@ -234,20 +257,19 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
+          retention-days: 3
           name: debug logs
           path: ./debug
 
-      - name: Push image to ghcr (only if tests passed)
-        if: success()
-        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.plugin }}:testcandidate
 
   # the qp-qiime2 plugin cannot be tested in isolation, it also needs qtp-diversity and qtp-visualization to be active in qiita
   build_mulit_plugins:
     needs:
       - build_plugins
+      - define_images
     strategy:
       matrix:
-        multiplugin: ["qp-qiime2"]
+        multiplugin: ${{ fromJSON(needs.define_images.outputs.multi) }}
     runs-on: ubuntu-latest
     env:
       GIT_PLUGIN_FORK: "qiita-spots"
@@ -303,9 +325,7 @@ jobs:
             GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
             GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.multiplugin }}/${{ matrix.multiplugin }}.dockerfile
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
-          cache-from: type=gha,scope=tinqiita-${{ github.ref_name }}
-          cache-to: type=gha,scope=tinqiita-${{ github.ref_name }},mode=max
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:${{ env.CI_TAG }}
           platforms: linux/amd64
           load: false
           push: true
@@ -318,18 +338,18 @@ jobs:
 
       - name: adapt compose file to select specific plugin
         run: |
-          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}"
+          bash .github/workflows/adapt_compose.yaml.sh ./compose.yaml "${{ matrix.multiplugin }}" "${{ env.CI_TAG }}"
 
-      - name: Pull qiita testcandidate image from GHCR
+      - name: Pull images of this run from GHCR
         run: |
           docker pull postgres:15
           docker pull redis:latest
-          docker pull ghcr.io/${{ github.repository }}/qiita:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/nginx:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/plugin_collector:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/qtp-diversity:testcandidate
-          docker pull ghcr.io/${{ github.repository }}/qtp-visualization:testcandidate
+          docker pull ghcr.io/${{ github.repository }}/qiita:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/nginx:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/plugin_collector:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/qtp-diversity:${{ env.CI_TAG }}
+          docker pull ghcr.io/${{ github.repository }}/qtp-visualization:${{ env.CI_TAG }}
 
       - name: Log in to DockerHub Container Registry
         # this is to evade public pull rate limits of 100 pulls per 6h for redis and postgres images
@@ -351,8 +371,8 @@ jobs:
 
       - name: Check which qiita and plugin image is actually running
         run: |
-          docker inspect ghcr.io/${{ github.repository }}/qiita:testcandidate --format '{{.Id}}'
-          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/qiita:${{ env.CI_TAG }} --format '{{.Id}}'
+          docker inspect ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:${{ env.CI_TAG }} --format '{{.Id}}'
       - name: Show docker compose logs
         if: failure()
         run: |
@@ -364,21 +384,17 @@ jobs:
           sleep 5
           docker compose exec ${{ matrix.multiplugin }} /bin/bash -c "PLUGIN_FORK=jlab PLUGIN_BRANCH=uncouple_clientpush bash /test_plugin.sh"
 
-      - name: Push image to ghcr (only if tests passed)
-        if: success()
-        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.multiplugin }}:testcandidate
 
   publish_images:
     needs:
       - build_plugins
       - build_main
       - build_mulit_plugins
+      - define_images
     strategy:
       max-parallel: 3  # to avoid too many pushes at the very same time, which results in harbor time-outs
       matrix:
-        image: ["qp-deblur", "qtp-biom", "qtp-sequencing", "qtp-visualization", "qtp-diversity", "qp-target-gene", "qtp-job-output-folder", "qtp-genome",
-                 "nginx", "qiita", "plugin_collector",
-                 "qp-qiime2"]
+        image: ${{ fromJSON(needs.define_images.outputs.all) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tinqiita repo
@@ -399,7 +415,7 @@ jobs:
           password: ${{ secrets.HARBOR_CB_SECRET }}
 
       - name: Pull image from GHCR
-        run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate
+        run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ env.CI_TAG }}
 
       - name: Read image version from dockerfile
         id: vars
@@ -407,17 +423,53 @@ jobs:
           VERSION=$(head -n 1 Images/${{ matrix.image }}/${{ matrix.image }}.dockerfile | cut -d ":" -f 2- | tr -d " ")
           echo "IMAGE_TAG=$VERSION" >> $GITHUB_ENV
 
-      - name: Retag image for Docker Hub
+      - name: Determine harbor tags
+        # pull request: only "dev"; merged into main (push event on main): version from dockerfile and "latest"
         run: |
-          docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:${{ env.IMAGE_TAG }}
-          docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:testcandidate harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:latest
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "HARBOR_TAGS=${{ env.IMAGE_TAG }} latest" >> $GITHUB_ENV
+          else
+            echo "HARBOR_TAGS=dev" >> $GITHUB_ENV
+          fi
 
-      - name: Push image to Docker Hub
+      - name: Retag image for harbor
         run: |
-          for TAG in "${{ env.IMAGE_TAG }}" "latest"; do
+          for TAG in ${{ env.HARBOR_TAGS }}; do
+            docker tag ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ env.CI_TAG }} harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:$TAG
+          done
+
+      - name: Push image to harbor
+        run: |
+          for TAG in ${{ env.HARBOR_TAGS }}; do
             for i in 1 2 3; do
               docker push harbor.computational.bio.uni-giessen.de/tinqiita/${{ matrix.image }}:$TAG && break
               echo "Pushing image ${{ matrix.image }}:$TAG failed, retry $i starts in $(( (${{ strategy.job-index }} + 1) * 30 )) sec..."
               sleep $(( (${{ strategy.job-index }} + 1) * 30 ))
             done
+          done
+
+  # remove the temporary run-specific images from GHCR once everything has been published.
+  # Only on success: if a run fails, its images stay available so that "re-run failed jobs" keeps working.
+  cleanup_ghcr:
+    needs:
+      - publish_images
+      - define_images
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        image: ${{ fromJSON(needs.define_images.outputs.all) }}
+    steps:
+      - name: Delete ${{ env.CI_TAG }} version of ghcr image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER_TYPE: ${{ github.event.repository.owner.type == 'Organization' && 'orgs' || 'users' }}
+        run: |
+          PKG=$(echo "${{ github.event.repository.name }}/${{ matrix.image }}" | sed 's|/|%2F|g')
+          BASE="/$OWNER_TYPE/${{ github.repository_owner }}/packages/container/$PKG/versions"
+          IDS=$(gh api --paginate "$BASE?per_page=100" --jq '.[] | select(.metadata.container.tags | index("${{ env.CI_TAG }}")) | .id') || true
+          for ID in $IDS; do
+            gh api -X DELETE "$BASE/$ID" || echo "WARNING: could not delete version $ID of ${{ matrix.image }}"
           done
