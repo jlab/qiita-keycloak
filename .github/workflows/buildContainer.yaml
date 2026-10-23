@@ -26,7 +26,7 @@ jobs:
       - id: def
         run: |
           MAIN='["nginx","qiita","plugin_collector"]'
-          PLUGINS='["qp-deblur","qtp-biom","qtp-sequencing","qtp-visualization","qtp-diversity","qp-target-gene","qtp-job-output-folder","qtp-genome"]'
+          PLUGINS='["qp-deblur","qtp-biom","qtp-sequencing","qtp-visualization","qtp-diversity","qp-target-gene","qtp-job-output-folder","qtp-genome","qp-cofanpi"]'
           MULTI='["qp-qiime2"]'
           echo "main=$MAIN"       >> $GITHUB_OUTPUT
           echo "plugins=$PLUGINS" >> $GITHUB_OUTPUT
@@ -198,8 +198,8 @@ jobs:
           build-args: |
             CACHEBURST_QIITACLIENT=${{ env.CACHEBURST_QIITACLIENT }}
             CACHEBURST_PLUGIN=${{ env.CACHEBURST_PLUGIN }}
-            GIT_PLUGIN_FORK=${{ (matrix.plugin == 'qtp-genome') && 'jlab' || env.GIT_PLUGIN_FORK }}
-            GIT_PLUGIN_BRANCH=${{ ((env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') || (matrix.plugin == 'qtp-genome')) && 'main' || env.GIT_PLUGIN_BRANCH }}
+            GIT_PLUGIN_FORK=${{ ((matrix.plugin == 'qtp-genome') || (matrix.plugin == 'qp-cofanpi')) && 'jlab' || env.GIT_PLUGIN_FORK }}
+            GIT_PLUGIN_BRANCH=${{ ((env.GIT_PLUGIN_BRANCH == 'master' && matrix.plugin == 'qtp-job-output-folder') || ((matrix.plugin == 'qtp-genome') || (matrix.plugin == 'qp-cofanpi'))) && 'main' || env.GIT_PLUGIN_BRANCH }}
             GIT_QIITACLIENT_FORK=${{ env.GIT_QIITACLIENT_FORK }}
             GIT_QIITACLIENT_BRANCH=${{ env.GIT_QIITACLIENT_BRANCH }}
           file: Images/${{ matrix.plugin }}/${{ matrix.plugin }}.dockerfile
