@@ -15,7 +15,7 @@ ARG QIITA_CERT_DIR=/qiita_server_certificates
 # ==========================
 # Stage 1: Build wheels
 # ==========================
-FROM harbor.computational.bio.uni-giessen.de/tinqiita/cofanpi:latest
+FROM harbor.computational.bio.uni-giessen.de/cofanpi/cofanpi:latest
 ARG PLUGIN
 ARG QIITA_PLUGINS_DIR
 ARG QIITA_CERT_DIR
